@@ -1,9 +1,9 @@
 package main
 
 import (
+	"allsum_account/controller/doc"
+	"allsum_account/controller/user"
 	"common/filter"
-	"controller/doc"
-	"controller/user"
 
 	"github.com/astaxie/beego"
 )

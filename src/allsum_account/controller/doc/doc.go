@@ -1,11 +1,11 @@
 package doc
 
 import (
-	"common/controller/base"
+	"allsum_account/controller/base"
+	"allsum_account/model"
+	"allsum_account/service"
 	"common/lib/errcode"
 	"common/lib/util"
-	"common/model"
-	"common/service"
 	"io/ioutil"
 	"strings"
 	"time"

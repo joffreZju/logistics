@@ -1,15 +1,14 @@
 package main
 
 import (
+	"allsum_account/model"
 	"common/filter"
 	"common/lib/cache"
 	"common/lib/push"
 	"fmt"
 	"math/rand"
-	"model"
 	"os"
 	"runtime/pprof"
-	"service"
 	//"common/lib/cache"
 	"time"
 
@@ -54,12 +53,6 @@ func Init() (err error) {
 		return
 	}
 
-	// init service
-	err = service.Init()
-	if err != nil {
-		beego.Error("init service failed : ", err)
-		return
-	}
 	beego.Info("init success, start server ...")
 
 	// 生成pprof文件

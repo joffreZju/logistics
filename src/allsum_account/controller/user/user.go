@@ -1,15 +1,14 @@
 package user
 
 import (
+	"allsum_account/controller/base"
+	"allsum_account/model"
+	"allsum_account/service"
 	"common/lib/errcode"
 	"common/lib/keycrypt"
 	"common/lib/push"
-	"common/lib/util"
-	"controller/base"
 	"fmt"
 	"math/rand"
-	"model"
-	"service"
 	"strconv"
 	"time"
 
@@ -22,7 +21,7 @@ type Controller struct {
 	base.Controller
 }
 
-var AllsumUserList = []string{"15158134537"}
+var AllsumUserList = []string{"15158134537", "15558085697", "18867543358", "18694582678", "18667907711", "13735544671", "15301107268"}
 
 func getGroup(tel string) int {
 	for _, v := range AllsumUserList {
@@ -40,12 +39,12 @@ func (c *Controller) UserRegister() {
 	gender, _ := c.GetInt8("gender")
 	addr := c.GetString("address")
 	mail := c.GetString("mail")
-	referer := c.GetString("referer")
+
+	var err error
 
 	passwdc := keycrypt.Sha256Cal(passwd)
 	beego.Debug("tel:", tel)
 	var code int
-	var err error
 	if code, err = strconv.Atoi(c.GetString("code")); err != nil {
 		beego.Error("user.regist error:", err)
 		c.ReplyErr(errcode.ErrAuthCodeError)
@@ -66,7 +65,6 @@ func (c *Controller) UserRegister() {
 			Gender:   gender,
 			Address:  addr,
 			Mail:     mail,
-			Referer:  referer,
 			UserType: 1,
 			//CreateTime: time.Now(),
 		}
@@ -77,19 +75,10 @@ func (c *Controller) UserRegister() {
 			return
 		}
 
-		//同时创建个人账户
-		a := model.Account{
-			AccountNo: util.RandomByte16(),
-			Userid:    u.Id,
-			UserType:  1,
-			Status:    1,
-		}
-		err = service.AccountCreate(&a)
-		if err != nil {
-			beego.Error("create user account failed:", err)
-		}
-
-		c.ReplySucc("success")
+		jsonstr := make(map[string]interface{})
+		jsonstr["tel"] = tel
+		jsonstr["password"] = passwd
+		c.ReplySucc(jsonstr)
 	}
 }
 
@@ -133,7 +122,7 @@ func (c *Controller) UserLogin() {
 	user, err := service.GetUserByTel(tel)
 	if err != nil {
 		beego.Error(errcode.ErrUserNotExisted)
-		c.ReplyErr(errcode.ErrUserPasswordError)
+		c.ReplyErr(errcode.ErrUserNotExisted)
 		return
 	}
 	if !keycrypt.CheckSha256(passwd, user.Password) {
@@ -159,6 +148,44 @@ func (c *Controller) UserLogin() {
 		return
 	}
 
+}
+
+func (c *Controller) Retrievepwd() {
+	tel := c.GetString("tel")
+	user, err := service.GetUserByTel(tel)
+	if err != nil {
+		beego.Error(errcode.ErrUserNotExisted)
+		c.ReplyErr(errcode.ErrUserNotExisted)
+		return
+	}
+
+	var code int
+	if code, err = strconv.Atoi(c.GetString("code")); err != nil {
+		beego.Error("user.login error:", err)
+		c.ReplyErr(errcode.ErrAuthCodeError)
+		return
+	}
+	vcode := c.Cache.Get(tel)
+	if vcode == nil {
+		c.ReplyErr(errcode.ErrAuthCodeExpired)
+		return
+	} else if v, _ := strconv.Atoi(fmt.Sprintf("%s", vcode)); v != code {
+		c.ReplyErr(errcode.ErrAuthCodeError)
+		return
+	} else {
+		pwd := c.GetString("password")
+		pwdc := keycrypt.Sha256Cal(pwd)
+		user.Password = pwdc
+		err = service.UserUpdate(user, "Password")
+		if err != nil {
+			c.ReplyErr(err)
+			return
+		}
+		retstr := make(map[string]interface{})
+		retstr["tel"] = tel
+		retstr["password"] = pwd
+		c.ReplySucc(retstr)
+	}
 }
 
 func (c *Controller) UserLoginPhoneCode() {
@@ -263,7 +290,7 @@ func (c *Controller) Resetpwd() {
 func (c *Controller) GetCode() {
 	tel := c.GetString("tel")
 
-	// 测试环境用123456，不发短信
+	// 测试环境用1234，不发短信
 	if beego.BConfig.RunMode != "prod" {
 		err := c.Cache.Put(tel, 123456, time.Duration(300*time.Second))
 		if err != nil {
@@ -291,9 +318,10 @@ func (c *Controller) GetCode() {
 	}
 
 	//msg := fmt.Sprintf("您好，感谢您使用算配载服务，您的登录验证码是%v，验证码有效期为1分钟。", code)
-	if push.SendMsgWithDayuToMobile(tel, code, "壹算科技") {
-		c.ReplySucc("发送短信成功")
-	} else {
+	if err = push.SendSmsCodeToMobile(tel, code); err != nil {
+		beego.Error(err)
 		c.ReplyErr(errcode.ErrSendSMSMsgError)
+	} else {
+		c.ReplySucc("发送短信成功")
 	}
 }
