@@ -40,17 +40,14 @@ var (
 	ErrAuthCodeExpired              = &CodeError{20104, "验证码已经失效"}
 	ErrUserCodeHasAlreadyExited     = &CodeError{20106, "验证码已经发送，请60秒后重试"}
 	ErrUserPremissionError          = &CodeError{20107, "您没有足够的权限查看该数据！"}
-	ErrAgentCreatFailed             = &CodeError{20120, "新建代理商失败"}
-	ErrAgentNotExisted              = &CodeError{20121, "代理商不存在"}
+	ErrFirmCreatFailed              = &CodeError{20120, "新建企业失败"}
+	ErrFirmNotExisted               = &CodeError{20121, "企业不存在"}
+	ErrFirmUpdate                   = &CodeError{20122, "您目前无权限修改数据"}
 
 	ErrCreateOrderFailed       = &CodeError{20131, "创建订单失败"}
 	ErrCreateOrderStatusFailed = &CodeError{20132, "创建订单状态失败"}
-	ErrNoOrder                 = &CodeError{20133, "没有此订单"}
-	ErrWXPay                   = &CodeError{20133, "微信支付暂不可用"}
-	ErrALIPay                  = &CodeError{20134, "支付宝支付暂不可用"}
 	ErrGetBillFailed           = &CodeError{20140, "获取账单失败"}
 	ErrCreateBillFailed        = &CodeError{20141, "创建账单失败"}
-	ErrAccountFundLow          = &CodeError{20142, "账户余额不足"}
 
 	ErrUploadFileFailed = &CodeError{20150, "文件上传失败"}
 	ErrFileNotExist     = &CodeError{20151, "文件不存在"}
@@ -61,17 +58,7 @@ var (
 	ErrCouponVerify   = &CodeError{20157, "核销码错误"}
 	ErrCouponUsed     = &CodeError{20158, "代金券已使用"}
 	ErrCouponIllegal  = &CodeError{20159, "非法券"}
-	ErrCouponNotExist = &CodeError{20160, "券不存在"}
-
-	ErrNoTpl            = &CodeError{20170, "暂无匹配模板"}
-	ErrTplIsNull        = &CodeError{20171, "模板字段为空或有误"}
-	ErrCalResultIsNull  = &CodeError{20172, "计算结果还未返回"}
-	ErrWrongCalNo       = &CodeError{20173, "计算记录号(CalNo)有误"}
-	ErrCalPayFailed     = &CodeError{20173, "账户余额不足,计算扣费失败"}
-	ErrNoFrequentCars   = &CodeError{20174, "暂无最近使用车辆"}
-	ErrWrongJson        = &CodeError{20175, "cars,goods json格式有误"}
-	ErrWrongCarsGoods   = &CodeError{20176, "计算数据有误"}
-	ErrCalNoUserNoMatch = &CodeError{20177, "CalNo和用户不匹配"}
+	ErrCouponNotExist = &CodeError{20159, "券不存在"}
 )
 
 func ParseError(err error) (code int, msg string) {

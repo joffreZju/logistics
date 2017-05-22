@@ -325,3 +325,97 @@ func (c *Controller) GetCode() {
 		c.ReplySucc("发送短信成功")
 	}
 }
+
+func uniqueNo(prefix string) string {
+	str := strings.Replace(time.Now().Format("0102150405.000"), ".", "", 1)
+	str = prefix + str
+	return str
+}
+
+func (c *Controller) FirmRegister() {
+	uno := c.GetString("uno")
+	name := c.GetString("name")
+	desc := c.GetString("desc")
+	phone := c.GetString("phone")
+	lf := c.GetString("license_file")
+	tp, _ := c.GetInt("type")
+
+	firm := model.Company{
+		No:          uniqueNo("O"),
+		Creater:     uno,
+		Name:        name,
+		Desc:        desc,
+		Phone:       phone,
+		LicenseFile: lf,
+		Type:        tp,
+		Status:      0,
+	}
+	err = model.InsertCompany(&firm)
+	if err != nil {
+		beego.Error(err)
+		c.ReplyErr(errcode.ErrFirmCreateFailed)
+		return
+	}
+	c.ReplySucc("ok")
+}
+
+func (c *Controller) GetFirmInfo() {
+	no := c.GetString("no")
+	f, err := model.GetCompany(no)
+	if err != nil {
+		beego.Error(err)
+		c.ReplyErr(errcode.ErrFirmNotExisted)
+		return
+	}
+	c.ReplySucc(*f)
+}
+
+func (c *Controller) GetFirmList() {
+	list, err := model.GetCompanies()
+	if err != nil {
+		beego.Error(err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	c.ReplySucc(list)
+
+}
+func (c *Controller) AuditFirm() {
+	uno := c.GetString("uno")
+	cno := c.GetString("cno")
+	status, err := c.GetInt("status")
+	if err != nil {
+		beego.Error(err)
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	msg := c.GetString("msg")
+	err = model.AuditCompany(cno, uno, status, msg)
+	if err != nil {
+		beego.Error(err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	c.ReplySucc("ok")
+}
+func (c *Controller) FirmModify() {
+	no := c.GetString("no")
+	name := c.GetString("name")
+	desc := c.GetString("desc")
+	phone := c.GetString("phone")
+	lf := c.GetString("license_file")
+	firm := model.Company{
+		No:          no,
+		Name:        name,
+		Desc:        desc,
+		Phone:       phone,
+		LicenseFile: lf,
+	}
+	err = model.UpdateCompany(&firm)
+	if err != nil {
+		beego.Error(err)
+		c.ReplyErr(errcode.ErrFirmUpdate)
+		return
+	}
+	c.ReplySucc("ok")
+}

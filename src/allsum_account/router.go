@@ -1,7 +1,6 @@
 package main
 
 import (
-	"allsum_account/controller/doc"
 	"allsum_account/controller/user"
 	"common/filter"
 
@@ -27,19 +26,8 @@ func LoadRouter() {
 	beego.Router(UserPrefix+"/info", &user.Controller{}, "*:GetUserInfo")
 	beego.Router(UserPrefix+"/passwd/modify", &user.Controller{}, "*:Resetpwd")
 	beego.Router(UserPrefix+"/edit_profile", &user.Controller{}, "*:EditProfile")
+	beego.Router(UserPrefix+"/firm/register", &user.Controller{}, "Post:FirmRegister")
 
-	//代理商相关
-
-	//文档
-	beego.Router(ManagePrefix+"/doc/add", &doc.Controller{}, "POST:AddDocument")         //文档上传
-	beego.Router(UserPrefix+"/doc/view", &doc.Controller{}, "GET:GetDocUsing")           //文档查看
-	beego.Router(ManagePrefix+"/doc/list", &doc.Controller{}, "GET:GetDocList")          //文档列表
-	beego.Router(ManagePrefix+"/doc/set_status", &doc.Controller{}, "Post:SetDocStatus") //文档列表
-
-	beego.Router(UserPrefix+"/doc/file_add", &doc.Controller{}, "POST:AddFile")      //文件上传
-	beego.Router(UserPrefix+"/doc/file_down", &doc.Controller{}, "GET:FileDownload") //文件下载
-
-	// 非登录态列表
 	notNeedAuthList := []string{
 		// aliyun check
 		"/",
@@ -51,6 +39,6 @@ func LoadRouter() {
 	// 请求合法性验证 这个要放在第一个
 	//beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckRequestFilter())
 	//filter.AddURLCheckSeed("wxapp", "bFvKYrlnHdtSaaGk7B1t") // 添加URLCheckSeed
-	beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckAuthFilter("stowage_user", notNeedAuthList))
+	beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckAuthFilter("allsum_oa", notNeedAuthList))
 	beego.InsertFilter("/*", beego.BeforeRouter, filter.RequestFilter())
 }

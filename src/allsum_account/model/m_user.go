@@ -2,8 +2,6 @@ package model
 
 import (
 	//"errors"
-	//"fmt"
-
 	"fmt"
 	"strings"
 	"time"
@@ -15,8 +13,8 @@ const (
 )
 
 type User struct {
-	Id int `gorm:"AUTO_INCREMENT;primary_key" ` // 用户ID，表内自增
-	//Unum       string    `gorm:"default:NULL"  json:"-"`
+	Id         int       `gorm:"AUTO_INCREMENT;primary_key" ` // 用户ID，表内自增
+	Uno        string    `gorm:"size:64"`
 	Tel        string    `gorm:"unique_index;size:15;not null" json:",omitempty"`
 	Password   string    `json:"-"`                         // 密码
 	UserName   string    `gorm:"size:64" json:",omitempty"` // 用户名
@@ -28,8 +26,7 @@ type User struct {
 	CreateTime time.Time `gorm:"default:current_timestamp" json:",omitempty"` //
 	Mail       string    `gorm:"size:64" json:",omitempty"`
 	UserType   int       `gorm:"default:1" json:",omitempty"` //1 普通用户
-	RegisterID string    `gorm:"size:32" json:",omitempty"`   // 用于给用户推送消息
-	//Groups     []*Group  `orm:"-" json:",omitempty"` // 用户的所在组织
+	//Companys     []*Company  `orm:"-" json:",omitempty"` // 用户的所在组织
 }
 
 func (User) TableName() string {
@@ -45,21 +42,11 @@ func CreateUserIfNotExist(u *User) (err error) {
 	return
 }
 
-func GetUsersByReferer(tel string) (list []*User, err error) {
-	err = NewOrm(ReadOnly).Where("Referer = ?", tel).Find(&list).Error
-	return
-}
-
-func GetUserCountsByReferer(tel string) (c int, err error) {
-	err = NewOrm(ReadOnly).Model(&User{}).Where("Referer = ?", tel).Count(&c).Error
-	return
-}
-
 func UpdateUser(u *User, fields ...string) (err error) {
 	if len(fields) == 0 {
 		fields = append(fields, "Id", "Icon",
 			"Gender", "Descp", "Address", "LoginTime",
-			"Tel", "UserName", "Password", "Mail", "Referer")
+			"Tel", "UserName", "Password", "Mail")
 	}
 	sql := fmt.Sprintf("update allsum_user set PARAMS where id = ?")
 
@@ -125,81 +112,74 @@ func GetUsers(ids []int) (list []*User, err error) {
 
 }*/
 
-/*
-type Group struct {
-	Id         int    `orm:"auto;pk;"`
-	Gid        string `orm:"unique" json:"-"`
-	AdminId    int
-	Name       string
-	Descp      string
-	Users      []*GroupUser `orm:"rel(m2m)" json:",omitempty"`
-	CreateTime time.Time    `orm:"type(datetime)" json:",omitempty"` //
+type Company struct {
+	//Id          int    `gorm:"auto_increment;not null"`
+	No          string `gorm:"unique" json:"-"`
+	Creater     string `gorm:"not null"`
+	Name        string
+	Desc        string
+	Phone       string
+	LicenseFile string    `gorm:"size:255;not null"`
+	Status      int       //0:待审核;1:审核通过;2:审核不通过3:删除;
+	Type        int       //0:普通公司，1:个体户
+	Approver    string    //审核人
+	ApproveTime time.Time //批复时间
+	Msg         string    //审批意见
+	CreateTime  time.Time `orm:"type(datetime)" json:",omitempty"` //申请时间
 }
 
-func GetGroup(gid int) (g *Group, err error) {
-	g = new(Group)
-	g.Id = gid
-	o := NewOrm(ReadOnly)
-	if err = o.Read(g); err != nil {
-		return nil, err
-	}
+func (Company) TableName() string {
+	return "allsum_company"
+}
+func GetCompany(no string) (c *Company, err error) {
+	err = NewOrm().Where("no=?", no).First(c).Error
+	return
+}
+func GetCompanies() (list []Company, err error) {
+	err = NewOrm().Table("allsum_company").Find(&list).Error
+	return
+}
+func DeleteCompany(cno string) (err error) {
+	err = NewOrm().Model(&Company{}).Where("no=?", cno).Update("status", 3).Error
 	return
 }
 
-func DeleteGroup(gid int) (err error) {
-	g := Group{Id: gid}
-	_, err = Ormer.Delete(&g)
+func InsertCompany(c *Company) (err error) {
+	err = NewOrm().Create(c).Error
 	return
 }
 
-func InsertGroup(g *Group) (err error) {
-	id, err := Ormer.Insert(g)
-	if err != nil {
-		return
-	}
-	g.Id = int(id)
+func UpdateCompany(c *Company) (err error) {
+	err = NewOrm().Table("allsum_company").Where("no=? and status <> 1", c.No).Update(map[string]interface{}{
+		"name":  c.Name,
+		"desc":  c.Desc,
+		"phone": c.Phone,
+		"license_file", c.LicenseFile,
+	}).Error
 	return
 }
 
-func UpdateGroup(g *Group, fileds ...string) (err error) {
-	_, err = Ormer.Update(g, fileds...)
+func AuditCompany(cno string, uno string, st int, msg string) (err error) {
+	err = NewOrm().Model(&Company{}).Where("no=?", cno).Updates(Company{Status: st, Approver: uno, ApproveTime: time.Now(), Msg: msg}).Error
 	return
 }
 
-func AddGroupUser(gid int, uid int) (err error) {
-	g, err := GetGroup(gid)
-	if err != nil {
-		return
+type UserCompany struct {
+	Id  int
+	Uno string
+	Cno string
+}
+
+func AddCompanyUser(cno, uno string) (err error) {
+	uc := UserCompany{
+		Uno: uno,
+		Cno: cno,
 	}
-	u, err := GetUser(uid)
-	if err != nil {
-		return
-	}
-	_, err = Ormer.QueryM2M(g, "Users").Add(u)
+	err = NewOrm().Create(&uc).Error
 	return
 }
 
-func DeleteGroupUser(gid int, uid int) (err error) {
-	g, err := GetGroup(gid)
-	if err != nil {
-		return
-	}
-	u, err := GetUser(uid)
-	if err != nil {
-		return
-	}
-	_, err = Ormer.QueryM2M(g, "Users").Remove(u)
+func DeleteCompanyUser(cno, uno string) (err error) {
+	err = NewOrm().Where("uno = ? and cno= ?", uno, cno).Delete(&UserCompany{}).Error
 	return
 }
-
-type GroupUser struct {
-	Id           int          `orm:"auto;pk;" json:",omitempty"`
-	Group        *Group       `orm:"rel(fk)" json:",omitempty"`
-	User         *User        `orm:"rel(fk)" json:",omitempty"`
-	DepartmentId int          `json:",omitempty"` // 部门ID
-	Role         int          // 用户的角色
-	Temp         string       `orm:"column(permissions)" json:"Permission"` // 1|2|3 特殊权限的表
-	Permissions  map[int]bool `orm:"-" json:"-"`                            // 对应的权限列表
-	Status       int          `json:"-"`                                    // 用户状态 0 正常 1 删除
-}
-*/
