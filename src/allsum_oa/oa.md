@@ -1,3 +1,5 @@
+### 组织树相关接口
+
 - 更新或增加组织属性
     - Update:"true" or "false"
     - No:string
@@ -29,6 +31,13 @@
     - GroupId:int
     - NewName:string
 
+### 角色相关接口
+
+- 添加
+    - Name:string
+    - Desc:string
+    - FuncIds:[]int
+    - 所选的功能树下所有的功能
 
 
 

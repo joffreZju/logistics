@@ -31,7 +31,7 @@ type Func struct {
 	Pid   int       `gorm:"not null"`
 	Ctime time.Time `gorm:"not null"`
 	Path  string    `gorm:"not null"`
-	Level int       `gorm:"not null"`
+	//Level int       `gorm:"not null"`
 }
 
 func (Func) TableName() string {
