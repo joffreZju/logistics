@@ -62,7 +62,7 @@ func InitPgSQL(key string) (err error) {
 		}
 		hasReadOnly = true
 	}
-	Ormer.db.AutoMigrate(new(User), new(File), new(Document))
+	Ormer.db.AutoMigrate(new(User), new(Company), new(UserCompany))
 
 	if beego.BConfig.RunMode == "prod" {
 		Ormer.db.LogMode(false)

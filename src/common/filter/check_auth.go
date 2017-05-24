@@ -87,15 +87,15 @@ func CheckAuthFilter(group string, notNeedAuthList []string) beego.FilterFunc {
 		} else {
 			beego.Debug("CheckAuthFilter token", token)
 			//for visit admin page
-			if strings.Contains(path, "/admin") {
-				if token.GroupID != 1 {
-					o2o.Auth.ReturnFailueInfo(err, ctx)
-				}
-			} else {
-				ctx.Request.Header.Add("uid", token.SingleID)
-				token.DeadLine = time.Now().Unix() + int64(tokenauth.TokenPeriod)
-				tokenauth.Store.FlushToken(token)
-			}
+			//if strings.Contains(path, "/admin") {
+			//	if token.GroupID != "1" {
+			//		o2o.Auth.ReturnFailueInfo(err, ctx)
+			//	}
+			//} else {
+			ctx.Request.Header.Add("uid", token.SingleID)
+			token.DeadLine = time.Now().Unix() + int64(tokenauth.TokenPeriod)
+			tokenauth.Store.FlushToken(token)
+			//}
 
 			//strs := strings.Split(token.SingleID, "_")
 			//if len(strs) == 1 {

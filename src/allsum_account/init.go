@@ -4,7 +4,6 @@ import (
 	"allsum_account/model"
 	"common/filter"
 	"common/lib/cache"
-	"common/lib/push"
 	"fmt"
 	"math/rand"
 	"os"
@@ -44,7 +43,7 @@ func Init() (err error) {
 	}
 
 	// init push
-	err = push.Init()
+	//err = push.Init()
 
 	// init pgsql
 	err = model.InitPgSQL(key)
@@ -56,7 +55,7 @@ func Init() (err error) {
 	beego.Info("init success, start server ...")
 
 	// 生成pprof文件
-	go Printpprof()
+	//go Printpprof()
 
 	return
 }

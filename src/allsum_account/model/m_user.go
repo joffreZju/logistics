@@ -14,7 +14,7 @@ const (
 
 type User struct {
 	Id         int       `gorm:"AUTO_INCREMENT;primary_key" ` // 用户ID，表内自增
-	Uno        string    `gorm:"size:64"`
+	//Uno        string    `gorm:"size:64"`
 	Tel        string    `gorm:"unique_index;size:15;not null" json:",omitempty"`
 	Password   string    `json:"-"`                         // 密码
 	UserName   string    `gorm:"size:64" json:",omitempty"` // 用户名
@@ -26,7 +26,7 @@ type User struct {
 	CreateTime time.Time `gorm:"default:current_timestamp" json:",omitempty"` //
 	Mail       string    `gorm:"size:64" json:",omitempty"`
 	UserType   int       `gorm:"default:1" json:",omitempty"` //1 普通用户
-	//Companys     []*Company  `orm:"-" json:",omitempty"` // 用户的所在组织
+	Companys   []Company `orm:"-" json:",omitempty"`          // 用户的所在组织
 }
 
 func (User) TableName() string {
@@ -37,6 +37,7 @@ func CreateUser(u *User) (err error) {
 	err = Ormer.db.Create(u).Error
 	return
 }
+
 func CreateUserIfNotExist(u *User) (err error) {
 	err = NewOrm().Where("Tel= ?", u.Tel).FirstOrCreate(u).Error
 	return
@@ -96,25 +97,27 @@ func GetUser(id int) (u *User, err error) {
 	return
 }
 
+/*
 func DeleteUser(u *User) (err error) {
 	err = Ormer.db.Delete(u).Error
 	return
-}
+}*/
 
 func GetUserByTel(tel string) (u *User, err error) {
 	u = new(User)
 	err = NewOrm(ReadOnly).Where("Tel = ?", tel).Find(u).Error
+	if err != nil {
+		return
+	}
+	var cmp []Company
+	err = Ormer.db.Table("allsum_user_company").Where("uno=?", u.Uno).Find(&cmp).Error
+	u.Companys = cmp
 	return
 }
 
-/*
-func GetUsers(ids []int) (list []*User, err error) {
-
-}*/
-
 type Company struct {
-	//Id          int    `gorm:"auto_increment;not null"`
-	No          string `gorm:"unique" json:"-"`
+	Id          int    `gorm:"auto_increment;not null"`
+	//No          string `gorm:"unique" json:"-"`
 	Creater     string `gorm:"not null"`
 	Name        string
 	Desc        string
@@ -151,10 +154,10 @@ func InsertCompany(c *Company) (err error) {
 
 func UpdateCompany(c *Company) (err error) {
 	err = NewOrm().Table("allsum_company").Where("no=? and status <> 1", c.No).Update(map[string]interface{}{
-		"name":  c.Name,
-		"desc":  c.Desc,
-		"phone": c.Phone,
-		"license_file", c.LicenseFile,
+		"name":         c.Name,
+		"desc":         c.Desc,
+		"phone":        c.Phone,
+		"license_file": c.LicenseFile,
 	}).Error
 	return
 }
@@ -165,9 +168,22 @@ func AuditCompany(cno string, uno string, st int, msg string) (err error) {
 }
 
 type UserCompany struct {
-	Id  int
-	Uno string
-	Cno string
+	Id  int    `gorm:"auto_increment"`
+	Uno string `gorm:"not null"`
+	Cno string `gorm:"not null"`
+}
+
+func (UserCompany) TableName() string {
+	return "allsum_user_comapny"
+}
+
+func DelCompanyUser(cno, uno string) (err error) {
+	uc := UserCompany{
+		Uno: uno,
+		Cno: cno,
+	}
+	err = NewOrm().Delete(&uc, "uno=? and cno=?", uno, cno).Error
+	return
 }
 
 func AddCompanyUser(cno, uno string) (err error) {

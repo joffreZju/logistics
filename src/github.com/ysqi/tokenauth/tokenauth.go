@@ -137,7 +137,7 @@ func NewToken(a *Audience, tokenFunc GenerateTokenString) (*Token, error) {
 }
 
 // New Sign Token and this new token will be saved to store.
-func NewSingleToken(singleID string, group int, a *Audience, tokenFunc GenerateTokenString) (*Token, error) {
+func NewSingleToken(singleID string, group string, a *Audience, tokenFunc GenerateTokenString) (*Token, error) {
 	token := &Token{
 		ClientID: a.ID,
 		SingleID: singleID,
