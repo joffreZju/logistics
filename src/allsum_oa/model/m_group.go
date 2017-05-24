@@ -26,8 +26,8 @@ type Group struct {
 	Pid       int       `gorm:"not null"` //父节点id
 	Ctime     time.Time `gorm:"not null"`
 	Utime     time.Time
-	Path      string `gorm:"not null"`
-	Level     int    `gorm:"not null"`
+	Path      string //`gorm:"not null"` 需要先插入记录再更新path
+	//Level     int    `gorm:"not null"`
 }
 
 func (Group) TableName() string {
@@ -68,8 +68,8 @@ type HistoryGroup struct {
 	Pid       int       `gorm:"not null"` //父节点id
 	Ctime     time.Time `gorm:"not null"`
 	Utime     time.Time
-	Path      string `gorm:"not null"`
-	Level     int    `gorm:"not null"`
+	Path      string //`gorm:"not null"`
+	//Level     int    `gorm:"not null"`
 }
 
 func (HistoryGroup) TableName() string {
