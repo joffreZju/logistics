@@ -136,7 +136,7 @@ func RequestFilter() beego.FilterFunc {
 		if strings.Index(ctx.Request.URL.Path, "file_add") >= 0 {
 			return
 		}
-		beego.Info("reqeust url:",ctx.Input.URI()) //for test
+		beego.Info("reqeust url:", ctx.Input.URI()) //for test
 		params := make(map[string]interface{})
 		body, _ := ioutil.ReadAll(ctx.Request.Body)
 		beego.Info("request body string:", body) //for test
@@ -158,6 +158,10 @@ func RequestFilter() beego.FilterFunc {
 		for k, v := range params {
 			if str_v, ok := v.(string); ok {
 				ctx.Request.Form.Add(k, str_v)
+			} else if int_v, ok := v.(int); ok {
+				ctx.Request.Form.Add(k, int_v)
+			} else if bool_v, ok := v.(bool); ok {
+				ctx.Request.Form.Add(k, bool_v)
 			} else {
 				b, _ := json.Marshal(v)
 				ctx.Request.Form.Add(k, string(b))
