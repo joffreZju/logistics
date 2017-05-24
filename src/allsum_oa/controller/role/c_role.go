@@ -15,6 +15,8 @@ type Controller struct {
 	base.Controller
 }
 
+const CommonErr = 99999
+
 func (c *Controller) AddRole() {
 	prefix := c.UserComp
 	name := c.GetString("Name")
@@ -64,7 +66,7 @@ func (c *Controller) UpdateRole() {
 		Name: name,
 		Desc: desc,
 	}
-	//e = service.AddRole(prefix, &r, funcIds)
+	e = service.UpdateRole(prefix, &r, funcIds)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -74,5 +76,11 @@ func (c *Controller) UpdateRole() {
 }
 
 func (c *Controller) DelRole() {
-
+	//prefix := c.UserComp
+	//id, e := c.GetInt("Id")
+	//if e != nil {
+	//	c.ReplyErr(errcode.ErrParams)
+	//	beego.Error(e)
+	//	return
+	//}
 }

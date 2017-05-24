@@ -39,6 +39,15 @@
     - FuncIds:[]int
     - 所选的功能树下所有的功能
 
+- 修改
+    - Id:int
+    - Name:string
+    - Desc:string
+    - FuncIds:[]int
+    - 所选的功能树下所有的功能
 
+- 删除
+    - Id:int
+    - 如果该角色下还有用户，那么删除失败
 
 

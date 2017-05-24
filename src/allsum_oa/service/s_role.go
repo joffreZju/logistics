@@ -29,6 +29,11 @@ func addFuncsToRole(tx *gorm.DB, r *model.Role, fids []int) (e error) {
 	return nil
 }
 
+func delFuncsOfRole(tx *gorm.DB, r *model.Role) (e error) {
+	e = tx.Where("role_id = ? ", r.Id).Delete(model.RoleFunc{}).Error
+	return
+}
+
 func AddRole(prefix string, r *model.Role, fids []int) (e error) {
 	tx := model.NewOrm().Table(prefix + r.TableName()).Begin()
 	e = tx.Create(r).Error
@@ -51,6 +56,15 @@ func UpdateRole(prefix string, r *model.Role, fids []int) (e error) {
 		tx.Rollback()
 		return
 	}
-	//delete old funcs and add new funcs
-	return nil
+	e = addFuncsToRole(tx, r, fids)
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	e = delFuncsOfRole(tx, r)
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	return tx.Commit().Error
 }
