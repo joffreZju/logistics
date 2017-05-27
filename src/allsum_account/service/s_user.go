@@ -7,6 +7,8 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 
+	"strings"
+
 	"github.com/astaxie/beego"
 )
 
@@ -17,7 +19,11 @@ func UserCreate(u *model.User) (err error) {
 	err = model.CreateUser(u)
 	if err != nil {
 		beego.Error("UserCreate error: ", err)
-		err = errcode.ErrUserCreateFailed
+		if strings.Contains(err.Error(), "duplicate key") {
+			err = errcode.ErrUserAlreadyExisted
+		} else {
+			err = errcode.ErrUserCreateFailed
+		}
 		return
 	}
 	return

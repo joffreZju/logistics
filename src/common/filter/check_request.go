@@ -158,10 +158,6 @@ func RequestFilter() beego.FilterFunc {
 		for k, v := range params {
 			if str_v, ok := v.(string); ok {
 				ctx.Request.Form.Add(k, str_v)
-			} else if int_v, ok := v.(int); ok {
-				ctx.Request.Form.Add(k, int_v)
-			} else if bool_v, ok := v.(bool); ok {
-				ctx.Request.Form.Add(k, bool_v)
 			} else {
 				b, _ := json.Marshal(v)
 				ctx.Request.Form.Add(k, string(b))

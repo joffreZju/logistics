@@ -31,6 +31,12 @@ func NewOrm(readOnly ...int) *orm.DB {
 	return Ormer.db
 }
 
+func ModelInit(db *orm.DB)(err error) {
+	db.AutoMigrate(new(User), new(Company), new(UserCompany))
+	Ormer.db=db
+	return nil
+}
+
 func InitPgSQL(key string) (err error) {
 	username := beego.AppConfig.String("pgsql::username")
 	password := beego.AppConfig.String("pgsql::password")

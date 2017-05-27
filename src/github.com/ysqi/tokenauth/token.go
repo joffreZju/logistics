@@ -23,6 +23,7 @@ type Token struct {
 	SingleID string // Single Token ID
 	GroupID  string //	group id
 	Value    string // Token string
+	BizInfo  string // info for extre help
 	DeadLine int64  // Token Expiration date, time unix.
 }
 

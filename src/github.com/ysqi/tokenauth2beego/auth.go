@@ -151,7 +151,7 @@ type Automatic struct {
 func (a *Automatic) CheckToken(req *http.Request) (token *tokenauth.Token, err error) {
 	tokenString := ""
 	// Look for an Authorization header
-	if ah := req.Header.Get("Authorization"); len(ah) > 0 {
+	if ah := req.Header.Get(TokenFieldName); len(ah) > 0 {
 		// Should be a access token
 		//fieldLen := len(TokenFieldName)
 		//if len(ah) > fieldLen+1 && ah[fieldLen] == ' ' && strings.HasPrefix(ah, TokenFieldName) {
@@ -181,7 +181,7 @@ func (a *Automatic) CheckToken(req *http.Request) (token *tokenauth.Token, err e
 		return nil, tokenauth.ERR_TokenEmpty
 	}
 	// Get token.
-	fmt.Printf("++++++++++++++get:%s\n", tokenString)
+	fmt.Printf("check token get:%s\n", tokenString)
 	token, err = tokenauth.ValidateToken(tokenString)
 	return
 }

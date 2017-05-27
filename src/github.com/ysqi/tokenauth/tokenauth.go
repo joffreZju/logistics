@@ -137,12 +137,13 @@ func NewToken(a *Audience, tokenFunc GenerateTokenString) (*Token, error) {
 }
 
 // New Sign Token and this new token will be saved to store.
-func NewSingleToken(singleID string, group string, a *Audience, tokenFunc GenerateTokenString) (*Token, error) {
+func NewSingleToken(singleID string, group string, info string, a *Audience, tokenFunc GenerateTokenString) (*Token, error) {
 	token := &Token{
 		ClientID: a.ID,
 		SingleID: singleID,
 		GroupID:  group,
 		Value:    tokenFunc(a),
+		BizInfo: info,
 		DeadLine: time.Now().Unix() + int64(a.TokenPeriod),
 	}
 	if err := Store.SaveToken(token); err != nil {

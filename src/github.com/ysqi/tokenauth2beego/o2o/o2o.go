@@ -52,13 +52,13 @@ func NewAuthFileter(tokenPeriod uint64, secretFunc tokenauth.GenerateSecretStrin
 
 // Get and Save a new token. this user's other token will be destory.
 // Set Authorization to header,if w is not nil.
-func (a *O2OAutomatic) NewSingleToken(userID string, groupID string, w ...http.ResponseWriter) (token *tokenauth.Token, err error) {
+func (a *O2OAutomatic) NewSingleToken(userID , groupID string,info string, w ...http.ResponseWriter) (token *tokenauth.Token, err error) {
 	if len(userID) == 0 {
 		return nil, tokenauth2beego.ERR_UserIDEmpty
 	}
 
 	// New token
-	token, err = tokenauth.NewSingleToken(userID, groupID, a.Audience, a.TokenFunc)
+	token, err = tokenauth.NewSingleToken(userID, groupID,info, a.Audience, a.TokenFunc)
 	if err != nil {
 		return
 	}

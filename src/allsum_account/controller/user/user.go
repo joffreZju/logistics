@@ -27,17 +27,47 @@ var AllsumUserList = []string{"15158134537", "15558085697", "18867543358", "1869
 func getGroup(tel string) string {
 	for _, v := range AllsumUserList {
 		if tel == v {
-			return "1"
+			return "aaa"
 		}
 	}
-	return "0"
+	return "bbb"
 }
-
 func (c *Controller) UserRegister() {
 	tel := c.GetString("tel")
 	passwd := c.GetString("password")
 	desc := c.GetString("desc")
-	gender, _ := c.GetInt8("gender")
+	addr := c.GetString("address")
+	mail := c.GetString("mail")
+
+	var err error
+
+	passwdc := keycrypt.Sha256Cal(passwd)
+	beego.Debug("tel:", tel)
+
+	u := model.User{
+		Tel:      tel,
+		Password: passwdc,
+		Descp:    desc,
+		Address:  addr,
+		Mail:     mail,
+		UserType: 1,
+		//CreateTime: time.Now(),
+	}
+	err = service.UserCreate(&u)
+	if err != nil {
+		beego.Error("user register failed", err)
+		c.ReplyErr(err)
+		return
+	}
+	c.ReplySucc(u)
+
+}
+
+/*
+func (c *Controller) UserRegister() {
+	tel := c.GetString("tel")
+	passwd := c.GetString("password")
+	desc := c.GetString("desc")
 	addr := c.GetString("address")
 	mail := c.GetString("mail")
 
@@ -63,7 +93,6 @@ func (c *Controller) UserRegister() {
 			Tel:      tel,
 			Password: passwdc,
 			Descp:    desc,
-			Gender:   gender,
 			Address:  addr,
 			Mail:     mail,
 			UserType: 1,
@@ -72,7 +101,7 @@ func (c *Controller) UserRegister() {
 		err := service.UserCreate(&u)
 		if err != nil {
 			beego.Error("user register failed", err)
-			c.ReplyErr(errcode.ErrUserCreateFailed)
+			c.ReplyErr(err)
 			return
 		}
 
@@ -81,7 +110,7 @@ func (c *Controller) UserRegister() {
 		jsonstr["password"] = passwd
 		c.ReplySucc(jsonstr)
 	}
-}
+}*/
 
 func (c *Controller) GetUserInfo() {
 	user, err := service.GetUserInfo(int(c.UserID))
@@ -129,23 +158,8 @@ func (c *Controller) UserLoginAuth() {
 		c.ReplyErr(errcode.ErrUserPasswordError)
 		return
 	}
-	var companyId string
-	if len(user.Companys) > 0 {
-		companyId = user.Companys[1].No
-	} else {
-		companyId = "0"
-	}
-	token, err := o2o.Auth.NewSingleToken(user.Uno, companyId)
-	if err != nil {
-		beego.Error("o2o.Auth.NewSingleToken error:", err, *user)
-		c.ReplyErr(errcode.ErrAuthCreateFailed)
-	} else {
-		jsonstr := make(map[string]interface{})
-		jsonstr["Token"] = token.Value
-		jsonstr["User"] = user
-		c.ReplySucc(jsonstr)
-		beego.Debug("login auth ok,token:%+v", token)
-	}
+	c.ReplySucc(user)
+
 	return
 }
 
@@ -160,15 +174,21 @@ func (c *Controller) UserLogin() {
 		return
 	}
 	if len(passwd) < 6 {
-		beego.Error(errcode.ErrPasswdInit)
+		beego.Error(errcode.ErrUserNeedInit)
 	}
 	if !keycrypt.CheckSha256(passwd, user.Password) {
 		c.ReplyErr(errcode.ErrUserPasswordError)
 		return
 	}
+	var comNo string
+	if len(user.Companys) == 1 {
+		comNo = user.Companys[0].No
+	} else {
+		comNo = "none"
+	}
 
-	g := getGroup(tel)
-	token, err := o2o.Auth.NewSingleToken(strconv.Itoa(user.Id), g, c.Ctx.ResponseWriter)
+	var bizInfo string = ""
+	token, err := o2o.Auth.NewSingleToken(strconv.Itoa(user.Id), comNo, bizInfo, c.Ctx.ResponseWriter)
 	if err != nil {
 		beego.Error("o2o.Auth.NewSingleToken error:", err, *user)
 		c.ReplyErr(errcode.ErrAuthCreateFailed)
@@ -247,7 +267,14 @@ func (c *Controller) UserLoginPhoneCode() {
 		c.ReplyErr(errcode.ErrAuthCodeError)
 		return
 	} else {
-		token, err := o2o.Auth.NewSingleToken(strconv.Itoa(user.Id), getGroup(tel), c.Ctx.ResponseWriter)
+		var comNo string
+		if len(user.Companys) == 1 {
+			comNo = user.Companys[0].No
+		} else {
+			comNo = "none"
+		}
+
+		token, err := o2o.Auth.NewSingleToken(strconv.Itoa(user.Id), comNo, "", c.Ctx.ResponseWriter)
 		if err != nil {
 			beego.Error("o2o.Auth.NewSingleToken error:", err, *user)
 			c.ReplyErr(errcode.ErrAuthCreateFailed)
@@ -368,21 +395,21 @@ func uniqueNo(prefix string) string {
 }
 
 func (c *Controller) FirmRegister() {
-	uno := c.GetString("uno")
-	name := c.GetString("name")
+	uid, _ := c.GetInt("uid")
+	name := c.GetString("firm_name")
 	desc := c.GetString("desc")
 	phone := c.GetString("phone")
 	lf := c.GetString("license_file")
-	tp, _ := c.GetInt("type")
+	tp, _ := c.GetInt("firm_type")
 
 	firm := model.Company{
 		No:          uniqueNo("O"),
-		Creater:     uno,
-		Name:        name,
+		Creater:     uid,
+		FirmName:    name,
 		Desc:        desc,
 		Phone:       phone,
 		LicenseFile: lf,
-		Type:        tp,
+		FirmType:    tp,
 		Status:      0,
 	}
 	err := model.InsertCompany(&firm)
@@ -391,6 +418,7 @@ func (c *Controller) FirmRegister() {
 		c.ReplyErr(errcode.ErrFirmCreateFailed)
 		return
 	}
+	model.AddUserToCompany(firm.No,uid)
 	c.ReplySucc("ok")
 }
 
@@ -415,47 +443,7 @@ func (c *Controller) GetFirmList() {
 	c.ReplySucc(list)
 
 }
-func (c *Controller) FirmAudit() {
-	uno := c.GetString("uno")
-	cno := c.GetString("cno")
-	status, err := c.GetInt("status")
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
-	msg := c.GetString("msg")
-	err = model.AuditCompany(cno, uno, status, msg)
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	c.ReplySucc("ok")
-}
-func (c *Controller) FirmDelUser() {
-	uno := c.GetString("staff_no")
-	cno := c.GetString("cno")
-	err := model.DelCompanyUser(cno, uno)
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	c.ReplySucc("ok")
-}
 
-func (c *Controller) FirmAddUser() {
-	uno := c.GetString("staff_no")
-	cno := c.GetString("cno")
-	err := model.AddCompanyUser(cno, uno)
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	c.ReplySucc("ok")
-}
 func (c *Controller) FirmModify() {
 	no := c.GetString("no")
 	name := c.GetString("name")
@@ -464,7 +452,7 @@ func (c *Controller) FirmModify() {
 	lf := c.GetString("license_file")
 	firm := model.Company{
 		No:          no,
-		Name:        name,
+		FirmName:    name,
 		Desc:        desc,
 		Phone:       phone,
 		LicenseFile: lf,
@@ -477,3 +465,48 @@ func (c *Controller) FirmModify() {
 	}
 	c.ReplySucc("ok")
 }
+func (c *Controller) FirmAudit() {
+	uid,_ := c.GetInt("uid")
+	cno := c.GetString("cno")
+	status, err := c.GetInt("status")
+	if err != nil {
+		beego.Error(err)
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	msg := c.GetString("msg")
+	err = model.AuditCompany(cno, uid, status, msg)
+	if err != nil {
+		beego.Error(err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	c.ReplySucc("ok")
+}
+
+func (c *Controller) FirmDelUser() {
+	uno, _ := c.GetInt("uid")
+	cno := c.GetString("cno")
+	err := model.DelCompanyUser(cno, uno)
+	if err != nil {
+		beego.Error(err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	c.ReplySucc("ok")
+}
+
+func (c *Controller) FirmAddUser() {
+	//uid, _ := c.GetInt("uid")
+	cno := c.GetString("cno")
+	tel:=c.GetString("tel")
+
+	err := model.AddCompanyUser(cno,tel)
+	if err != nil {
+		beego.Error(err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	c.ReplySucc("ok")
+}
+
