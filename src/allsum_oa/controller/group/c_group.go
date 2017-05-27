@@ -32,7 +32,7 @@ func (c *Controller) UpsertAttr() {
 	}
 	var e error
 	if update == "true" {
-		//todo flag
+		//todo flag使用合适的类型
 		a.Utime = time.Now()
 		e = service.UpdateAttr(prefix, a)
 	} else if update == "false" {
@@ -172,6 +172,58 @@ func (c *Controller) EditGroup() {
 	}
 	newName := c.GetString("NewName")
 	e = service.EditGroup(prefix, newName, gid)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
+}
+
+//为组织添加用户
+func (c *Controller) AddUsersToGroup() {
+	prefix := c.UserComp
+	gid, e := c.GetInt("GroupId")
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	usersStr := c.GetString("Users")
+	uids := make([]int, 0)
+	e = json.Unmarshal([]byte(usersStr), &uids)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	e = service.AddUsersToGroup(prefix, gid, uids)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
+}
+
+//从组织删除批量用户
+func (c *Controller) DelUsersFromGroup() {
+	prefix := c.UserComp
+	gid, e := c.GetInt("GroupId")
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	usersStr := c.GetString("Users")
+	uids := make([]int, 0)
+	e = json.Unmarshal([]byte(usersStr), &uids)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	e = service.DelUsersFromGroup(prefix, gid, uids)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)

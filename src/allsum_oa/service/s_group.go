@@ -16,7 +16,8 @@ func CreateAttr(prefix string, a *model.Attribute) (e error) {
 
 func UpdateAttr(prefix string, a *model.Attribute) (e error) {
 	e = model.NewOrm().Table(prefix+a.TableName()).
-		Where("no = ?", a.No).Update("desc", "name", "utime").Error
+		Where("no = ?", a.No).
+		Updates(model.Attribute{Name: a.Name, Desc: a.Desc, Utime: a.Utime}).Error
 	return
 }
 
@@ -39,7 +40,7 @@ func AddGroup(prefix string, ng *model.Group, sonIds []int) (e error) {
 		return
 	}
 	ng.Path = father.Path + "-" + fmt.Sprintf("%d", ng.Id)
-	e = tx.Model(ng).Update("path").Error
+	e = tx.Model(ng).Update("path", ng.Path).Error
 	if e != nil {
 		tx.Rollback()
 		return
@@ -69,7 +70,7 @@ func AddGroup(prefix string, ng *model.Group, sonIds []int) (e error) {
 			for _, ch := range children {
 				ch.Path = strings.Replace(ch.Path, v.Path, newPath, 1)
 				ch.Utime = time.Now()
-				e = tx.Model(ch).Update("path", "utime")
+				e = tx.Model(ch).Updates(model.Group{Path: ch.Path, Utime: ch.Utime}).Error
 				if e != nil {
 					tx.Rollback()
 					return
@@ -78,7 +79,7 @@ func AddGroup(prefix string, ng *model.Group, sonIds []int) (e error) {
 			v.Pid = ng.Id
 			v.Path = newPath
 			v.Utime = time.Now()
-			e = tx.Model(v).Update("pid", "path", "utime").Error
+			e = tx.Model(v).Updates(model.Group{Pid: v.Pid, Path: v.Path, Utime: v.Utime}).Error
 			if e != nil {
 				tx.Rollback()
 				return
@@ -89,25 +90,27 @@ func AddGroup(prefix string, ng *model.Group, sonIds []int) (e error) {
 }
 
 func MergeGroups(prefix string, ng *model.Group, oldIds []int) (e error) {
-	tx := model.NewOrm().Table(prefix + ng.TableName()).Begin()
+	gTb := prefix + ng.TableName()
+	ugTb := prefix + model.UserGroup{}.TableName()
+	tx := model.NewOrm().Begin()
 	father := &model.Group{}
-	e = tx.First(&father, ng.Pid).Error
+	e = tx.Table(gTb).First(&father, ng.Pid).Error
 	if e != nil {
 		return
 	}
-	e = tx.Create(ng).Error
+	e = tx.Table(gTb).Create(ng).Error
 	if e != nil {
 		tx.Rollback()
 		return
 	}
 	ng.Path = father.Path + "-" + fmt.Sprintf("%d", ng.Id)
-	e = tx.Model(ng).Update("path").Error
+	e = tx.Table(gTb).Model(ng).Updates(model.Group{Path: ng.Path}).Error
 	if e != nil {
 		tx.Rollback()
 		return
 	}
 	olds := []*model.Group{}
-	e = tx.Where("id in (?)", oldIds).Find(&olds).Error
+	e = tx.Table(gTb).Where("id in (?)", oldIds).Find(&olds).Error
 	if e != nil {
 		return
 	}
@@ -119,7 +122,7 @@ func MergeGroups(prefix string, ng *model.Group, oldIds []int) (e error) {
 	for _, v := range olds {
 		//找到v的所有子孙节点，修改其path
 		children := []*model.Group{}
-		e = tx.Where("path like ?", v.Path+"-%").Find(&children).Error
+		e = tx.Table(gTb).Where("path like ?", v.Path+"-%").Find(&children).Error
 		if e == gorm.ErrRecordNotFound {
 			continue
 		} else {
@@ -130,18 +133,23 @@ func MergeGroups(prefix string, ng *model.Group, oldIds []int) (e error) {
 			ch.Path = strings.Replace(ch.Path, v.Path, ng.Path, 1)
 			ch.Pid = ng.Id
 			ch.Utime = time.Now()
-			e = tx.Model(ch).Update("path", "utime")
+			e = tx.Table(gTb).Model(ch).Updates(model.Group{Path: ch.Path, Utime: ch.Utime}).Error
 			if e != nil {
 				tx.Rollback()
 				return
 			}
 		}
 		//删除旧节点
-		e = tx.Delete(v).Error
+		e = tx.Table(gTb).Delete(v).Error
 		if e != nil {
 			tx.Rollback()
 			return
 		}
+	}
+	e = tx.Table(ugTb).Where("group_id in (?)", oldIds).Update("group_id", ng.Id).Error
+	if e != nil {
+		tx.Rollback()
+		return
 	}
 	return tx.Commit().Error
 }
@@ -168,7 +176,7 @@ func MoveGroup(prefix string, gid, newPid int) (e error) {
 	for _, ch := range children {
 		ch.Path = strings.Replace(ch.Path, g.Path, gNewPath, 1)
 		ch.Utime = time.Now()
-		e = tx.Model(ch).Update("path", "utime")
+		e = tx.Model(ch).Updates(model.Group{Path: ch.Path, Utime: ch.Utime}).Error
 		if e != nil {
 			tx.Rollback()
 			return
@@ -176,13 +184,24 @@ func MoveGroup(prefix string, gid, newPid int) (e error) {
 	}
 	g.Path = gNewPath
 	g.Utime = time.Now()
-	tx.Model(g).Update("path", "utime")
+	e = tx.Model(g).Updates(model.Group{Path: g.Path, Utime: g.Utime}).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
 	return tx.Commit().Error
 }
 
 func DelGroup(prefix string, gid int) (e error) {
+	db := model.NewOrm()
+	count := 0
+	e = db.Table(prefix+model.UserGroup{}.TableName()).
+		Where("group_id = ?", gid).Count(&count)
+	if e != nil || count != 0 {
+		return fmt.Errorf("there are some users in this group! %v", e)
+	}
 	g := new(model.Group)
-	tx := model.NewOrm().Table(prefix + g.TableName()).Begin()
+	tx := db.Table(prefix + g.TableName()).Begin()
 	e = tx.First(g, gid).Error
 	if e != nil {
 		return
@@ -224,6 +243,33 @@ func EditGroup(prefix, newName string, gid int) (e error) {
 	if r == 0 {
 		e = errors.New("change group name failed")
 		return
+	}
+	return nil
+}
+
+func AddUsersToGroup(prefix string, gid int, uids []int) (e error) {
+	db := model.NewOrm().Table(prefix + model.UserGroup{})
+	ug := model.UserGroup{}
+	for _, uid := range uids {
+		e = db.FirstOrCreate(&ug, &model.UserGroup{UserId: uid, GroupId: gid}).Error
+		if e != nil {
+			return
+		}
+	}
+	return nil
+}
+
+func DelUsersFromGroup(prefix string, gid int, uids []int) (e error) {
+	tx := model.NewOrm().Table(prefix + model.UserGroup{}).Begin()
+	del := tx.Delete(&model.UserGroup{}, "group_id = ? and user_id in (?)", gid, uids)
+	if del.RowsAffected != len(uids) {
+		tx.Rollback()
+		return errors.New("del failed, amount of users in this group is not match")
+	} else if del.Error != nil {
+		tx.Rollback()
+		return del.Error
+	} else {
+		tx.Commit()
 	}
 	return nil
 }

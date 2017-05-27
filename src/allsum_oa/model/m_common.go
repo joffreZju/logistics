@@ -19,6 +19,9 @@ func NewStrSlice(args ...string) StrSlice {
 }
 
 func (s StrSlice) Value() (driver.Value, error) {
+	if len(s) == 0 {
+		return nil, nil
+	}
 	return "{" + strings.Join(s, ",") + "}", nil
 }
 
@@ -47,6 +50,9 @@ func NewIntSlice(args ...int) IntSlice {
 }
 
 func (s IntSlice) Value() (driver.Value, error) {
+	if len(s) == 0 {
+		return nil, nil
+	}
 	str := "{"
 	for _, v := range s {
 		str += fmt.Sprintf("%d,", v)

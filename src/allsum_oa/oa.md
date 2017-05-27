@@ -24,30 +24,49 @@
 
 - 删除(软/硬)
     - GroupId:int
+    - 有用户在该group的话不能删除
     - 有子节点：所有子节点自动升级
     - 没有子节点：直接删除
 
 - 编辑
     - GroupId:int
     - NewName:string
+    
+- 向组织添加用户
+    - GroupId:int
+    - Users:[]int
+    - 已经在该组织的用户会忽略掉
+
+- 从组织批量删除用户
+    - GroupId:int
+    - Users:[]int
+
 
 ### 角色相关接口
 
-- 添加
+- 添加角色
     - Name:string
     - Desc:string
     - FuncIds:[]int
     - 所选的功能树下所有的功能
 
-- 修改
+- 修改角色
     - Id:int
     - Name:string
     - Desc:string
     - FuncIds:[]int
     - 所选的功能树下所有的功能
 
-- 删除
+- 删除角色
     - Id:int
     - 如果该角色下还有用户，那么删除失败
 
+- 向角色添加用户
+    - RoleId:int
+    - Users:[]int
+    - 已经在该角色的用户会忽略掉
+
+- 从角色中批量删除用户
+    - RoleId:int
+    - Users:[]int
 

@@ -76,11 +76,70 @@ func (c *Controller) UpdateRole() {
 }
 
 func (c *Controller) DelRole() {
-	//prefix := c.UserComp
-	//id, e := c.GetInt("Id")
-	//if e != nil {
-	//	c.ReplyErr(errcode.ErrParams)
-	//	beego.Error(e)
-	//	return
-	//}
+	prefix := c.UserComp
+	rid, e := c.GetInt("Id")
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	e = service.DelRole(prefix, rid)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc("success")
+	}
+}
+
+//为组织添加用户
+func (c *Controller) AddUsersToRole() {
+	prefix := c.UserComp
+	rid, e := c.GetInt("RoleId")
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	usersStr := c.GetString("Users")
+	uids := make([]int, 0)
+	e = json.Unmarshal([]byte(usersStr), &uids)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	e = service.AddUsersToRole(prefix, rid, uids)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
+}
+
+//从组织删除批量用户
+func (c *Controller) DelUsersFromRole() {
+	prefix := c.UserComp
+	rid, e := c.GetInt("RoleId")
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	usersStr := c.GetString("Users")
+	uids := make([]int, 0)
+	e = json.Unmarshal([]byte(usersStr), &uids)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	e = service.DelUsersFromRole(prefix, rid, uids)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
 }

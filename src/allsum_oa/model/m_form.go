@@ -42,6 +42,7 @@ type Approvaltpl struct {
 	FormtplNo   string    `gorm:"not null"`
 	TreeFlowTag int       //是否按组织树向上流动 0:否，1:是
 	RoleFlow    IntSlice  `gorm:"type:int[]"` //role_id 的组成的数组
+	AllowRows   IntSlice  `gorm:"type:int[]"`
 	BeginTime   time.Time `gorm:"not null"`
 	Status      int       `gorm:"not null"`
 }
@@ -51,14 +52,18 @@ func (Approvaltpl) TableName() string {
 }
 
 type Approval struct {
-	No        string `gorm:"primary_key"`
-	Name      string `gorm:"not null"`
-	Desc      string
-	Ctime     time.Time
-	FormNo    string   `gorm:"not null"`
-	UserFlow  IntSlice `gorm:"type:int[]"` //创建审批单时确定具体审批人
-	CreatorId int      `gorm:"not null"`
-	Status    int      `gorm:"not null"`
+	No       string `gorm:"primary_key"`
+	Name     string `gorm:"not null"`
+	Desc     string
+	Ctime    time.Time
+	FormNo   string   `gorm:"not null"`
+	UserFlow IntSlice `gorm:"type:int[]"` //创建审批单时确定具体审批人
+	UserId   int      `gorm:"not null"`
+	RoleId   int      `gorm:"not null"`
+	GroupId  int      `gorm:"not null"`
+	Status   int      `gorm:"not null"`
+
+	FormContent Form `gorm:"-"`
 }
 
 func (Approval) TableName() string {
@@ -68,10 +73,10 @@ func (Approval) TableName() string {
 type ApproveFlow struct {
 	Id         int    `gorm:"AUTO_INCREMENT,primary_key"`
 	ApprovalNo string `gorm:"not null"`
-	RoleId     int
-	UserId     int `gorm:"not null"`
-	Opinion    int `gorm:"not null"`
-	Comment    string
+	UserId     int
+	//RoleId     int `gorm:"not null"`
+	Opinion int `gorm:"not null"`
+	Comment string
 }
 
 func (ApproveFlow) TableName() string {

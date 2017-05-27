@@ -8,7 +8,10 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-const ReadOnly = 1
+const (
+	ReadOnly = 1
+	Public   = "public."
+)
 
 type DBPool struct {
 	db  *gorm.DB
