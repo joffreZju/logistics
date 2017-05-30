@@ -70,3 +70,66 @@
     - RoleId:int
     - Users:[]int
 
+
+### 审批相关接口
+
+##### 表单模板接口
+- 添加表单模板
+    - Name:string
+    - Type:string
+    - Desc:string
+    - Content:{json string}
+    - Attachment:[]file ???
+    - BeginTime:time.Time string 2017-01-01 00:00:00
+
+- 更新表单模板
+    - No:string
+    - Name:string
+    - Type:string
+    - Desc:string
+    - Content:{json string}
+    - Attachment:[]file ???
+    - BeginTime:time.Time string 2017-01-01 00:00:00
+
+- 启用/禁用(1/2)表单模板
+    - No:string
+    - Status:1/2
+    - 禁用表单模板，那么相对应的审批流模板approvaltpl也会被禁用
+    
+- 删除表单模板
+    - No:string
+    - 删除前需要确认是否有对应的审批流模板，如果删除formtpl,那么对用的approvalTpl会被禁用
+
+
+##### 审批单模板接口
+- 添加审批单模板
+    - approvaltpl:{
+        - Name:string
+        - Type:string
+        - Desc:string
+        - FormtplNo:string
+        - TreeFlowTag:int(是否按组织树向上流动0:no,1:yes)
+        - RoleFlow:[]int
+        - AllowRows:[]int
+        - BeginTime:time.Time string 2017-01-01 00:00:00    
+    }
+
+- 更新审批单模板
+
+
+- 启用/禁用(1/2)表单模板
+    - No:string
+    - Status:1/2
+    - 禁用表单模板，那么相对应的审批流模板approvaltpl也会被禁用
+    
+- 删除表单模板
+    - No:string
+    - 删除前需要确认是否有对应的审批流模板，如果删除formtpl,那么对用的approvalTpl会被禁用
+
+- 添加审批流模板
+
+- 禁用/启用(1,2)审批流模板
+
+- 删除审批流模板
+
+- 更新审批流模板

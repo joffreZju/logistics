@@ -21,27 +21,31 @@ const CommonErr = 99999
 //在进行组织树管理时前端先校验用户权限？每一个controller里面还需要校验吗？
 
 //更新和增加组织属性
-func (c *Controller) UpsertAttr() {
-	//uid := c.UserID
+func (c *Controller) AddAttr() {
 	prefix := c.UserComp
-	update := c.GetString("Update")
 	a := &model.Attribute{
-		No:   c.GetString("No"),
-		Name: c.GetString("Name"),
-		Desc: c.GetString("Desc"),
+		No:    c.GetString("No"),
+		Name:  c.GetString("Name"),
+		Desc:  c.GetString("Desc"),
+		Ctime: time.Now(),
 	}
-	var e error
-	if update == "true" {
-		//todo flag使用合适的类型
-		a.Utime = time.Now()
-		e = service.UpdateAttr(prefix, a)
-	} else if update == "false" {
-		a.Ctime = time.Now()
-		e = service.CreateAttr(prefix, a)
+	e := service.AddAttr(prefix, a)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
 	} else {
-		c.ReplyErr(errcode.ErrParams)
-		return
+		c.ReplySucc("success")
 	}
+}
+func (c *Controller) UpdateAttr() {
+	prefix := c.UserComp
+	a := &model.Attribute{
+		No:    c.GetString("No"),
+		Name:  c.GetString("Name"),
+		Desc:  c.GetString("Desc"),
+		Utime: time.Now(),
+	}
+	e := service.UpdateAttr(prefix, a)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -50,7 +54,7 @@ func (c *Controller) UpsertAttr() {
 	}
 }
 
-//新增上下级
+//新增组织树上下级
 func (c *Controller) AddGroup() {
 	uid := c.UserID
 	prefix := c.UserComp

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func CreateAttr(prefix string, a *model.Attribute) (e error) {
+func AddAttr(prefix string, a *model.Attribute) (e error) {
 	e = model.NewOrm().Table(prefix + a.TableName()).Create(a).Error
 	return
 }

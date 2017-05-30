@@ -4,6 +4,12 @@ import (
 	"time"
 )
 
+const (
+	Init = iota
+	Abled
+	Disabled
+)
+
 type Formtpl struct {
 	No         string `gorm:"primary_key"`
 	Name       string `gorm:"not null"`
@@ -45,6 +51,8 @@ type Approvaltpl struct {
 	AllowRows   IntSlice  `gorm:"type:int[]"`
 	BeginTime   time.Time `gorm:"not null"`
 	Status      int       `gorm:"not null"`
+
+	FormtplContent Formtpl `gorm:"-"`
 }
 
 func (Approvaltpl) TableName() string {
