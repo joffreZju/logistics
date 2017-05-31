@@ -21,33 +21,26 @@ const (
 	CommonErr  = 99999
 )
 
-//用json参数 todo
 func (c *Controller) AddFormtpl() {
 	prefix := c.UserComp
-	name := c.GetString("Name")
-	formtype := c.GetString("Type")
-	desc := c.GetString("Desc")
-	content := c.GetString("Content")
-	//attachment := 文件名字符串数组 todo
-	begintimeStr := c.GetString("BginTime")
-	ftpl := model.Formtpl{
-		No:      fmt.Sprintf("ftpl%d", time.Now().Unix()),
-		Name:    name,
-		Type:    formtype,
-		Desc:    desc,
-		Content: content,
-		Ctime:   time.Now(),
-		//Attachment:model.NewStrSlice(),
-	}
-	begintime, e := time.Parse(DateFormat, begintimeStr)
+	str := c.GetString("formtpl")
+	ftpl := model.Formtpl{}
+	e := json.Unmarshal([]byte(str), &ftpl)
 	if e != nil {
-		t := time.Now()
-		begintime = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Local())
-		ftpl.Status = model.Abled
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
 	}
-	ftpl.Status = model.Init
-
-	ftpl.BeginTime = begintime
+	ftpl.No = fmt.Sprintf("ftpl%d", time.Now().Unix())
+	ftpl.Ctime = time.Now()
+	if ftpl.BeginTime.Sub(time.Now()).Hours() < 0 {
+		t := time.Now()
+		ftpl.BeginTime = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+		ftpl.Status = model.TplAbled
+	} else {
+		ftpl.Status = model.TplInit
+	}
+	//ftpl.Attachment = model.NewStrSlice() todo
 	e = service.AddFormtpl(prefix, &ftpl)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
@@ -59,29 +52,22 @@ func (c *Controller) AddFormtpl() {
 
 func (c *Controller) UpdateFormtpl() {
 	prefix := c.UserComp
-	no := c.GetString("No")
-	name := c.GetString("Name")
-	formtype := c.GetString("Type")
-	desc := c.GetString("Desc")
-	content := c.GetString("Content")
-	//attachment := 文件名字符串数组 todo
-	begintimeStr := c.GetString("BginTime")
-	ftpl := model.Formtpl{
-		No:      no,
-		Name:    name,
-		Type:    formtype,
-		Desc:    desc,
-		Content: content,
-		//Attachment:model.NewStrSlice(),
-	}
-	begintime, e := time.Parse(DateFormat, begintimeStr)
+	str := c.GetString("formtpl")
+	ftpl := model.Formtpl{}
+	e := json.Unmarshal([]byte(str), &ftpl)
 	if e != nil {
-		t := time.Now()
-		begintime = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-		ftpl.Status = model.Abled
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
 	}
-	ftpl.Status = model.Init
-	ftpl.BeginTime = begintime
+	if ftpl.BeginTime.Sub(time.Now()).Hours() < 0 {
+		t := time.Now()
+		ftpl.BeginTime = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+		ftpl.Status = model.TplAbled
+	} else {
+		ftpl.Status = model.TplInit
+	}
+	//ftpl.Attachment = model.NewStrSlice() todo
 
 	e = service.UpdateFormtpl(prefix, &ftpl)
 	if e != nil {
@@ -123,6 +109,7 @@ func (c *Controller) DelFormtpl() {
 }
 
 func (c *Controller) AddApprovaltpl() {
+	prefix := c.UserComp
 	str := c.GetString("approvaltpl")
 	atpl := model.Approvaltpl{}
 	e := json.Unmarshal([]byte(str), &atpl)
@@ -136,9 +123,167 @@ func (c *Controller) AddApprovaltpl() {
 	if atpl.BeginTime.Sub(time.Now()).Hours() < 0 {
 		t := time.Now()
 		atpl.BeginTime = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-		atpl.Status = model.Abled
+		atpl.Status = model.TplAbled
 	} else {
-		atpl.Status = model.Init
+		atpl.Status = model.TplInit
 	}
+	e = service.AddApprovaltpl(prefix, &atpl)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
+}
 
+func (c *Controller) UpdateApprovaltpl() {
+	prefix := c.UserComp
+	str := c.GetString("approvaltpl")
+	atpl := model.Approvaltpl{}
+	e := json.Unmarshal([]byte(str), &atpl)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	if atpl.BeginTime.Sub(time.Now()).Hours() < 0 {
+		t := time.Now()
+		atpl.BeginTime = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+		atpl.Status = model.TplAbled
+	} else {
+		atpl.Status = model.TplInit
+	}
+	e = service.UpdateApprovaltpl(prefix, &atpl)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
+}
+
+func (c *Controller) ControlApprovaltpl() {
+	prefix := c.UserComp
+	no := c.GetString("No")
+	status, e := c.GetInt("Status")
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	e = service.ControlApprovaltpl(prefix, no, status)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
+}
+
+func (c *Controller) DelApprovaltpl() {
+	prefix := c.UserComp
+	no := c.GetString("No")
+	e := service.DelApprovaltpl(prefix, no)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
+}
+
+func (c *Controller) AddApproval() {
+	prefix := c.UserComp
+	astr := c.GetString("approval")
+	fstr := c.GetString("form")
+	a := model.Approval{}
+	f := model.Form{}
+	e1 := json.Unmarshal([]byte(astr), &a)
+	e2 := json.Unmarshal([]byte(fstr), &f)
+	if e1 != nil || e2 != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e1, e2)
+		return
+	}
+	if a.Status != model.ApproveInit && a.Status != model.Approving {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error("approval status is wrong")
+		return
+	}
+	f.No = fmt.Sprintf("form%d", time.Now().Unix())
+	f.Ctime = time.Now()
+	//f.Attachment = model.NewStrSlice() todo
+	a.No = fmt.Sprintf("aprvl%d", time.Now().Unix())
+	a.Ctime = time.Now()
+	a.FormNo = f.No
+	e := service.AddApproval(prefix, &f, &a)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
+}
+
+func (c *Controller) UpdateApproval() {
+	prefix := c.UserComp
+	astr := c.GetString("approval")
+	fstr := c.GetString("form")
+	a := model.Approval{}
+	f := model.Form{}
+	e1 := json.Unmarshal([]byte(astr), &a)
+	e2 := json.Unmarshal([]byte(fstr), &f)
+	if e1 != nil || e2 != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e1, e2)
+		return
+	}
+	if a.Status != model.ApproveInit && a.Status != model.Approving {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error("approval status is wrong")
+		return
+	}
+	//f.Attachment = model.NewStrSlice() todo
+	e := service.UpdateApproval(prefix, &f, &a)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
+}
+
+func (c *Controller) CancelApproval() {
+	prefix := c.UserComp
+	no := c.GetString("No")
+	e := service.CancelApproval(prefix, no)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
+}
+
+func (c *Controller) Approve() {
+	prefix := c.UserComp
+	str := c.GetString("approve")
+	aflow := model.ApproveFlow{}
+	e := json.Unmarshal([]byte(str), &aflow)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	if aflow.Opinion != model.ApproveFlowAgree && aflow.Opinion != model.ApproveFlowRefuse {
+		c.ReplyErr(errcode.New(CommonErr, "opinion is wrong"))
+		return
+	}
+	e = service.Approve(prefix, aflow)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplyErr("success")
+	}
 }

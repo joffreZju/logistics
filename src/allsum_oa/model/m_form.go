@@ -5,9 +5,23 @@ import (
 )
 
 const (
-	Init = iota
-	Abled
-	Disabled
+	TplInit = iota
+	TplAbled
+	TplDisabled
+)
+
+const (
+	ApproveInit = iota
+	//ApproveCommited
+	Approving
+	ApproveAccessed
+	ApproveNotAccessed
+	ApproveCanceled
+)
+
+const (
+	ApproveFlowAgree = iota
+	ApproveFlowRefuse
 )
 
 type Formtpl struct {

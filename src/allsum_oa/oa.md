@@ -71,25 +71,29 @@
     - Users:[]int
 
 
-### 审批相关接口
+### 管理员管理审批相关接口
 
 ##### 表单模板接口
 - 添加表单模板
-    - Name:string
-    - Type:string
-    - Desc:string
-    - Content:{json string}
-    - Attachment:[]file ???
-    - BeginTime:time.Time string 2017-01-01 00:00:00
+    - formtpl:{
+        - Name:string
+        - Type:string
+        - Desc:string
+        - Content:{json string}
+        - Attachment:[]file (单独传？！)
+        - BeginTime:time.Time string 2017-01-01 00:00:00
+    }
 
 - 更新表单模板
-    - No:string
-    - Name:string
-    - Type:string
-    - Desc:string
-    - Content:{json string}
-    - Attachment:[]file ???
-    - BeginTime:time.Time string 2017-01-01 00:00:00
+    - formtpl:{
+        - No:string
+        - Name:string
+        - Type:string
+        - Desc:string
+        - Content:{json string}
+        - Attachment:[]file ???
+        - BeginTime:time.Time string 2017-01-01 00:00:00
+    }
 
 - 启用/禁用(1/2)表单模板
     - No:string
@@ -115,21 +119,72 @@
     }
 
 - 更新审批单模板
-
+    - approvaltpl:{
+        - No:string
+        - Name:string
+        - Type:string
+        - Desc:string
+        - FormtplNo:string
+        - TreeFlowTag:int(是否按组织树向上流动0:no,1:yes)
+        - RoleFlow:[]int
+        - AllowRows:[]int
+        - BeginTime:time.Time string 2017-01-01 00:00:00    
+    }
 
 - 启用/禁用(1/2)表单模板
     - No:string
     - Status:1/2
-    - 禁用表单模板，那么相对应的审批流模板approvaltpl也会被禁用
     
 - 删除表单模板
     - No:string
-    - 删除前需要确认是否有对应的审批流模板，如果删除formtpl,那么对用的approvalTpl会被禁用
 
-- 添加审批流模板
+### 员工增删改审批单相关接口
 
-- 禁用/启用(1,2)审批流模板
-
-- 删除审批流模板
-
-- 更新审批流模板
+- 增加审批单
+    - approval:{
+        - Name:string
+        - Desc:string
+        - UserFlow:[]int
+        - UserId:int
+        - RoleId:int
+        - GroupId:int
+        - Status:int(0草稿,1提交)
+    }
+    - form:{
+        - Name:string
+        - Type:string
+        - Desc:string
+        - Content:string
+        - Attachment:[]file
+    }
+    
+- 修改审批单（有限定）
+    - approval:{
+        - No:string
+        - Name:string
+        - Desc:string
+        - UserFlow:[]int
+        - UserId:int
+        - RoleId:int
+        - GroupId:int
+        - Status:int(0草稿,1提交)
+    }
+    - form:{
+        - No:string
+        - Name:string
+        - Type:string
+        - Desc:string
+        - Content:string
+        - Attachment:[]file
+    }
+    
+- 撤销审批单（有限定）
+    - No:string
+    
+- 审批操作（同意或拒绝）
+    - approve:{
+        - ApprovalNo:string
+        - UserId:int(审批人id)
+        - Opinion:int(0:同意，1:拒绝,必填)
+        - Comment:string(选填)
+    }
