@@ -54,7 +54,7 @@ func Init() (err error) {
 	beego.Info("init success, start server ...")
 
 	// 生成pprof文件
-	go Printpprof()
+	//go Printpprof()
 
 	return
 }

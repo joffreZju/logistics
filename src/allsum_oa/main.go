@@ -11,7 +11,7 @@ import (
 
 var (
 	Version    = "unknow"
-	configPath = flag.String("c", "conf/oa.conf", "config file path")
+	configPath = flag.String("c", "conf/allsum_oa.conf", "config file path")
 )
 
 func main() {

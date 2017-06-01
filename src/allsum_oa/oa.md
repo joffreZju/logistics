@@ -1,3 +1,20 @@
+### 用户相关接口
+
+- 获取验证码
+    - tel:string
+
+- 注册
+    - smscode:string
+    - tel:string
+    - password:string
+    - addr:string
+    - desc:string
+    - gender:int(0/1)
+    
+- 登录
+    - tel:string
+    - password:string
+
 ### 组织树相关接口
 
 - 更新或增加组织属性

@@ -3,9 +3,9 @@ package model
 import (
 	"common/lib/keycrypt"
 	"fmt"
-
 	"github.com/astaxie/beego"
 	"github.com/jinzhu/gorm"
+	_ "github.com/lib/pq"
 )
 
 const (
