@@ -4,11 +4,8 @@ import (
 	"allsum_oa/controller/base"
 	"common/lib/errcode"
 	"common/lib/push"
-	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/httplib"
-	"io/ioutil"
 	"math/rand"
 	"time"
 )
@@ -18,14 +15,13 @@ type Controller struct {
 }
 
 const CommonErr = 99999
-const host = "http://allsum.com:8093"
 
 func (c *Controller) GetCode() {
 	tel := c.GetString("tel")
 
 	// 测试环境用123456，不发短信
 	if beego.BConfig.RunMode != "prod" {
-		err := c.Cache.Put(tel, 123456, time.Duration(300*time.Second))
+		err := c.Cache.Put(tel, 123456, time.Duration(600*time.Second))
 		if err != nil {
 			beego.Error("GetCode set redis error", err)
 			c.ReplyErr(err)
@@ -70,66 +66,72 @@ func (c *Controller) UserRegister() {
 		return
 	}
 
-	url := host + "/exempt/user/register"
+	url := "/exempt/user/register"
 	m := make(map[string]string)
 	m["tel"] = tel
 	m["password"] = c.GetString("password")
 	m["addr"] = c.GetString("addr")
 	m["desc"] = c.GetString("desc")
 	m["gender"] = c.GetString("gender")
-	req := httplib.Post(url)
-	req.JSONBody(m)
-	resp, e := req.Response()
-	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-		beego.Error(e)
-		return
-	}
+	resp, ecode := c.post_account(url, m)
+	if ecode != nil {
+		c.ReplyErr(ecode)
+		//beego.Error(ecode)
+		fmt.Println(ecode)
 
-	bodystr, e := ioutil.ReadAll(resp.Body)
-	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-		beego.Error(e)
 		return
 	}
-
-	body := make(map[string]interface{})
-	e = json.Unmarshal(bodystr, &body)
-	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-		beego.Error(e)
-		return
-	}
-	c.ReplySucc(body["data"])
+	beego.Debug(resp["data"])
+	c.ReplySucc(resp["data"])
 }
 
 func (c *Controller) UserLogin() {
-	url := host + "/exempt/user/login_auth"
+	url := "/exempt/user/login_auth"
 	m := make(map[string]string)
 	m["tel"] = c.GetString("tel")
 	m["password"] = c.GetString("password")
-	req := httplib.Post(url)
-	req.JSONBody(m)
-	resp, e := req.Response()
-	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-		beego.Error(e)
+	resp, ecode := c.post_account(url, m)
+	if ecode != nil {
+		c.ReplyErr(ecode)
+		beego.Error(ecode.Error())
 		return
 	}
+	c.ReplySucc(resp["data"])
+}
 
-	bodystr, e := ioutil.ReadAll(resp.Body)
-	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-		beego.Error(e)
-		return
-	}
+func (c *Controller) Resetpwd() {
 
-	body := make(map[string]interface{})
-	e = json.Unmarshal(bodystr, &body)
-	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-		beego.Error(e)
-		return
-	}
-	c.ReplySucc(body["data"])
+}
+
+func (c *Controller) GetUserInfo() {
+
+}
+
+func (c *Controller) EditProfile() {
+
+}
+
+//用户注册公司相关操作
+func (c *Controller) FirmRegister() {
+
+}
+func (c *Controller) FirmModify() {
+
+}
+func (c *Controller) FirmAddUser() {
+
+}
+func (c *Controller) FirmDelUser() {
+
+}
+
+//allsum管理员接口,审核公司
+func (c *Controller) GetFirmList() {
+
+}
+func (c *Controller) FirmAudit() {
+
+}
+func (c *Controller) GetFirmInfo() {
+
 }

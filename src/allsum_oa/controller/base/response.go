@@ -1,19 +1,16 @@
 package base
 
 import (
+	"common/lib/errcode"
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"common/lib/errcode"
-
-	"github.com/astaxie/beego"
 )
 
 type Response struct {
 	Code int         `json:"code"`
-	Msg  string      `json:"msg,omitempty"`
-	Data interface{} `json:"data,omitempty"`
+	Msg  string      `json:"msg"`
+	Data interface{} `json:"data"`
 }
 
 func (c *Controller) ReplySucc(data interface{}) {
@@ -33,9 +30,9 @@ func (c *Controller) ReplyErr(err error) {
 		Code: code,
 		Msg:  msg,
 	}
-	beego.BeeLogger.SetLogFuncCallDepth(4)
-	beego.Error(resp)
-	beego.BeeLogger.SetLogFuncCallDepth(3)
+	//beego.BeeLogger.SetLogFuncCallDepth(4)
+	//beego.Error(resp)
+	//beego.BeeLogger.SetLogFuncCallDepth(3)
 	callback := c.Ctx.Input.Query("callback")
 	if callback == "" {
 		c.Ctx.Output.JSON(resp, false, false)

@@ -139,7 +139,7 @@ func RequestFilter() beego.FilterFunc {
 		beego.Info("reqeust url:", ctx.Input.URI()) //for test
 		params := make(map[string]interface{})
 		body, _ := ioutil.ReadAll(ctx.Request.Body)
-		beego.Info("request body string:", body) //for test
+		beego.Info("request body string:", string(body)) //for test
 		ctx.Request.Body.Close()
 		json.Unmarshal(body, &params)
 
