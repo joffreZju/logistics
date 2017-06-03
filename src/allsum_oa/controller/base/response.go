@@ -56,7 +56,10 @@ func (c *Controller) ReplyText(data interface{}) {
 }
 
 func (c *Controller) ReplyFile(mime, name string, data []byte) {
+	if mime == "" {
+		mime = "application/octet-stream"
+	}
 	c.Ctx.Output.Header("Content-Type", fmt.Sprintf("%s; charset=utf-8", mime))
-	c.Ctx.Output.Header("Content-Disposition", fmt.Sprintf(`attachment;filename="%s"`, name))
+	c.Ctx.Output.Header("Content-Disposition", fmt.Sprintf("attachment;filename=%s", name))
 	c.Ctx.Output.Body(data)
 }

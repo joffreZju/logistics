@@ -1,4 +1,4 @@
-package image
+package ossfile
 
 import (
 	"fmt"
@@ -6,10 +6,6 @@ import (
 	"os"
 	"testing"
 )
-
-func init() {
-	Init()
-}
 
 func TestCreateImage(t *testing.T) {
 	name := "logo.png"
@@ -24,7 +20,7 @@ func TestCreateImage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	url, err := CreateImage("test", name, data)
+	url, err := PutFile("test", name, data)
 	if err != nil {
 		t.Fatal(err)
 	}

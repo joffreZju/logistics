@@ -15,6 +15,14 @@
     - tel:string
     - password:string
 
+### 文件上传下载
+
+- 上传（暂仅支持单个文件）
+    - file(form-data的key),注意header的Content-Type,参加postman
+    
+- 下载（单个文件）
+    - url:string(从后台获取到的url)
+
 ### 组织树相关接口
 
 - 更新或增加组织属性

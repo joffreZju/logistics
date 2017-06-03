@@ -1,6 +1,7 @@
 package main
 
 import (
+	"allsum_oa/controller/file"
 	"allsum_oa/controller/user"
 	"common/filter"
 	"github.com/astaxie/beego"
@@ -10,6 +11,7 @@ const (
 	ExemptPrefix string = "/exempt"
 	UserPrefix   string = "/v2/user"
 	FirmPrefix   string = "/v2/admin"
+	FilePrefix   string = "/v2/file"
 )
 
 func LoadRouter() {
@@ -32,6 +34,10 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/audit", &user.Controller{}, "Post:FirmAudit")
 	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
 	beego.Router(FirmPrefix+"/del_user", &user.Controller{}, "Post:FirmDelUser")
+
+	//文件上传下载
+	beego.Router(FilePrefix+"/upload", &file.Controller{}, "Post:UploadFile")
+	beego.Router(FilePrefix+"/download", &file.Controller{}, "*:DownloadFile")
 
 	// 非登录态列表
 	//notNeedAuthList := []string{
