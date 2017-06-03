@@ -85,7 +85,7 @@ func (store *RedisStore) SaveToken(token *Token) error {
 		return err
 	}
 
-	store.db.Hset(recordKey, token.Value, time.Now().Format("20160102150405"))
+	store.db.Hset(recordKey, token.Value, time.Now().Format("20060102150405"))
 	_, err = store.db.SetEx(token.Value, tokenBytes, token.DeadLine-time.Now().Unix())
 
 	return err
