@@ -102,8 +102,12 @@ func GetUserByTel(tel string) (u *User, err error) {
 	if err != nil {
 		return
 	}
+	sql := `select * from allsum_company as t1 inner join allsum_user_company as t2
+		on t1.no = t2.cno
+		where t2.uid = ?`
 	var cmp []Company
-	err = Ormer.db.Table("allsum_user_company").Where("uid=?", u.Id).Find(&cmp).Error
+	//err = Ormer.db.Table("allsum_user_company").Where("uid=?", u.Id).Find(&cmp).Error
+	err = Ormer.db.Raw(sql, u.Id).Scan(&cmp).Error
 	u.Companys = cmp
 	return
 }
@@ -111,14 +115,14 @@ func GetUserByTel(tel string) (u *User, err error) {
 type Company struct {
 	Id          int    `gorm:"auto_increment;not null"`
 	No          string `gorm:"unique"`
-	Creater     int `gorm:"not null"`
-	FirmName        string
+	Creater     int    `gorm:"not null"`
+	FirmName    string
 	Desc        string
 	Phone       string
 	LicenseFile string    `gorm:"size:255;not null"`
 	Status      int       //0:待审核;1:审核通过;2:审核不通过3:删除;
-	FirmType        int       //0:普通公司，1:个体户
-	Approver    int    //审核人
+	FirmType    int       //0:普通公司，1:个体户
+	Approver    int       //审核人
 	ApproveTime time.Time //批复时间
 	Msg         string    //审批意见
 	CreateTime  time.Time `orm:"type(datetime)" json:",omitempty"` //申请时间
@@ -129,7 +133,7 @@ func (Company) TableName() string {
 }
 
 func GetCompany(no string) (c *Company, err error) {
-	c=new(Company)
+	c = new(Company)
 	err = NewOrm().Table("allsum_company").Where("no=?", no).First(c).Error
 	return
 }
@@ -166,7 +170,7 @@ func AuditCompany(cno string, uid int, st int, msg string) (err error) {
 
 type UserCompany struct {
 	Id  int    `gorm:"auto_increment"`
-	Uid int `gorm:"not null"`
+	Uid int    `gorm:"not null"`
 	Cno string `gorm:"not null"`
 }
 
@@ -174,7 +178,7 @@ func (UserCompany) TableName() string {
 	return "allsum_user_company"
 }
 
-func DelCompanyUser(cno string,uid int) (err error) {
+func DelCompanyUser(cno string, uid int) (err error) {
 	uc := UserCompany{
 		Uid: uid,
 		Cno: cno,
@@ -183,12 +187,12 @@ func DelCompanyUser(cno string,uid int) (err error) {
 	return
 }
 
-func AddCompanyUser(cno string,tel string) (err error) {
-	user:=User{
-		Tel:tel,
+func AddCompanyUser(cno string, tel string) (err error) {
+	user := User{
+		Tel: tel,
 	}
-	err=CreateUserIfNotExist(&user)
-	if err!=nil{
+	err = CreateUserIfNotExist(&user)
+	if err != nil {
 		return
 	}
 	uc := UserCompany{
@@ -199,7 +203,7 @@ func AddCompanyUser(cno string,tel string) (err error) {
 	return
 }
 
-func AddUserToCompany(cno string,uid int)(err error){
+func AddUserToCompany(cno string, uid int) (err error) {
 	uc := UserCompany{
 		Uid: uid,
 		Cno: cno,
@@ -208,7 +212,7 @@ func AddUserToCompany(cno string,uid int)(err error){
 	return
 }
 
-func DeleteCompanyUser(cno string,uid int) (err error) {
+func DeleteCompanyUser(cno string, uid int) (err error) {
 	err = NewOrm().Where("uid = ? and cno= ?", uid, cno).Delete(&UserCompany{}).Error
 	return
 }
