@@ -74,7 +74,7 @@ func DelRole(prefix string, rid int) (e error) {
 	db := model.NewOrm()
 	count := 0
 	e = db.Table(prefix+model.UserRole{}.TableName()).
-		Where("role_id = ?", rid).Count(&count)
+		Where("role_id = ?", rid).Count(&count).Error
 	if e != nil || count != 0 {
 		return fmt.Errorf("there some users in this role!%v", e)
 	}
@@ -87,7 +87,7 @@ func DelRole(prefix string, rid int) (e error) {
 }
 
 func AddUsersToRole(prefix string, rid int, uids []int) (e error) {
-	db := model.NewOrm().Table(prefix + model.UserRole{})
+	db := model.NewOrm().Table(prefix + model.UserRole{}.TableName())
 	ug := model.UserRole{}
 	for _, uid := range uids {
 		e = db.FirstOrCreate(&ug, &model.UserRole{UserId: uid, RoleId: rid}).Error
@@ -99,9 +99,9 @@ func AddUsersToRole(prefix string, rid int, uids []int) (e error) {
 }
 
 func DelUsersFromRole(prefix string, rid int, uids []int) (e error) {
-	tx := model.NewOrm().Table(prefix + model.UserRole{}).Begin()
+	tx := model.NewOrm().Table(prefix + model.UserRole{}.TableName()).Begin()
 	del := tx.Delete(&model.UserRole{}, "role_id = ? and user_id in (?)", rid, uids)
-	if del.RowsAffected != len(uids) {
+	if int(del.RowsAffected) != len(uids) {
 		tx.Rollback()
 		return errors.New("del failed,amount of users in this role is not match")
 	} else if del.Error != nil {

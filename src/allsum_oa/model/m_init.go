@@ -70,6 +70,7 @@ func InitPgSQL(key string) (err error) {
 		if strings.Contains(e.Error(), "schema") {
 			continue
 		}
+		ormer.db.Table(v + User{}.TableName()).AutoMigrate(new(User))
 		ormer.db.Table(v + UserGroup{}.TableName()).AutoMigrate(new(UserGroup))
 		ormer.db.Table(v + Attribute{}.TableName()).AutoMigrate(new(Attribute))
 		ormer.db.Table(v + Operation{}.TableName()).AutoMigrate(new(Operation))

@@ -196,7 +196,7 @@ func DelGroup(prefix string, gid int) (e error) {
 	db := model.NewOrm()
 	count := 0
 	e = db.Table(prefix+model.UserGroup{}.TableName()).
-		Where("group_id = ?", gid).Count(&count)
+		Where("group_id = ?", gid).Count(&count).Error
 	if e != nil || count != 0 {
 		return fmt.Errorf("there are some users in this group! %v", e)
 	}
@@ -224,7 +224,7 @@ func DelGroup(prefix string, gid int) (e error) {
 			ch.Pid = gFather.Id
 		}
 		ch.Utime = time.Now()
-		e = tx.Model(ch).Update("path", "utime")
+		e = tx.Model(ch).Update("path", "utime").Error
 		if e != nil {
 			tx.Rollback()
 			return
@@ -248,7 +248,7 @@ func EditGroup(prefix, newName string, gid int) (e error) {
 }
 
 func AddUsersToGroup(prefix string, gid int, uids []int) (e error) {
-	db := model.NewOrm().Table(prefix + model.UserGroup{})
+	db := model.NewOrm().Table(prefix + model.UserGroup{}.TableName())
 	ug := model.UserGroup{}
 	for _, uid := range uids {
 		e = db.FirstOrCreate(&ug, &model.UserGroup{UserId: uid, GroupId: gid}).Error
@@ -260,9 +260,9 @@ func AddUsersToGroup(prefix string, gid int, uids []int) (e error) {
 }
 
 func DelUsersFromGroup(prefix string, gid int, uids []int) (e error) {
-	tx := model.NewOrm().Table(prefix + model.UserGroup{}).Begin()
+	tx := model.NewOrm().Table(prefix + model.UserGroup{}.TableName()).Begin()
 	del := tx.Delete(&model.UserGroup{}, "group_id = ? and user_id in (?)", gid, uids)
-	if del.RowsAffected != len(uids) {
+	if int(del.RowsAffected) != len(uids) {
 		tx.Rollback()
 		return errors.New("del failed, amount of users in this group is not match")
 	} else if del.Error != nil {

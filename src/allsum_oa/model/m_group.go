@@ -24,6 +24,10 @@ type User struct {
 	Groups []Group `gorm:"-"`
 }
 
+func (User) TableName() string {
+	return "user"
+}
+
 type UserGroup struct {
 	Id      int       `gorm:"primary_key;AUTO_INCREMENT"`
 	UserId  int       `gorm:"not null"`

@@ -2,6 +2,7 @@ package user
 
 import (
 	"allsum_oa/controller/base"
+	"allsum_oa/service"
 	"common/lib/errcode"
 	"common/lib/push"
 	"encoding/json"
@@ -102,9 +103,8 @@ func (c *Controller) getUidAndCmps(data interface{}) (uid int, cmps []string, e 
 	if e != nil {
 		return 0, nil, e
 	}
-	i := 0
 	cmps = []string{}
-	for i >= 0 {
+	for i := 0; i >= 0; i++ {
 		no, e := js.Get("Companys").GetIndex(i).Get("No").String()
 		if e != nil {
 			break
@@ -178,7 +178,13 @@ func (c *Controller) UserLogin() {
 		c.ReplyErr(errcode.ErrAuthCreateFailed)
 		return
 	} else {
-		//todo 如果schema存在，获取该用户在schema下的组织和角色信息
+		if len(company) != 0 {
+			user, e := service.GetUserById(company, uid)
+			if e == nil {
+				c.ReplySucc(user)
+				return
+			}
+		}
 		c.Data["json"] = resp
 		c.ServeJSON()
 		beego.Info("login ok,token:%+v", token)
@@ -237,7 +243,13 @@ func (c *Controller) UserLoginPhone() {
 		c.ReplyErr(errcode.ErrAuthCreateFailed)
 		return
 	} else {
-		//todo 如果schema存在，获取该用户在schema下的组织和角色信息
+		if len(company) != 0 {
+			user, e := service.GetUserById(company, uid)
+			if e == nil {
+				c.ReplySucc(user)
+				return
+			}
+		}
 		c.Data["json"] = resp
 		c.ServeJSON()
 		beego.Info("login ok,token:%+v", token)
