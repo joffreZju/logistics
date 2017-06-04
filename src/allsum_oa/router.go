@@ -19,9 +19,11 @@ func LoadRouter() {
 	// user相关
 	beego.Router(ExemptPrefix+"/user/getcode", &user.Controller{}, "*:GetCode")
 	beego.Router(ExemptPrefix+"/user/register", &user.Controller{}, "*:UserRegister")
+	beego.Router(ExemptPrefix+"/user/getcompanys", &user.Controller{}, "*:GetUserCompanys")
 	beego.Router(ExemptPrefix+"/user/login", &user.Controller{}, "*:UserLogin")
-	//beego.Router(ExemptPrefix+"/user/login_phone", &user.Controller{}, "*:UserLoginPhoneCode")
-	//beego.Router(UserPrefix+"/login_out", &user.Controller{}, "*:LoginOut")
+	beego.Router(ExemptPrefix+"/user/login_phone", &user.Controller{}, "*:UserLoginPhone")
+	beego.Router(ExemptPrefix+"/user/login_out", &user.Controller{}, "*:LoginOut")
+
 	beego.Router(UserPrefix+"/info", &user.Controller{}, "*:GetUserInfo")
 	beego.Router(UserPrefix+"/passwd/modify", &user.Controller{}, "*:Resetpwd")
 	beego.Router(UserPrefix+"/edit_profile", &user.Controller{}, "*:EditProfile")
@@ -40,17 +42,19 @@ func LoadRouter() {
 	beego.Router(FilePrefix+"/download", &file.Controller{}, "*:DownloadFile")
 
 	// 非登录态列表
-	//notNeedAuthList := []string{
-	//	// aliyun check
-	//	"/",
-	//	// user
-	//	ExemptPrefix + "/user/getcode", ExemptPrefix + "/user/register", ExemptPrefix + "/user/login",
-	//}
+	notNeedAuthList := []string{
+		// aliyun check
+		//"/",
+		// user
+		ExemptPrefix + "/user/getcode", ExemptPrefix + "/user/register",
+		ExemptPrefix + "/user/getcompanys", ExemptPrefix + "/user/login",
+		ExemptPrefix + "/user/login_phone",
+	}
 
 	// add filter
 	// 请求合法性验证 这个要放在第一个
 	//beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckRequestFilter())
 	//filter.AddURLCheckSeed("wxapp", "bFvKYrlnHdtSaaGk7B1t") // 添加URLCheckSeed
-	//beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckAuthFilter("stowage_user", notNeedAuthList))
+	beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckAuthFilter("stowage_user", notNeedAuthList))
 	beego.InsertFilter("/*", beego.BeforeRouter, filter.RequestFilter())
 }

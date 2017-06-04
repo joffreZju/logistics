@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
+	"strings"
 )
 
 const (
@@ -65,7 +66,10 @@ func InitPgSQL(key string) (err error) {
 		hasReadOnly = true
 	}
 	for _, v := range schemas {
-		ormer.db.Table(v + Group{}.TableName()).AutoMigrate(new(Group))
+		e := ormer.db.Table(v + Group{}.TableName()).AutoMigrate(new(Group)).Error
+		if strings.Contains(e.Error(), "schema") {
+			continue
+		}
 		ormer.db.Table(v + UserGroup{}.TableName()).AutoMigrate(new(UserGroup))
 		ormer.db.Table(v + Attribute{}.TableName()).AutoMigrate(new(Attribute))
 		ormer.db.Table(v + Operation{}.TableName()).AutoMigrate(new(Operation))

@@ -10,10 +10,22 @@
     - addr:string
     - desc:string
     - gender:int(0/1)
+
+- 获取用户公司列表
+    - 登录之前先请求获取用户的注册公司列表，然后选择其中一个来登录。
+    - tel:string
     
+    - 返回值：data:[]string
+
 - 登录
     - tel:string
     - password:string
+
+- 登录验证码
+    - tel:string
+    - code:string
+    
+- 登出（直接携带token发get请求即可）
 
 ### 文件上传下载
 

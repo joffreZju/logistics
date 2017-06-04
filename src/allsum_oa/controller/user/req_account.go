@@ -1,8 +1,9 @@
 package user
 
 import (
-	"common/lib/errcode"
+	"allsum_oa/controller/base"
 	"encoding/json"
+	"errors"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/httplib"
 	"io/ioutil"
@@ -10,43 +11,55 @@ import (
 
 const host = "http://allsum.com:8093"
 
-func (c *Controller) get(url string, params ...string) (m map[string]interface{}, e error) {
-	return nil, nil
-}
-
-func (c *Controller) post_account(url string, params interface{}) (m map[string]interface{}, ecode *errcode.CodeError) {
+func (c *Controller) get_account(url string, params interface{}) (data *base.Response, e error) {
 	url = host + url
-	req := httplib.Post(url)
-	req.JSONBody(params)
+	req := httplib.Get(url)
+	ps, ok := params.(map[string]string)
+	if !ok {
+		return nil, errors.New("assert params to map[string]string failed")
+	} else {
+		for k, v := range ps {
+			req.Param(k, v)
+		}
+	}
 	resp, e := req.Response()
-	ecode = &errcode.CodeError{Code: 99999}
 	if e != nil {
 		beego.Error(e)
-		ecode.Msg = e.Error()
-		return nil, ecode
+		return nil, e
 	}
 	bodystr, e := ioutil.ReadAll(resp.Body)
 	if e != nil {
 		beego.Error(e)
-		ecode.Msg = e.Error()
-		return nil, ecode
+		return nil, e
 	}
-	m = make(map[string]interface{})
-	e = json.Unmarshal(bodystr, &m)
+	data = &base.Response{}
+	e = json.Unmarshal(bodystr, data)
 	if e != nil {
 		beego.Error(e)
-		ecode.Msg = e.Error()
-		return nil, ecode
+		return nil, e
 	}
+	return data, nil
+}
 
-	if m["code"].(float64) != 0 {
-		e = json.Unmarshal(bodystr, ecode)
-		if e != nil {
-			beego.Error(e)
-			ecode.Msg = e.Error()
-			return nil, ecode
-		}
-		return nil, ecode
+func (c *Controller) post_account(url string, params interface{}) (data *base.Response, e error) {
+	url = host + url
+	req := httplib.Post(url)
+	req.JSONBody(params)
+	resp, e := req.Response()
+	if e != nil {
+		beego.Error(e)
+		return nil, e
 	}
-	return m, nil
+	bodystr, e := ioutil.ReadAll(resp.Body)
+	if e != nil {
+		beego.Error(e)
+		return nil, e
+	}
+	data = &base.Response{}
+	e = json.Unmarshal(bodystr, data)
+	if e != nil {
+		beego.Error(e)
+		return nil, e
+	}
+	return data, nil
 }

@@ -163,6 +163,18 @@ func (c *Controller) UserLoginAuth() {
 	return
 }
 
+//获取用户信息和其公司信息
+func (c *Controller) GetUserCompanys() {
+	tel := c.GetString("tel")
+	user, err := service.GetUserByTel(tel)
+	if err != nil {
+		beego.Error(err)
+		c.ReplyErr(errcode.ErrUserNotExisted)
+		return
+	}
+	c.ReplySucc(user)
+}
+
 //用户登陆
 func (c *Controller) UserLogin() {
 	tel := c.GetString("tel")
@@ -418,7 +430,7 @@ func (c *Controller) FirmRegister() {
 		c.ReplyErr(errcode.ErrFirmCreateFailed)
 		return
 	}
-	model.AddUserToCompany(firm.No,uid)
+	model.AddUserToCompany(firm.No, uid)
 	c.ReplySucc("ok")
 }
 
@@ -466,7 +478,7 @@ func (c *Controller) FirmModify() {
 	c.ReplySucc("ok")
 }
 func (c *Controller) FirmAudit() {
-	uid,_ := c.GetInt("uid")
+	uid, _ := c.GetInt("uid")
 	cno := c.GetString("cno")
 	status, err := c.GetInt("status")
 	if err != nil {
@@ -499,9 +511,9 @@ func (c *Controller) FirmDelUser() {
 func (c *Controller) FirmAddUser() {
 	//uid, _ := c.GetInt("uid")
 	cno := c.GetString("cno")
-	tel:=c.GetString("tel")
+	tel := c.GetString("tel")
 
-	err := model.AddCompanyUser(cno,tel)
+	err := model.AddCompanyUser(cno, tel)
 	if err != nil {
 		beego.Error(err)
 		c.ReplyErr(errcode.ErrServerError)
@@ -509,4 +521,3 @@ func (c *Controller) FirmAddUser() {
 	}
 	c.ReplySucc("ok")
 }
-

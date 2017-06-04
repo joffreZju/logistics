@@ -20,6 +20,8 @@ type User struct {
 	//LoginTime  time.Time `gorm:"timestamp" json:",omitempty"`                 //登录时间
 	//UserType int       `gorm:"default:1" json:",omitempty"`                 //1 普通用户
 	//Companys []Company `orm:"-" json:",omitempty"`                          // 用户的所在组织
+	Roles  []Role  `gorm:"-"`
+	Groups []Group `gorm:"-"`
 }
 
 type UserGroup struct {

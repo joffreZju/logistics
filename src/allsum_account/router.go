@@ -21,6 +21,7 @@ func LoadRouter() {
 	//beego.Router(ExemptPrefix+"/user/getcode", &user.Controller{}, "*:GetCode")
 	beego.Router(ExemptPrefix+"/user/register", &user.Controller{}, "*:UserRegister")
 	//beego.Router(ExemptPrefix+"/user/login", &user.Controller{}, "*:UserLogin")
+	beego.Router(ExemptPrefix+"/user/getcompanys", &user.Controller{}, "*:GetUserCompanys")
 	beego.Router(ExemptPrefix+"/user/login_auth", &user.Controller{}, "Post:UserLoginAuth")
 	//beego.Router(ExemptPrefix+"/user/login_phone", &user.Controller{}, "*:UserLoginPhoneCode")
 	//beego.Router(UserPrefix+"/login_out", &user.Controller{}, "*:LoginOut")
@@ -37,11 +38,11 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
 	beego.Router(FirmPrefix+"/del_user", &user.Controller{}, "Post:FirmDelUser")
 	/*
-	notNeedAuthList := []string{
-		// user
-		ExemptPrefix + "/user/getcode", ExemptPrefix + "/user/register", ExemptPrefix + "/user/login",
-		ExemptPrefix + "/user/login_auth",
-	}*/
+		notNeedAuthList := []string{
+			// user
+			ExemptPrefix + "/user/getcode", ExemptPrefix + "/user/register", ExemptPrefix + "/user/login",
+			ExemptPrefix + "/user/login_auth",
+		}*/
 
 	// add filter
 	// 请求合法性验证 这个要放在第一个
