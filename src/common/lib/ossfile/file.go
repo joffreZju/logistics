@@ -2,9 +2,9 @@ package ossfile
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/astaxie/beego"
-	"io/ioutil"
 )
 
 var client *oss.Client
@@ -38,30 +38,31 @@ func PutFile(prefix string, filename string, data []byte) (url string, err error
 	if err != nil {
 		return "", err
 	}
-	url = prefix + "/" + filename
-	err = bucket.PutObject(url, bytes.NewReader(data))
+	filepath := prefix + "/" + filename
+	err = bucket.PutObject(filepath, bytes.NewReader(data))
 	if err != nil {
 		return "", err
 	}
+	url = fmt.Sprintf("http://%s.%s/%s", bucket.BucketName, client.Config.Endpoint, filepath)
 	return url, nil
 }
 
-func GetFile(url string) ([]byte, error) {
-	bucket, e := client.Bucket(bucketName)
-	if e != nil {
-		return nil, e
-	}
-	body, e := bucket.GetObject(url)
-	if e != nil {
-		return nil, e
-	}
-	data, e := ioutil.ReadAll(body)
-	body.Close()
-	if e != nil {
-		return nil, e
-	}
-	return data, nil
-}
+//func GetFile(url string) ([]byte, error) {
+//	bucket, e := client.Bucket(bucketName)
+//	if e != nil {
+//		return nil, e
+//	}
+//	body, e := bucket.GetObject(url)
+//	if e != nil {
+//		return nil, e
+//	}
+//	data, e := ioutil.ReadAll(body)
+//	body.Close()
+//	if e != nil {
+//		return nil, e
+//	}
+//	return data, nil
+//}
 
 func DelFiles(urls []string) error {
 	bucket, e := client.Bucket(bucketName)

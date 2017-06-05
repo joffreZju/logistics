@@ -6,7 +6,6 @@ import (
 	"common/lib/ossfile"
 	"github.com/astaxie/beego"
 	"io/ioutil"
-	"strings"
 )
 
 type Controller struct {
@@ -40,20 +39,20 @@ func (c *Controller) UploadFile() {
 	c.ReplySucc(map[string]string{"url": url})
 }
 
-func (c *Controller) DownloadFile() {
-	url := c.GetString("url")
-	data, e := ossfile.GetFile(url)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrDownloadFileFailed)
-		return
-	}
-	var filename string
-	s := strings.Split(url, "/")
-	if len(s) == 2 {
-		filename = s[1]
-	} else {
-		filename = s[0]
-	}
-	c.ReplyFile("", filename, data)
-}
+//func (c *Controller) DownloadFile() {
+//	url := c.GetString("url")
+//	data, e := ossfile.GetFile(url)
+//	if e != nil {
+//		beego.Error(e)
+//		c.ReplyErr(errcode.ErrDownloadFileFailed)
+//		return
+//	}
+//	var filename string
+//	s := strings.Split(url, "/")
+//	if len(s) == 2 {
+//		filename = s[1]
+//	} else {
+//		filename = s[0]
+//	}
+//	c.ReplyFile("", filename, data)
+//}

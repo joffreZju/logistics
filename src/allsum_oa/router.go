@@ -39,7 +39,7 @@ func LoadRouter() {
 
 	//文件上传下载
 	beego.Router(FilePrefix+"/upload", &file.Controller{}, "Post:UploadFile")
-	beego.Router(FilePrefix+"/download", &file.Controller{}, "*:DownloadFile")
+	//beego.Router(FilePrefix+"/download", &file.Controller{}, "*:DownloadFile")
 
 	// 非登录态列表
 	notNeedAuthList := []string{
@@ -48,7 +48,7 @@ func LoadRouter() {
 		// user
 		ExemptPrefix + "/user/getcode", ExemptPrefix + "/user/register",
 		ExemptPrefix + "/user/getcompanys", ExemptPrefix + "/user/login",
-		ExemptPrefix + "/user/login_phone",
+		ExemptPrefix + "/user/login_phone", ExemptPrefix + "/user/login_out",
 	}
 
 	// add filter
