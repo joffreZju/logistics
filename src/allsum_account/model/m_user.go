@@ -91,8 +91,8 @@ func UpdateUser(u *User, fields ...string) (err error) {
 }
 
 func GetUser(id int) (u *User, err error) {
-	u = &User{Id: id}
-	err = NewOrm(ReadOnly).First(u).Error
+	u = &User{}
+	err = NewOrm(ReadOnly).First(u, id).Error
 	return
 }
 
