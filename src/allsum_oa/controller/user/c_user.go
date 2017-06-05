@@ -90,29 +90,34 @@ func (c *Controller) UserRegister() {
 }
 
 //解析allsum_account的返回data字段，获取uid和companys的no
-func (c *Controller) getUidAndCmps(data interface{}) (uid int, cmps []string, e error) {
+func (c *Controller) getUidAndCmps(data interface{}) (uid int, cmpsNo []string, cmps []interface{}, e error) {
 	b, e := json.Marshal(data)
 	if e != nil {
-		return 0, nil, e
+		return 0, nil, nil, e
 	}
 	js, e := simplejson.NewJson(b)
 	if e != nil {
-		return 0, nil, e
+		return 0, nil, nil, e
 	}
 	uid, e = js.Get("Id").Int()
 	if e != nil {
-		return 0, nil, e
+		return 0, nil, nil, e
 	}
-	cmps = []string{}
+	cmpsNo = []string{}
 	for i := 0; i >= 0; i++ {
 		no, e := js.Get("Companys").GetIndex(i).Get("No").String()
 		if e != nil {
 			break
 		} else {
-			cmps = append(cmps, no)
+			cmpsNo = append(cmpsNo, no)
 		}
 	}
-	return uid, cmps, nil
+	cmps, e = js.Get("Companys").Array()
+	if e != nil {
+		beego.Debug(e)
+		cmps = nil
+	}
+	return uid, cmpsNo, cmps, nil
 }
 
 func (c *Controller) GetUserCompanys() {
@@ -130,7 +135,7 @@ func (c *Controller) GetUserCompanys() {
 		c.ServeJSON()
 		return
 	}
-	_, cmps, e := c.getUidAndCmps(resp.Data)
+	_, _, cmps, e := c.getUidAndCmps(resp.Data)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -156,7 +161,7 @@ func (c *Controller) UserLogin() {
 		c.ServeJSON()
 		return
 	}
-	uid, cmps, e := c.getUidAndCmps(resp.Data)
+	uid, cmps, _, e := c.getUidAndCmps(resp.Data)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -220,7 +225,7 @@ func (c *Controller) UserLoginPhone() {
 		return
 	}
 	//准备token信息
-	uid, cmps, e := c.getUidAndCmps(resp.Data)
+	uid, cmps, _, e := c.getUidAndCmps(resp.Data)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)

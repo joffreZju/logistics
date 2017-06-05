@@ -13,8 +13,13 @@ type Controller struct {
 	base.Controller
 }
 
+const publicOssDir string = "public"
+
 func (c *Controller) UploadFile() {
 	prefix := c.UserComp //todo
+	if len(prefix) == 0 {
+		prefix = publicOssDir
+	}
 	f, h, e := c.GetFile("file")
 	if e != nil {
 		beego.Error(e)
