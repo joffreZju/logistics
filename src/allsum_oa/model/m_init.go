@@ -65,9 +65,13 @@ func InitPgSQL(key string) (err error) {
 		}
 		hasReadOnly = true
 	}
+
 	for _, v := range schemas {
+		ormer.db.Table(Public + Function{}.TableName()).AutoMigrate(new(Function))
+
 		e := ormer.db.Table(v + Group{}.TableName()).AutoMigrate(new(Group)).Error
-		if strings.Contains(e.Error(), "schema") {
+		if e != nil || strings.Contains(e.Error(), "schema") {
+			beego.Info(e)
 			continue
 		}
 		ormer.db.Table(v + User{}.TableName()).AutoMigrate(new(User))
@@ -78,7 +82,6 @@ func InitPgSQL(key string) (err error) {
 
 		ormer.db.Table(v + Role{}.TableName()).AutoMigrate(new(Role))
 		ormer.db.Table(v + RoleFunc{}.TableName()).AutoMigrate(new(RoleFunc))
-		ormer.db.Table(v + Func{}.TableName()).AutoMigrate(new(Func))
 		ormer.db.Table(v + UserRole{}.TableName()).AutoMigrate(new(UserRole))
 
 		ormer.db.Table(v + Formtpl{}.TableName()).AutoMigrate(new(Formtpl))
@@ -94,6 +97,5 @@ func InitPgSQL(key string) (err error) {
 		ormer.db.LogMode(true)
 	}
 	//Ormer.db.SetLogger(beego.BeeLogger)
-
 	return
 }

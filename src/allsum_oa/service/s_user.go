@@ -20,6 +20,10 @@ func GetUserById(prefix string, uid int) (user *model.User, e error) {
 	if e != nil {
 		return
 	}
+	user.Funcs, e = GetFuncIdsOfUser(prefix, uid)
+	if e != nil {
+		return
+	}
 	return
 }
 
@@ -41,6 +45,23 @@ func GetGroupsOfUser(prefix string, uid int) (groups []model.Group, e error) {
 	sql := fmt.Sprintf(`select * from "%s".group as t1 inner join "%s".user_group as t2
 		on t1.id = t2.group_id where t2.user_id = %d`, prefix, prefix, uid)
 	e = db.Raw(sql).Scan(&groups).Error
+	if e != nil {
+		return
+	}
+	return
+}
+
+func GetFuncIdsOfUser(prefix string, uid int) (fids []int, e error) {
+	db := model.NewOrm()
+	rids := []int{}
+	sql := fmt.Sprintf(`select distinct(role_id) from "%s".user_role where user_id = %d`, prefix, uid)
+	e = db.Raw(sql).Scan(&rids).Error
+	if e != nil {
+		return
+	}
+	fids = []int{}
+	sql = fmt.Sprintf(`select distinct(func_id) from "%s".role_func where role_id in (?)`, prefix)
+	e = db.Raw(sql, rids).Scan(&fids).Error
 	if e != nil {
 		return
 	}

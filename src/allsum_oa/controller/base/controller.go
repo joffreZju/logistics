@@ -88,8 +88,7 @@ func (c *Controller) Prepare() {
 		c.Ctx.Input.SetParam("uid", uid)
 		c.UserID, _ = strconv.ParseInt(uid, 10, 64)
 	}
-	//todo token中要存储相关信息
-	c.UserComp = c.Ctx.Request.Header.Get("ucomp")
+	c.UserComp = c.Ctx.Request.Header.Get("cno")
 }
 
 func (c *Controller) Finish() {

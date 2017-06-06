@@ -19,20 +19,22 @@ func LoadRouter() {
 	// user相关
 	beego.Router(ExemptPrefix+"/user/getcode", &user.Controller{}, "*:GetCode")
 	beego.Router(ExemptPrefix+"/user/register", &user.Controller{}, "*:UserRegister")
-	beego.Router(ExemptPrefix+"/user/getcompanys", &user.Controller{}, "*:GetUserCompanys")
+	//beego.Router(ExemptPrefix+"/user/getcompanys", &user.Controller{}, "*:GetUserCompanys")
 	beego.Router(ExemptPrefix+"/user/login", &user.Controller{}, "*:UserLogin")
 	beego.Router(ExemptPrefix+"/user/login_phone", &user.Controller{}, "*:UserLoginPhone")
 	beego.Router(ExemptPrefix+"/user/login_out", &user.Controller{}, "*:LoginOut")
 
 	beego.Router(UserPrefix+"/info", &user.Controller{}, "*:GetUserInfo")
-	beego.Router(UserPrefix+"/passwd/modify", &user.Controller{}, "*:Resetpwd")
-	beego.Router(UserPrefix+"/edit_profile", &user.Controller{}, "*:EditProfile")
+	beego.Router(UserPrefix+"/resetpwd", &user.Controller{}, "*:Resetpwd")
+	//beego.Router(UserPrefix+"/edit_profile", &user.Controller{}, "*:EditProfile")
 
 	//comapny相关
+	beego.Router(FirmPrefix+"/add_license", &user.Controller{}, "*:AddLicenseFile")
+
 	beego.Router(FirmPrefix+"/info", &user.Controller{}, "Get:GetFirmInfo")
-	beego.Router(FirmPrefix+"/register", &user.Controller{}, "Post:FirmRegister")
+	//beego.Router(FirmPrefix+"/register", &user.Controller{}, "Post:FirmRegister")
 	beego.Router(FirmPrefix+"/list", &user.Controller{}, "Get:GetFirmList")
-	beego.Router(FirmPrefix+"/modify", &user.Controller{}, "Post:FirmModify")
+	//beego.Router(FirmPrefix+"/modify", &user.Controller{}, "Post:FirmModify")
 	beego.Router(FirmPrefix+"/audit", &user.Controller{}, "Post:FirmAudit")
 	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
 	beego.Router(FirmPrefix+"/del_user", &user.Controller{}, "Post:FirmDelUser")

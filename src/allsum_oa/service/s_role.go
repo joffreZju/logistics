@@ -10,8 +10,8 @@ import (
 
 func addFuncsToRole(prefix string, tx *gorm.DB, r *model.Role, fids []int) (e error) {
 	for _, id := range fids {
-		f := model.Func{}
-		e = tx.Table(model.Public+model.Func{}.TableName()).First(&f, id).Error
+		f := model.Function{}
+		e = tx.Table(model.Public+model.Function{}.TableName()).First(&f, id).Error
 		if e == gorm.ErrRecordNotFound || e != nil {
 			return fmt.Errorf("func %d is not found", id)
 		}

@@ -24,7 +24,7 @@ func (RoleFunc) TableName() string {
 	return "role_func"
 }
 
-type Func struct {
+type Function struct {
 	Id    int    `gorm:"primary_key;AUTO_INCREMENT"`
 	Name  string `gorm:"not null"`
 	Desc  string
@@ -34,8 +34,8 @@ type Func struct {
 	//Level int       `gorm:"not null"`
 }
 
-func (Func) TableName() string {
-	return "func"
+func (Function) TableName() string {
+	return "function"
 }
 
 type UserRole struct {

@@ -43,7 +43,7 @@ var (
 	ErrUserPremissionError          = &CodeError{20107, "您没有足够的权限查看该数据！"}
 	ErrFirmCreateFailed             = &CodeError{20120, "新建企业失败"}
 	ErrFirmNotExisted               = &CodeError{20121, "企业不存在"}
-	ErrFirmUpdate                   = &CodeError{20122, "您目前无权限修改数据"}
+	ErrFirmUpdateFailed             = &CodeError{20122, "更新企业信息失败"}
 
 	ErrCreateOrderFailed       = &CodeError{20131, "创建订单失败"}
 	ErrCreateOrderStatusFailed = &CodeError{20132, "创建订单状态失败"}

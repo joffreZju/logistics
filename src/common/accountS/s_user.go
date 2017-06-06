@@ -1,22 +1,20 @@
-package service
+package accountS
 
 import (
-	"allsum_account/model"
+	"common/accountM"
 	"common/lib/errcode"
 	"common/lib/util"
 	"encoding/binary"
 	"encoding/hex"
-
-	"strings"
-
 	"github.com/astaxie/beego"
+	"strings"
 )
 
 var seedu = "asdf1234&*();.,"
 
-func UserCreate(u *model.User) (err error) {
+func CreateUser(u *accountM.User) (err error) {
 	//TODO add uid
-	err = model.CreateUser(u)
+	err = accountM.CreateUser(u)
 	if err != nil {
 		beego.Error("UserCreate error: ", err)
 		if strings.Contains(err.Error(), "duplicate key") {
@@ -28,8 +26,8 @@ func UserCreate(u *model.User) (err error) {
 	}
 	return
 }
-func UserUpdate(u *model.User, fileds ...string) (err error) {
-	err = model.UpdateUser(u, fileds...)
+func UpdateUser(u *accountM.User, fileds ...string) (err error) {
+	err = accountM.UpdateUser(u, fileds...)
 	if err != nil {
 		beego.Error("UserUpdate error: ", err)
 		err = errcode.ErrGetUserInfoFailed
@@ -37,8 +35,8 @@ func UserUpdate(u *model.User, fileds ...string) (err error) {
 	}
 	return
 }
-func GetUserByTel(tel string) (u *model.User, err error) {
-	u, err = model.GetUserByTel(tel)
+func GetUserByTel(tel string) (u *accountM.User, err error) {
+	u, err = accountM.GetUserByTel(tel)
 	if err != nil {
 		beego.Error("GetUserByTel error: ", err)
 		err = errcode.ErrGetUserInfoFailed
@@ -47,8 +45,8 @@ func GetUserByTel(tel string) (u *model.User, err error) {
 	return
 }
 
-func GetUserInfo(id int) (u *model.User, err error) {
-	u, err = model.GetUser(id)
+func GetUserById(id int) (u *accountM.User, err error) {
+	u, err = accountM.GetUserById(id)
 	if err != nil {
 		beego.Error("GetUserByTel error: ", err)
 		err = errcode.ErrGetUserInfoFailed
@@ -57,7 +55,7 @@ func GetUserInfo(id int) (u *model.User, err error) {
 	return
 }
 
-func GenUserNo(u *model.User) (no string, err error) {
+func GenUserNo(u *accountM.User) (no string, err error) {
 	bb := util.Md5Cal2Byte([]byte(u.Tel + seedu))
 	binary.LittleEndian.PutUint32(bb[12:], uint32(u.Id))
 	no = hex.EncodeToString(bb)

@@ -1,11 +1,10 @@
-package model
+package accountM
 
 import (
 	"common/lib/keycrypt"
 	"fmt"
-
 	"github.com/astaxie/beego"
-	orm "github.com/jinzhu/gorm"
+	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
 )
 
@@ -13,27 +12,27 @@ const ReadOnly = 1
 
 type (
 	DBPool struct {
-		db  *orm.DB
-		rdb *orm.DB
+		db  *gorm.DB
+		rdb *gorm.DB
 	}
 )
 
 var (
 	hasReadOnly    = false
 	readOnlyDBName = "alaccountro"
-	Ormer          DBPool
+	ormer          DBPool
 )
 
-func NewOrm(readOnly ...int) *orm.DB {
+func NewOrm(readOnly ...int) *gorm.DB {
 	if hasReadOnly && len(readOnly) > 0 && readOnly[0] == ReadOnly {
-		return Ormer.rdb
+		return ormer.rdb
 	}
-	return Ormer.db
+	return ormer.db
 }
 
-func ModelInit(db *orm.DB)(err error) {
+func ModelInit(db *gorm.DB) (err error) {
 	db.AutoMigrate(new(User), new(Company), new(UserCompany))
-	Ormer.db=db
+	ormer.db = db
 	return nil
 }
 
@@ -53,14 +52,14 @@ func InitPgSQL(key string) (err error) {
 	}
 
 	beego.Debug(username, password, addr, dbname)
-	Ormer.db, err = orm.Open("postgres",
+	ormer.db, err = gorm.Open("postgres",
 		fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
 			username, password, addr, port, dbname))
 	if err != nil {
 		return
 	}
 	if len(addr_ro) > 0 {
-		Ormer.rdb, err = orm.Open("postgres",
+		ormer.rdb, err = gorm.Open("postgres",
 			fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
 				username, password, addr_ro, port, dbname))
 		if err != nil {
@@ -68,12 +67,12 @@ func InitPgSQL(key string) (err error) {
 		}
 		hasReadOnly = true
 	}
-	Ormer.db.AutoMigrate(new(User), new(Company), new(UserCompany))
+	ormer.db.AutoMigrate(new(User), new(Company), new(UserCompany))
 
 	if beego.BConfig.RunMode == "prod" {
-		Ormer.db.LogMode(false)
+		ormer.db.LogMode(false)
 	} else {
-		Ormer.db.LogMode(true)
+		ormer.db.LogMode(true)
 		fmt.Printf("Set orm debug open--------------------\n")
 	}
 	//Ormer.db.SetLogger(beego.BeeLogger)

@@ -93,6 +93,7 @@ func CheckAuthFilter(group string, notNeedAuthList []string) beego.FilterFunc {
 			//	}
 			//} else {
 			ctx.Request.Header.Add("uid", token.SingleID)
+			ctx.Request.Header.Add("cno", token.GroupID)
 			token.DeadLine = time.Now().Unix() + int64(tokenauth.TokenPeriod)
 			tokenauth.Store.FlushToken(token)
 			//}
