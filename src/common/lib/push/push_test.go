@@ -1,14 +1,14 @@
 package push
 
 import (
-//"fmt"
-//"testing"
+	"testing"
 )
 
 //func init() {
 //	Init()
 //}
 //
+
 //func TestPushDayu(t *testing.T) {
 //	result := SendSMSWithDayu("15158134537", "壹算科技", "SMS_37830073", map[string]string{
 //		"cp_id":    "2222222",
@@ -16,3 +16,9 @@ import (
 //		"cp_title": "测试优惠券"})
 //	fmt.Println(result)
 //}
+
+func TestJPush(t *testing.T) {
+	tels := []string{"1", "2"}
+	JPushCommonMsg(tels, "nihao", map[string]interface{}{})
+	t.Log("hello world\n")
+}
