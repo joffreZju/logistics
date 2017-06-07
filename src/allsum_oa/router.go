@@ -18,6 +18,7 @@ const (
 func LoadRouter() {
 
 	// user相关
+	beego.Router(ExemptPrefix+"/test", &user.Controller{}, "*:Test")
 	beego.Router(ExemptPrefix+"/user/getcode", &user.Controller{}, "*:GetCode")
 	beego.Router(ExemptPrefix+"/user/register", &user.Controller{}, "*:UserRegister")
 	beego.Router(ExemptPrefix+"/user/login", &user.Controller{}, "*:UserLogin")
@@ -50,7 +51,7 @@ func LoadRouter() {
 		// user
 		ExemptPrefix + "/user/getcode", ExemptPrefix + "/user/register",
 		ExemptPrefix + "/user/login", ExemptPrefix + "/user/login_phone",
-		ExemptPrefix + "/user/login_out",
+		ExemptPrefix + "/user/login_out", ExemptPrefix + "/test",
 	}
 
 	// add filter

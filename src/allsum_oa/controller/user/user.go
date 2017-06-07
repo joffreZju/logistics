@@ -207,6 +207,25 @@ func (c *Controller) loginAction(user *model.User) {
 	}
 }
 
+func (c *Controller) Test() {
+	a, e := c.RedisClient.Hmset("group_1", map[string]interface{}{
+		"roles":  "1_2_3",
+		"groups": "4_5_6",
+	})
+	beego.Info(a, e)
+
+	b, e := c.RedisClient.Hmget("group_1", []string{"roles", "groups"})
+	beego.Info(b, e)
+
+	d, e := c.RedisClient.HDel("group_1", "roles")
+	beego.Info(d, e)
+
+	f, e := c.RedisClient.Hmget("group_1", []string{"roles", "groups"})
+	beego.Info(f, e, len(f["roles"]))
+
+	c.ReplySucc(nil)
+}
+
 func (c *Controller) LoginOut() {
 	token, err := o2o.Auth.CheckToken(c.Ctx.Request)
 	if err != nil {

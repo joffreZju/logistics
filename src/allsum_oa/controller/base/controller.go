@@ -2,12 +2,12 @@ package base
 
 import (
 	mycache "common/lib/cache"
+	"common/lib/redis"
 	"fmt"
-	"strconv"
-	"strings"
-
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/cache"
+	"strconv"
+	"strings"
 )
 
 type Controller struct {
@@ -16,8 +16,9 @@ type Controller struct {
 	ActionName     string
 	IsFailed       bool
 
-	Cache      cache.Cache // 共享缓存
-	LocalCache cache.Cache // 本机缓存
+	Cache       cache.Cache         // 共享缓存
+	LocalCache  cache.Cache         // 本机缓存
+	RedisClient *redis.RedisManager // 本机缓存
 
 	UserID   int64  // 用户ID
 	UserComp string // 用户公司
@@ -76,6 +77,7 @@ func (c *Controller) Prepare() {
 	//	c.ControllerName, c.ActionName), 1)
 	c.LocalCache = mycache.LocalCache
 	c.Cache = mycache.Cache
+	c.RedisClient = redis.Client
 
 	// 获取客户端版本号
 	c.appName = strings.ToLower(strings.TrimSpace(c.GetString("source")))

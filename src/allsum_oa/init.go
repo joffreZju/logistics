@@ -5,6 +5,7 @@ import (
 	"common/filter"
 	"common/lib/cache"
 	"common/lib/push"
+	"common/lib/redis"
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/ysqi/tokenauth2beego"
@@ -38,6 +39,13 @@ func Init() (err error) {
 	err = cache.Init(key)
 	if err != nil {
 		beego.Error("init cache failed : ", err)
+		return
+	}
+
+	// init redis cache
+	err = redis.Init(key)
+	if err != nil {
+		beego.Error("init redis client failed : ", err)
 		return
 	}
 
