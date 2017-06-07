@@ -10,8 +10,9 @@ import (
 const (
 	ExemptPrefix string = "/exempt"
 	UserPrefix   string = "/v2/user"
-	FirmPrefix   string = "/v2/admin"
+	FirmPrefix   string = "/v2/firm"
 	FilePrefix   string = "/v2/file"
+	AdminPrefix  string = "/v2/admin"
 )
 
 func LoadRouter() {
@@ -19,7 +20,6 @@ func LoadRouter() {
 	// user相关
 	beego.Router(ExemptPrefix+"/user/getcode", &user.Controller{}, "*:GetCode")
 	beego.Router(ExemptPrefix+"/user/register", &user.Controller{}, "*:UserRegister")
-	//beego.Router(ExemptPrefix+"/user/getcompanys", &user.Controller{}, "*:GetUserCompanys")
 	beego.Router(ExemptPrefix+"/user/login", &user.Controller{}, "*:UserLogin")
 	beego.Router(ExemptPrefix+"/user/login_phone", &user.Controller{}, "*:UserLoginPhone")
 	beego.Router(ExemptPrefix+"/user/login_out", &user.Controller{}, "*:LoginOut")
@@ -29,15 +29,15 @@ func LoadRouter() {
 	//beego.Router(UserPrefix+"/edit_profile", &user.Controller{}, "*:EditProfile")
 
 	//comapny相关
-	beego.Router(FirmPrefix+"/add_license", &user.Controller{}, "*:AddLicenseFile")
-
-	beego.Router(FirmPrefix+"/info", &user.Controller{}, "Get:GetFirmInfo")
 	//beego.Router(FirmPrefix+"/register", &user.Controller{}, "Post:FirmRegister")
-	beego.Router(FirmPrefix+"/list", &user.Controller{}, "Get:GetFirmList")
 	//beego.Router(FirmPrefix+"/modify", &user.Controller{}, "Post:FirmModify")
-	beego.Router(FirmPrefix+"/audit", &user.Controller{}, "Post:FirmAudit")
+	beego.Router(FirmPrefix+"/add_license", &user.Controller{}, "*:AddLicenseFile")
 	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
 	beego.Router(FirmPrefix+"/del_user", &user.Controller{}, "Post:FirmDelUser")
+	//allsum管理员审核公司
+	beego.Router(AdminPrefix+"/firm_info", &user.Controller{}, "*:AdminGetFirmInfo")
+	beego.Router(AdminPrefix+"/firm_list", &user.Controller{}, "*:AdminGetFirmList")
+	beego.Router(AdminPrefix+"/firm_audit", &user.Controller{}, "*:AdminFirmAudit")
 
 	//文件上传下载
 	beego.Router(FilePrefix+"/upload", &file.Controller{}, "Post:UploadFile")
@@ -49,8 +49,8 @@ func LoadRouter() {
 		//"/",
 		// user
 		ExemptPrefix + "/user/getcode", ExemptPrefix + "/user/register",
-		ExemptPrefix + "/user/getcompanys", ExemptPrefix + "/user/login",
-		ExemptPrefix + "/user/login_phone", ExemptPrefix + "/user/login_out",
+		ExemptPrefix + "/user/login", ExemptPrefix + "/user/login_phone",
+		ExemptPrefix + "/user/login_out",
 	}
 
 	// add filter

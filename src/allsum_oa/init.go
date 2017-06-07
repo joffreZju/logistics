@@ -2,7 +2,6 @@ package main
 
 import (
 	"allsum_oa/model"
-	"common/accountM"
 	"common/filter"
 	"common/lib/cache"
 	"common/lib/push"
@@ -49,12 +48,6 @@ func Init() (err error) {
 	err = model.InitPgSQL(key)
 	if err != nil {
 		beego.Error("init database failed : ", err)
-		return
-	}
-
-	err = accountM.ModelInit(model.NewOrm())
-	if err != nil {
-		beego.Error("init account model failed : ", err)
 		return
 	}
 

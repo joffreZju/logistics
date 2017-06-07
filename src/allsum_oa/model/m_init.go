@@ -19,9 +19,6 @@ type DBPool struct {
 	rdb *gorm.DB
 }
 
-//配置或数据表
-var schemas = []string{"group."}
-
 var (
 	hasReadOnly = false
 	ormer       DBPool
@@ -48,7 +45,6 @@ func InitPgSQL(key string) (err error) {
 			return
 		}
 	}
-
 	beego.Debug(username, password, addr, dbname)
 	ormer.db, err = gorm.Open("postgres",
 		fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
@@ -65,30 +61,9 @@ func InitPgSQL(key string) (err error) {
 		}
 		hasReadOnly = true
 	}
-
-	for _, v := range schemas {
-		ormer.db.Table(Public + Function{}.TableName()).AutoMigrate(new(Function))
-
-		e := ormer.db.Table(v + Group{}.TableName()).AutoMigrate(new(Group)).Error
-		if e != nil || strings.Contains(e.Error(), "schema") {
-			beego.Info(e)
-			continue
-		}
-		ormer.db.Table(v + User{}.TableName()).AutoMigrate(new(User))
-		ormer.db.Table(v + UserGroup{}.TableName()).AutoMigrate(new(UserGroup))
-		ormer.db.Table(v + Attribute{}.TableName()).AutoMigrate(new(Attribute))
-		ormer.db.Table(v + Operation{}.TableName()).AutoMigrate(new(Operation))
-		ormer.db.Table(v + HistoryGroup{}.TableName()).AutoMigrate(new(HistoryGroup))
-
-		ormer.db.Table(v + Role{}.TableName()).AutoMigrate(new(Role))
-		ormer.db.Table(v + RoleFunc{}.TableName()).AutoMigrate(new(RoleFunc))
-		ormer.db.Table(v + UserRole{}.TableName()).AutoMigrate(new(UserRole))
-
-		ormer.db.Table(v + Formtpl{}.TableName()).AutoMigrate(new(Formtpl))
-		ormer.db.Table(v + Form{}.TableName()).AutoMigrate(new(Form))
-		ormer.db.Table(v + Approvaltpl{}.TableName()).AutoMigrate(new(Approvaltpl))
-		ormer.db.Table(v + Approval{}.TableName()).AutoMigrate(new(Approval))
-		ormer.db.Table(v + ApproveFlow{}.TableName()).AutoMigrate(new(ApproveFlow))
+	err = initModel()
+	if err != nil {
+		return
 	}
 
 	if beego.BConfig.RunMode == "prod" {
@@ -98,4 +73,51 @@ func InitPgSQL(key string) (err error) {
 	}
 	//Ormer.db.SetLogger(beego.BeeLogger)
 	return
+}
+
+func initModel() (err error) {
+	//init public model
+	db := ormer.db
+	if !db.HasTable(User{}.TableName()) {
+		db.Table(Public + User{}.TableName()).AutoMigrate(new(User))
+		db.Table(Public + Company{}.TableName()).AutoMigrate(new(Company))
+		db.Table(Public + UserCompany{}.TableName()).AutoMigrate(new(UserCompany))
+		db.Table(Public + Function{}.TableName()).AutoMigrate(new(Function))
+	}
+	//init schema model
+	comps := []Company{}
+	err = db.Find(&comps, Company{Status: CompApproveAccessed}).Error
+	if err != nil {
+		return
+	}
+	for _, v := range comps {
+		err = InitSchemaModel(v.No)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func InitSchemaModel(prefix string) (e error) {
+	db := ormer.db
+	prefix += "."
+	e = db.Table(prefix + Group{}.TableName()).AutoMigrate(new(Group)).Error
+	if strings.Contains(e.Error(), "already exists") {
+		return nil
+	}
+	db.Table(prefix + User{}.TableName()).AutoMigrate(new(User))
+	db.Table(prefix + UserGroup{}.TableName()).AutoMigrate(new(UserGroup))
+	db.Table(prefix + Attribute{}.TableName()).AutoMigrate(new(Attribute))
+	db.Table(prefix + Operation{}.TableName()).AutoMigrate(new(Operation))
+	db.Table(prefix + HistoryGroup{}.TableName()).AutoMigrate(new(HistoryGroup))
+	db.Table(prefix + Role{}.TableName()).AutoMigrate(new(Role))
+	db.Table(prefix + RoleFunc{}.TableName()).AutoMigrate(new(RoleFunc))
+	db.Table(prefix + UserRole{}.TableName()).AutoMigrate(new(UserRole))
+	db.Table(prefix + Formtpl{}.TableName()).AutoMigrate(new(Formtpl))
+	db.Table(prefix + Form{}.TableName()).AutoMigrate(new(Form))
+	db.Table(prefix + Approvaltpl{}.TableName()).AutoMigrate(new(Approvaltpl))
+	db.Table(prefix + Approval{}.TableName()).AutoMigrate(new(Approval))
+	db.Table(prefix + ApproveFlow{}.TableName()).AutoMigrate(new(ApproveFlow))
+	return nil
 }

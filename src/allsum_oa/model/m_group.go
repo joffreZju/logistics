@@ -1,35 +1,8 @@
 package model
 
 import (
-	"common/accountM"
 	"time"
 )
-
-type User struct {
-	Id  int    `gorm:"primary_key" ` // 用户id,继承自public
-	No  string `gorm:"size:64"`
-	Tel string `gorm:"size:15;not null" json:",omitempty"`
-	//Password   string    `json:"-"`                                           // 密码
-	UserName  string    `gorm:"size:64" json:",omitempty"`
-	Icon      string    `gorm:"size:64" json:",omitempty"`
-	Desc      string    `gorm:"" json:",omitempty"`
-	Gender    int8      `gorm:"default:1" json:",omitempty"`
-	Address   string    `gorm:"size:64" json:",omitempty"`
-	Ctime     time.Time `gorm:"default:current_timestamp" json:",omitempty"`
-	LoginTime time.Time `gorm:"timestamp" json:",omitempty"`
-	Mail      string    `gorm:"size:64" json:",omitempty"`
-	Status    int       `gorm:"not null" json:",omitempty"`
-	UserType  int       `gorm:"default:1" json:",omitempty"` //1 普通用户
-	// Companys []Company `orm:"-" json:",omitempty"`                          // 用户的所在组织
-	Companys []accountM.Company `gorm:"-"`
-	Groups   []Group            `gorm:"-"`
-	Roles    []Role             `gorm:"-"`
-	Funcs    []int              `gorm:"-"`
-}
-
-func (User) TableName() string {
-	return "user"
-}
 
 type UserGroup struct {
 	Id      int       `gorm:"primary_key;AUTO_INCREMENT"`
