@@ -27,14 +27,14 @@ func LoadRouter() {
 
 	beego.Router(UserPrefix+"/info", &user.Controller{}, "*:GetUserInfo")
 	beego.Router(UserPrefix+"/resetpwd", &user.Controller{}, "*:Resetpwd")
-	//beego.Router(UserPrefix+"/edit_profile", &user.Controller{}, "*:EditProfile")
 
 	//comapny相关
 	//beego.Router(FirmPrefix+"/register", &user.Controller{}, "Post:FirmRegister")
 	//beego.Router(FirmPrefix+"/modify", &user.Controller{}, "Post:FirmModify")
 	beego.Router(FirmPrefix+"/add_license", &user.Controller{}, "*:AddLicenseFile")
 	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
-	beego.Router(FirmPrefix+"/del_user", &user.Controller{}, "Post:FirmDelUser")
+	beego.Router(FirmPrefix+"/update_user", &user.Controller{}, "Post:UpdateUserProfile")
+
 	//allsum管理员审核公司
 	beego.Router(AdminPrefix+"/firm_info", &user.Controller{}, "*:AdminGetFirmInfo")
 	beego.Router(AdminPrefix+"/firm_list", &user.Controller{}, "*:AdminGetFirmList")

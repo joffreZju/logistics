@@ -15,7 +15,7 @@ type Controller struct {
 const publicOssDir string = "public"
 
 func (c *Controller) UploadFile() {
-	prefix := c.UserComp //todo
+	prefix := c.UserComp
 	if len(prefix) == 0 {
 		prefix = publicOssDir
 	}

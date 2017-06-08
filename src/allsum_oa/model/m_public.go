@@ -1,7 +1,6 @@
 package model
 
 import (
-	"common/lib/keycrypt"
 	"errors"
 	"fmt"
 	"strings"
@@ -22,6 +21,13 @@ const (
 	UserStatusLocked
 )
 
+const (
+	CompApproveWait = iota
+	CompApproveAccessed
+	CompApproveNotAccessed
+	CompanyDeleted
+)
+
 type User struct {
 	Id        int       `gorm:"primary_key" ` // 用户id,继承自public
 	No        string    `gorm:"unique;size:64"`
@@ -30,7 +36,7 @@ type User struct {
 	UserName  string    `gorm:"size:64" json:",omitempty"`
 	Icon      string    `gorm:"size:64" json:",omitempty"`
 	Desc      string    `gorm:"" json:",omitempty"`
-	Gender    int8      `gorm:"default:1" json:",omitempty"`
+	Gender    int8      `gorm:"" json:",omitempty"`
 	Address   string    `gorm:"size:64" json:",omitempty"`
 	Ctime     time.Time `gorm:"default:current_timestamp" json:",omitempty"`
 	LoginTime time.Time `gorm:"timestamp" json:",omitempty"`
@@ -47,24 +53,15 @@ func (User) TableName() string {
 	return "user"
 }
 
-func GetUserList(prefix string) (users []User, e error) {
-	users = []User{}
-	e = NewOrm().Table(prefix + "." + User{}.TableName()).Find(&users).Error
-	return
-}
-
 func CreateUser(prefix string, u *User) (err error) {
-	if len(prefix) == 0 {
-		prefix = "public"
-	}
 	err = NewOrm().Table(prefix+"."+u.TableName()).
 		FirstOrCreate(u, User{Tel: u.Tel}).Error
 	return
 }
 
 func UpdateUser(prefix string, u *User) (e error) {
-	c := NewOrm().Table(prefix+"."+u.TableName()).Where("id=?", u.Id).
-		Updates(&u).RowsAffected
+	c := NewOrm().Table(prefix+"."+u.TableName()).Where("id=? or tel=?", u.Id, u.Tel).
+		Updates(u).RowsAffected
 	if c != 1 {
 		e = errors.New("update user failed")
 		return
@@ -122,13 +119,6 @@ func Update___User(prefix string, u *User, fields ...string) (err error) {
 	return nil
 }
 
-const (
-	CompApproveWait = iota
-	CompApproveAccessed
-	CompApproveNotAccessed
-	CompanyDeleted
-)
-
 type Company struct {
 	Id          int    `gorm:"auto_increment;primary_key"`
 	No          string `gorm:"unique"`
@@ -166,7 +156,7 @@ func DeleteCompany(cno string) (err error) {
 	return
 }
 
-func InsertCompany(c *Company) (err error) {
+func CreateCompany(c *Company) (err error) {
 	err = NewOrm().Create(c).Error
 	return
 }
@@ -181,7 +171,7 @@ func UpdateCompany(c *Company) (err error) {
 }
 
 type UserCompany struct {
-	Id     int    `gorm:"auto_increment"`
+	Id     int    `gorm:"auto_increment,primary_key"`
 	UserId int    `gorm:"not null"`
 	Cno    string `gorm:"not null"`
 }
@@ -190,32 +180,17 @@ func (UserCompany) TableName() string {
 	return "allsum_user_company"
 }
 
-func DelCompanyUser(cno string, uid int) (err error) {
-	uc := UserCompany{
-		UserId: uid,
-		Cno:    cno,
-	}
-	c := NewOrm().Delete(&uc, UserCompany{UserId: uid, Cno: cno}).RowsAffected
-	if c != 1 {
-		err = errors.New("delete user failed")
-	}
-	return
-}
-
-func CreateCompanyUser(cno string, utel string) (err error) {
-	user := User{
-		Tel:      utel,
-		Password: keycrypt.Sha256Cal("123456"),
-		UserType: UserTypeNormal,
-		Status:   UserStatusOk,
-	}
-	err = NewOrm().FirstOrCreate(user, User{Tel: utel}).Error
-	if err != nil {
-		return
-	}
-	err = AddUserToCompany(cno, user.Id)
-	return
-}
+//func DelCompanyUser(cno string, uid int) (err error) {
+//	uc := UserCompany{
+//		UserId: uid,
+//		Cno:    cno,
+//	}
+//	c := NewOrm().Delete(&uc, UserCompany{UserId: uid, Cno: cno}).RowsAffected
+//	if c != 1 {
+//		err = errors.New("delete user failed")
+//	}
+//	return
+//}
 
 func AddUserToCompany(cno string, uid int) (err error) {
 	uc := UserCompany{

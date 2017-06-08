@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/jinzhu/gorm"
-	_ "github.com/lib/pq"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"strings"
 )
 
@@ -103,7 +103,9 @@ func InitSchemaModel(prefix string) (e error) {
 	db := ormer.db
 	prefix += "."
 	e = db.Table(prefix + Group{}.TableName()).AutoMigrate(new(Group)).Error
-	if strings.Contains(e.Error(), "already exists") {
+	if e != nil && (strings.Contains(e.Error(), "already exists") ||
+		strings.Contains(e.Error(), "已经存在")) {
+		beego.Info(e)
 		return nil
 	}
 	db.Table(prefix + User{}.TableName()).AutoMigrate(new(User))

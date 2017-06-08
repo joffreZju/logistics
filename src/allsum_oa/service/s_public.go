@@ -4,6 +4,7 @@ import (
 	"allsum_oa/model"
 	"errors"
 	"fmt"
+	"github.com/astaxie/beego"
 	"strings"
 	"time"
 )
@@ -23,6 +24,7 @@ func GetUserByTel(prefix, tel string) (user *model.User, e error) {
 	if prefix == "public" || len(prefix) == 0 {
 		return user, nil
 	}
+	//获取schema下面的用户信息
 	user.Roles, e = GetRolesOfUser(prefix, uid)
 	if e != nil {
 		return
@@ -106,13 +108,13 @@ func GetFuncIdsOfUser(prefix string, uid int) (fids []int, e error) {
 	db := model.NewOrm()
 	rids := []int{}
 	sql := fmt.Sprintf(`select distinct(role_id) from "%s".user_role where user_id = %d`, prefix, uid)
-	e = db.Raw(sql).Scan(&rids).Error
+	e = db.Raw(sql).Pluck("role_id", &rids).Error
 	if e != nil {
 		return
 	}
 	fids = []int{}
 	sql = fmt.Sprintf(`select distinct(func_id) from "%s".role_func where role_id in (?)`, prefix)
-	e = db.Raw(sql, rids).Scan(&fids).Error
+	e = db.Raw(sql, rids).Pluck("func_id", &fids).Error
 	if e != nil {
 		return
 	}
@@ -122,9 +124,17 @@ func GetFuncIdsOfUser(prefix string, uid int) (fids []int, e error) {
 func createSchema(schema string) (e error) {
 	sql := fmt.Sprintf(`create schema "%s"`, schema)
 	e = model.NewOrm().Exec(sql).Error
-	if e != nil && strings.Contains(e.Error(), "already exists") {
+	if e != nil && (strings.Contains(e.Error(), "already exists") ||
+		strings.Contains(e.Error(), "已经存在")) {
 		return nil
 	}
+	return
+}
+
+func GetUserList(prefix string, uids []int) (users []model.User, e error) {
+	users = []model.User{}
+	e = model.NewOrm().Table(prefix+"."+model.User{}.TableName()).
+		Find(&users, "id in (?)", uids).Error
 	return
 }
 
@@ -132,17 +142,17 @@ func AuditCompany(cno string, approverId int, status int, msg string) (err error
 	tx := model.NewOrm().Begin()
 	c := tx.Model(&model.Company{}).Where("no=?", cno).
 		Updates(&model.Company{
-			Approver:    approverId,
-			Status:      status,
-			ApproveMsg:  msg,
-			ApproveTime: time.Now()}).RowsAffected
+			Approver:   approverId,
+			Status:     status,
+			ApproveMsg: msg}).RowsAffected
 	if c != 1 {
 		err = errors.New("approve compony failed")
 		tx.Rollback()
 		return
 	}
+	tx.Model(&model.Company{}).Where("no=?", cno).Updates(&model.Company{ApproveTime: time.Now()})
 	if status == model.CompApproveAccessed {
-		//创建schema
+		//创建schema，直接提交
 		err = createSchema(cno)
 		if err != nil {
 			tx.Rollback()
@@ -155,14 +165,26 @@ func AuditCompany(cno string, approverId int, status int, msg string) (err error
 			return
 		}
 		//迁移用户
-		users, err := model.GetUserList("public")
+		uids := []int{}
+		sql := fmt.Sprint(`select user_id from "public".allsum_user_company where cno=?`)
+		err = tx.Raw(sql, cno).Pluck("user_id", &uids).Error
 		if err != nil {
+			beego.Error(err)
+			tx.Rollback()
+			return
+		}
+		beego.Info(uids)
+		users, err := GetUserList("public", uids)
+		if err != nil {
+			beego.Error(err)
 			tx.Rollback()
 			return err
 		} else {
+			beego.Info(users)
 			for _, u := range users {
 				err = model.CreateUser(cno, &u)
 				if err != nil {
+					beego.Error(err)
 					tx.Rollback()
 					return err
 				}

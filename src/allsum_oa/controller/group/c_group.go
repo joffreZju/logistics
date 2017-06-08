@@ -17,9 +17,6 @@ type Controller struct {
 
 const CommonErr = 99999
 
-//todo 检测用户权限，不符合直接返回
-//在进行组织树管理时前端先校验用户权限？每一个controller里面还需要校验吗？
-
 //更新和增加组织属性
 func (c *Controller) AddAttr() {
 	prefix := c.UserComp

@@ -20,11 +20,13 @@ type Controller struct {
 	LocalCache  cache.Cache         // 本机缓存
 	RedisClient *redis.RedisManager // 本机缓存
 
-	UserID   int64  // 用户ID
-	UserComp string // 用户公司
-	appName  string // app 名称
-	appOS    string // app 系统
-	appVer   string // app 版本号
+	UserID     int64  // 用户ID
+	UserComp   string // 用户公司
+	UserGroups string // 用户组织
+	UserRoles  string // 用户角色
+	appName    string // app 名称
+	appOS      string // app 系统
+	appVer     string // app 版本号
 }
 
 //func (c *Controller) GetAppName() string {
@@ -91,6 +93,12 @@ func (c *Controller) Prepare() {
 		c.UserID, _ = strconv.ParseInt(uid, 10, 64)
 	}
 	c.UserComp = c.Ctx.Request.Header.Get("cno")
+	m, e := c.RedisClient.Hmget(uid, []string{"roles", "groups"})
+	if e != nil {
+		beego.Error(e)
+	}
+	c.UserGroups = m["groups"]
+	c.UserRoles = m["roles"]
 }
 
 func (c *Controller) Finish() {
