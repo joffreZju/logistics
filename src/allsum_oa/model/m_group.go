@@ -21,7 +21,7 @@ type Group struct {
 	AdminId   int    `gorm:"not null"`
 	CreatorId int    `gorm:"not null"`
 	Desc      string
-	AttrId    int       `gorm:"not null"` //属性id
+	AttrId    int       `gorm:""` //属性id
 	Name      string    `gorm:"not null"`
 	Pid       int       `gorm:"not null"` //父节点id
 	Ctime     time.Time `gorm:"not null"`

@@ -2,6 +2,7 @@ package main
 
 import (
 	"allsum_oa/controller/file"
+	"allsum_oa/controller/group"
 	"allsum_oa/controller/user"
 	"common/filter"
 	"github.com/astaxie/beego"
@@ -24,16 +25,8 @@ func LoadRouter() {
 	beego.Router(ExemptPrefix+"/user/login", &user.Controller{}, "*:UserLogin")
 	beego.Router(ExemptPrefix+"/user/login_phone", &user.Controller{}, "*:UserLoginPhone")
 	beego.Router(ExemptPrefix+"/user/login_out", &user.Controller{}, "*:LoginOut")
-
 	beego.Router(UserPrefix+"/info", &user.Controller{}, "*:GetUserInfo")
 	beego.Router(UserPrefix+"/resetpwd", &user.Controller{}, "*:Resetpwd")
-
-	//comapny相关
-	//beego.Router(FirmPrefix+"/register", &user.Controller{}, "Post:FirmRegister")
-	//beego.Router(FirmPrefix+"/modify", &user.Controller{}, "Post:FirmModify")
-	beego.Router(FirmPrefix+"/add_license", &user.Controller{}, "*:AddLicenseFile")
-	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
-	beego.Router(FirmPrefix+"/update_user", &user.Controller{}, "Post:UpdateUserProfile")
 
 	//allsum管理员审核公司
 	beego.Router(AdminPrefix+"/firm_info", &user.Controller{}, "*:AdminGetFirmInfo")
@@ -43,6 +36,22 @@ func LoadRouter() {
 	//文件上传下载
 	beego.Router(FilePrefix+"/upload", &file.Controller{}, "Post:UploadFile")
 	//beego.Router(FilePrefix+"/download", &file.Controller{}, "*:DownloadFile")
+
+	//comapny相关
+	//beego.Router(FirmPrefix+"/register", &user.Controller{}, "Post:FirmRegister")
+	//beego.Router(FirmPrefix+"/modify", &user.Controller{}, "Post:FirmModify")
+	beego.Router(FirmPrefix+"/add_license", &user.Controller{}, "*:AddLicenseFile")
+	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
+	beego.Router(FirmPrefix+"/update_user", &user.Controller{}, "Post:UpdateUserProfile")
+	beego.Router(FirmPrefix+"/add_attr", &group.Controller{}, "*:AddAttr")
+	beego.Router(FirmPrefix+"/get_attrs", &group.Controller{}, "*:GetAttrList")
+	beego.Router(FirmPrefix+"/update_attr", &group.Controller{}, "*:UpdateAttr")
+	beego.Router(FirmPrefix+"/add_group", &group.Controller{}, "Post:AddGroup")
+	beego.Router(FirmPrefix+"/merge_groups", &group.Controller{}, "Post:MergeGroups")
+	beego.Router(FirmPrefix+"/move_group", &group.Controller{}, "*:MoveGroup")
+	beego.Router(FirmPrefix+"/del_group", &group.Controller{}, "*:DelGroup")
+	beego.Router(FirmPrefix+"/update_group", &group.Controller{}, "Post:UpdateGroup")
+	beego.Router(FirmPrefix+"/get_groups", &group.Controller{}, "*:GetGroupList")
 
 	// 非登录态列表
 	notNeedAuthList := []string{

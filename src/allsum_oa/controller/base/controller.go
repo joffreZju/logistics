@@ -20,7 +20,7 @@ type Controller struct {
 	LocalCache  cache.Cache         // 本机缓存
 	RedisClient *redis.RedisManager // 本机缓存
 
-	UserID     int64  // 用户ID
+	UserID     int    // 用户ID
 	UserComp   string // 用户公司
 	UserGroups string // 用户组织
 	UserRoles  string // 用户角色
@@ -90,7 +90,7 @@ func (c *Controller) Prepare() {
 	uid := c.Ctx.Request.Header.Get("uid")
 	if len(uid) > 0 {
 		c.Ctx.Input.SetParam("uid", uid)
-		c.UserID, _ = strconv.ParseInt(uid, 10, 64)
+		c.UserID, _ = strconv.Atoi(uid)
 	}
 	c.UserComp = c.Ctx.Request.Header.Get("cno")
 	m, e := c.RedisClient.Hmget(uid, []string{"roles", "groups"})

@@ -8,13 +8,13 @@ import (
 	"common/lib/keycrypt"
 	"common/lib/push"
 	"fmt"
+	"math/rand"
+	"strconv"
+	"time"
+
 	"github.com/astaxie/beego"
 	"github.com/ysqi/tokenauth"
 	"github.com/ysqi/tokenauth2beego/o2o"
-	"math/rand"
-	"strconv"
-	"strings"
-	"time"
 )
 
 const commonErr = 99999
@@ -92,7 +92,7 @@ func (c *Controller) UserRegister() {
 
 	u := model.User{
 		Tel:      tel,
-		No:       uniqueNo("U"),
+		No:       model.UniqueNo("U"),
 		Password: pwdEncode,
 		UserType: model.UserTypeNormal,
 		Status:   model.UserStatusOk,
@@ -106,7 +106,7 @@ func (c *Controller) UserRegister() {
 		return
 	}
 	comp := model.Company{
-		No:       uniqueNo("C"),
+		No:       model.UniqueNo("C"),
 		FirmName: firm_name,
 		FirmType: firm_type,
 		Creator:  u.Id,
@@ -135,7 +135,7 @@ func (c *Controller) UserRegister() {
 }
 
 func (c *Controller) GetUserInfo() {
-	user, e := service.GetUserById("public", int(c.UserID))
+	user, e := service.GetUserById("public", c.UserID)
 	if e != nil {
 		c.ReplyErr(errcode.ErrGetUserInfoFailed)
 		beego.Error(e)
@@ -187,7 +187,7 @@ func (c *Controller) loginAction(user *model.User) {
 		return
 	}
 	var comNo string
-	if len(user.Companys) == 1 {
+	if len(user.Companys) > 0 {
 		comNo = user.Companys[0].No
 	} else {
 		comNo = ""
@@ -272,7 +272,7 @@ func (c *Controller) LoginOut() {
 }
 
 func (c *Controller) Resetpwd() {
-	uid := (int)(c.UserID)
+	uid := c.UserID
 	pwd := keycrypt.Sha256Cal(c.GetString("password"))
 	owd := keycrypt.Sha256Cal(c.GetString("oldpassword"))
 	prefix := "public"
@@ -306,17 +306,11 @@ func (c *Controller) Resetpwd() {
 	}
 }
 
-func uniqueNo(prefix string) string {
-	str := strings.Replace(time.Now().Format("0102150405.000"), ".", "", 1)
-	str = prefix + str
-	return str
-}
-
 //注册之后增加公司资质信息
 func (c *Controller) AddLicenseFile() {
 	fileUrl := c.GetString("url")
 	compNo := c.UserComp
-	uid := int(c.UserID)
+	uid := c.UserID
 	comp := model.Company{
 		No:          compNo,
 		Creator:     uid,
@@ -352,7 +346,7 @@ func (c *Controller) AdminGetFirmList() {
 }
 
 func (c *Controller) AdminFirmAudit() {
-	uid := int(c.UserID)
+	uid := c.UserID
 	cno := c.GetString("cno")
 	status, err := c.GetInt("status")
 	if err != nil {
@@ -377,7 +371,7 @@ func (c *Controller) FirmAddUser() {
 	mail := c.GetString("mail")
 	user := &model.User{
 		Tel:      tel,
-		No:       uniqueNo("U"),
+		No:       model.UniqueNo("U"),
 		Password: keycrypt.Sha256Cal("123456"),
 		UserName: name,
 		Mail:     mail,
@@ -500,7 +494,7 @@ func (c *Controller) FirmRegister() {
 	tp := c.GetString("firm_type")
 
 	firm := model.Company{
-		No:          uniqueNo("O"),
+		No:          model.UniqueNo("O"),
 		Creator:     uid,
 		FirmName:    name,
 		Desc:        desc,
@@ -524,7 +518,7 @@ func (c *Controller) FirmModify() {
 	desc := c.GetString("desc")
 	phone := c.GetString("phone")
 	lf := c.GetString("license_file")
-	uid := int(c.UserID)
+	uid := c.UserID
 	firm := model.Company{
 		No:          no,
 		Creator:     uid,
@@ -545,7 +539,7 @@ func (c *Controller) FirmModify() {
 //登录之后切换当前公司
 func (c *Controller) SwitchCurrentFirm() {
 	cno := c.GetString("cno")
-	uid := int(c.UserID)
+	uid := c.UserID
 	token, err := o2o.Auth.NewSingleToken(strconv.Itoa(uid), cno, "", c.Ctx.ResponseWriter)
 	if err != nil {
 		beego.Error("o2o.Auth.NewSingleToken error:", err)

@@ -6,7 +6,6 @@ import (
 	"allsum_oa/service"
 	"common/lib/errcode"
 	"encoding/json"
-	"fmt"
 	"github.com/astaxie/beego"
 	"time"
 )
@@ -18,12 +17,29 @@ type Controller struct {
 const CommonErr = 99999
 
 //更新和增加组织属性
+func (c *Controller) GetAttrList() {
+	prefix := c.UserComp
+	al, e := service.GetAttrList(prefix)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+		return
+	}
+	c.ReplySucc(al)
+}
+
 func (c *Controller) AddAttr() {
 	prefix := c.UserComp
+	name := c.GetString("name")
+	desc := c.GetString("desc")
+	if len(name) == 0 || len(desc) == 0 {
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
 	a := &model.Attribute{
-		No:    c.GetString("No"),
-		Name:  c.GetString("Name"),
-		Desc:  c.GetString("Desc"),
+		No:    model.UniqueNo("GA"),
+		Name:  name,
+		Desc:  desc,
 		Ctime: time.Now(),
 	}
 	e := service.AddAttr(prefix, a)
@@ -31,23 +47,31 @@ func (c *Controller) AddAttr() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplySucc("success")
+		c.ReplySucc(nil)
 	}
 }
+
 func (c *Controller) UpdateAttr() {
 	prefix := c.UserComp
+	aid, e := c.GetInt("id")
+	name := c.GetString("name")
+	desc := c.GetString("desc")
+	if e != nil || len(name) == 0 || len(desc) == 0 {
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
 	a := &model.Attribute{
-		No:    c.GetString("No"),
-		Name:  c.GetString("Name"),
-		Desc:  c.GetString("Desc"),
+		Id:    aid,
+		Name:  name,
+		Desc:  desc,
 		Utime: time.Now(),
 	}
-	e := service.UpdateAttr(prefix, a)
+	e = service.UpdateAttr(prefix, a)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplySucc("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -57,6 +81,7 @@ func (c *Controller) AddGroup() {
 	prefix := c.UserComp
 	newGroupStr := c.GetString("NewGroup")
 	sonsStr := c.GetString("Sons")
+
 	ng := &model.Group{}
 	sons := make([]int, 0)
 	e := json.Unmarshal([]byte(newGroupStr), ng)
@@ -75,14 +100,18 @@ func (c *Controller) AddGroup() {
 	}
 	ng.AdminId = uid
 	ng.CreatorId = uid
-	ng.No = fmt.Sprintf("%d", time.Now().UnixNano()) //todo
+	ng.No = model.UniqueNo("G")
 	ng.Ctime = time.Now()
-	e = service.AddGroup(prefix, ng, sons)
+	if ng.Pid == 0 && len(sons) == 0 {
+		e = service.AddRootGroup(prefix, ng)
+	} else {
+		e = service.AddGroup(prefix, ng, sons)
+	}
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -92,6 +121,7 @@ func (c *Controller) MergeGroups() {
 	prefix := c.UserComp
 	oldIdsStr := c.GetString("OldGroups")
 	newGroupStr := c.GetString("NewGroup")
+
 	ng := &model.Group{}
 	oldIds := make([]int, 0)
 	e := json.Unmarshal([]byte(newGroupStr), ng)
@@ -113,22 +143,21 @@ func (c *Controller) MergeGroups() {
 	}
 	ng.AdminId = uid
 	ng.CreatorId = uid
-	ng.No = fmt.Sprintf("%d", time.Now().UnixNano()) //todo
+	ng.No = model.UniqueNo("G")
 	ng.Ctime = time.Now()
 	e = service.MergeGroups(prefix, ng, oldIds)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
 //转让升级
 func (c *Controller) MoveGroup() {
-	//uid := c.UserID
 	prefix := c.UserComp
-	gid, e := c.GetInt("GroupId")
+	gid, e := c.GetInt("Id")
 	newPid, e2 := c.GetInt("NewPid")
 	if e != nil || e2 != nil {
 		c.ReplyErr(errcode.ErrParams)
@@ -140,14 +169,14 @@ func (c *Controller) MoveGroup() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
 //删除组织
 func (c *Controller) DelGroup() {
 	prefix := c.UserComp
-	gid, e := c.GetInt("GroupId")
+	gid, e := c.GetInt("Id")
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
@@ -158,29 +187,44 @@ func (c *Controller) DelGroup() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
-//编辑组织
-func (c *Controller) EditGroup() {
+//更新组织
+func (c *Controller) UpdateGroup() {
 	prefix := c.UserComp
-	gid, e := c.GetInt("GroupId")
+	str := c.GetString("group")
+	g := new(model.Group)
+	e := json.Unmarshal([]byte(str), g)
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
 	}
-	newName := c.GetString("NewName")
-	e = service.EditGroup(prefix, newName, gid)
+	//更新属性
+	e = service.UpdateGroup(prefix, g)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
+//获取所有组织节点
+func (c *Controller) GetGroupList() {
+	prefix := c.UserComp
+	gs, e := service.GetGroupList(prefix)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+		return
+	}
+	c.ReplySucc(gs)
+}
+
+//todo next begin
 //为组织添加用户
 func (c *Controller) AddUsersToGroup() {
 	prefix := c.UserComp
@@ -203,7 +247,7 @@ func (c *Controller) AddUsersToGroup() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -229,6 +273,6 @@ func (c *Controller) DelUsersFromGroup() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }

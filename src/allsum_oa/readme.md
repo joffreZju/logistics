@@ -209,13 +209,12 @@
 ### 组织树相关接口
 
 - 更新或增加组织属性
-    - Update:"true" or "false"
-    - No:string
+    - Id:int(更新)
     - Name:string
     - Desc:string
 
 - 新增上下级
-    - NewGroup:{Name:"abc",Pid:int,AttrId:int}
+    - Group:{Name:"abc",Pid:int,AttrId:int}
     - Sons:[]int
     - 新增上级：sons为选中所有下一级子节点的id，同时这些节点的parent_id都一样且等于new_node.parent_id
     - 要修改所有sons的子孙节点的path

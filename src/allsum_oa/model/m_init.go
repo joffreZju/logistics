@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"strings"
+	"time"
 )
 
 const (
@@ -122,4 +123,10 @@ func InitSchemaModel(prefix string) (e error) {
 	db.Table(prefix + Approval{}.TableName()).AutoMigrate(new(Approval))
 	db.Table(prefix + ApproveFlow{}.TableName()).AutoMigrate(new(ApproveFlow))
 	return nil
+}
+
+func UniqueNo(prefix string) string {
+	str := strings.Replace(time.Now().Format("0102150405.000"), ".", "", 1)
+	str = prefix + str
+	return str
 }
