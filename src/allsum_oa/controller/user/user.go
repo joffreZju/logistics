@@ -430,6 +430,16 @@ func (c *Controller) UpdateUserProfile() {
 	c.ReplySucc(nil)
 }
 
+func (c *Controller) GetFunctionsTree() {
+	funcs, e := model.GetFunctions()
+	if e != nil {
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
+		beego.Error(e)
+		return
+	}
+	c.ReplySucc(funcs)
+}
+
 //**********************************************************
 //暂未开放的接口
 func (c *Controller) UserLoginAuth() {

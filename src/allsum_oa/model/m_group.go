@@ -5,10 +5,10 @@ import (
 )
 
 type UserGroup struct {
-	Id      int       `gorm:"primary_key;AUTO_INCREMENT"`
+	Id      int       `gorm:"AUTO_INCREMENT;primary_key"`
 	UserId  int       `gorm:"not null"`
 	GroupId int       `gorm:"not null"`
-	Ctime   time.Time `gorm:"not null"`
+	Ctime   time.Time `gorm:"default:current_timestamp"`
 }
 
 func (UserGroup) TableName() string {

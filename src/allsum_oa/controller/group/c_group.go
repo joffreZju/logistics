@@ -79,8 +79,8 @@ func (c *Controller) UpdateAttr() {
 func (c *Controller) AddGroup() {
 	uid := c.UserID
 	prefix := c.UserComp
-	newGroupStr := c.GetString("NewGroup")
-	sonsStr := c.GetString("Sons")
+	newGroupStr := c.GetString("newGroup")
+	sonsStr := c.GetString("sons")
 
 	ng := &model.Group{}
 	sons := make([]int, 0)
@@ -119,8 +119,8 @@ func (c *Controller) AddGroup() {
 func (c *Controller) MergeGroups() {
 	uid := c.UserID
 	prefix := c.UserComp
-	oldIdsStr := c.GetString("OldGroups")
-	newGroupStr := c.GetString("NewGroup")
+	oldIdsStr := c.GetString("oldGroups")
+	newGroupStr := c.GetString("newGroup")
 
 	ng := &model.Group{}
 	oldIds := make([]int, 0)
@@ -157,8 +157,8 @@ func (c *Controller) MergeGroups() {
 //转让升级
 func (c *Controller) MoveGroup() {
 	prefix := c.UserComp
-	gid, e := c.GetInt("Id")
-	newPid, e2 := c.GetInt("NewPid")
+	gid, e := c.GetInt("id")
+	newPid, e2 := c.GetInt("newPid")
 	if e != nil || e2 != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e, e2)
@@ -176,7 +176,7 @@ func (c *Controller) MoveGroup() {
 //删除组织
 func (c *Controller) DelGroup() {
 	prefix := c.UserComp
-	gid, e := c.GetInt("Id")
+	gid, e := c.GetInt("id")
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
@@ -224,18 +224,35 @@ func (c *Controller) GetGroupList() {
 	c.ReplySucc(gs)
 }
 
-//todo next begin
-//为组织添加用户
-func (c *Controller) AddUsersToGroup() {
+//获取组织节点下的所有用户
+func (c *Controller) GetUsersOfGroup() {
 	prefix := c.UserComp
-	gid, e := c.GetInt("GroupId")
+	gid, e := c.GetInt("id")
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
 	}
-	usersStr := c.GetString("Users")
-	uids := make([]int, 0)
+	users, e := service.GetUsersOfGroup(prefix, gid)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+		return
+	}
+	c.ReplySucc(users)
+}
+
+//为组织添加用户
+func (c *Controller) AddUsersToGroup() {
+	prefix := c.UserComp
+	gid, e := c.GetInt("groupId")
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	usersStr := c.GetString("users")
+	uids := []int{}
 	e = json.Unmarshal([]byte(usersStr), &uids)
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
@@ -254,13 +271,13 @@ func (c *Controller) AddUsersToGroup() {
 //从组织删除批量用户
 func (c *Controller) DelUsersFromGroup() {
 	prefix := c.UserComp
-	gid, e := c.GetInt("GroupId")
+	gid, e := c.GetInt("groupId")
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
 	}
-	usersStr := c.GetString("Users")
+	usersStr := c.GetString("users")
 	uids := make([]int, 0)
 	e = json.Unmarshal([]byte(usersStr), &uids)
 	if e != nil {

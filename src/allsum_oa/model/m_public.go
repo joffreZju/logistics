@@ -180,23 +180,30 @@ func (UserCompany) TableName() string {
 	return "allsum_user_company"
 }
 
-//func DelCompanyUser(cno string, uid int) (err error) {
-//	uc := UserCompany{
-//		UserId: uid,
-//		Cno:    cno,
-//	}
-//	c := NewOrm().Delete(&uc, UserCompany{UserId: uid, Cno: cno}).RowsAffected
-//	if c != 1 {
-//		err = errors.New("delete user failed")
-//	}
-//	return
-//}
-
 func AddUserToCompany(cno string, uid int) (err error) {
 	uc := UserCompany{
 		UserId: uid,
 		Cno:    cno,
 	}
 	err = NewOrm().Create(&uc).Error
+	return
+}
+
+type Function struct {
+	Id    int    `gorm:"primary_key;AUTO_INCREMENT"`
+	Name  string `gorm:"not null"`
+	Desc  string
+	Pid   int       `gorm:"not null"`
+	Ctime time.Time `gorm:"default:current_timestamp"`
+	Path  string    `gorm:""`
+}
+
+func (Function) TableName() string {
+	return "function"
+}
+
+func GetFunctions() (funcs []*Function, e error) {
+	funcs = []*Function{}
+	e = NewOrm().Find(&funcs).Error
 	return
 }

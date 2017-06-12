@@ -276,11 +276,19 @@ func GetGroupList(prefix string) (gs []*model.Group, e error) {
 	return
 }
 
+func GetUsersOfGroup(prefix string, gid int) (users []*model.User, e error) {
+	users = []*model.User{}
+	sql := fmt.Sprintf(`select * from "%s".user as t1 inner join "%s".user_group as t2
+		on t1.id=t2.user_id where t2.group_id=%d`, prefix, prefix, gid)
+	e = model.NewOrm().Raw(sql).Scan(&users).Error
+	return
+}
+
 func AddUsersToGroup(prefix string, gid int, uids []int) (e error) {
-	db := model.NewOrm().Table(prefix + model.UserGroup{}.TableName())
-	ug := model.UserGroup{}
+	db := model.NewOrm().Table(prefix + "." + model.UserGroup{}.TableName())
 	for _, uid := range uids {
-		e = db.FirstOrCreate(&ug, &model.UserGroup{UserId: uid, GroupId: gid}).Error
+		ug := &model.UserGroup{UserId: uid, GroupId: gid}
+		e = db.FirstOrCreate(ug, ug).Error
 		if e != nil {
 			return
 		}
@@ -289,7 +297,7 @@ func AddUsersToGroup(prefix string, gid int, uids []int) (e error) {
 }
 
 func DelUsersFromGroup(prefix string, gid int, uids []int) (e error) {
-	tx := model.NewOrm().Table(prefix + model.UserGroup{}.TableName()).Begin()
+	tx := model.NewOrm().Table(prefix + "." + model.UserGroup{}.TableName()).Begin()
 	del := tx.Delete(&model.UserGroup{}, "group_id = ? and user_id in (?)", gid, uids)
 	if int(del.RowsAffected) != len(uids) {
 		tx.Rollback()
@@ -297,8 +305,6 @@ func DelUsersFromGroup(prefix string, gid int, uids []int) (e error) {
 	} else if del.Error != nil {
 		tx.Rollback()
 		return del.Error
-	} else {
-		tx.Commit()
 	}
-	return nil
+	return tx.Commit().Error
 }

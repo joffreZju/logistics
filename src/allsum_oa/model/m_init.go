@@ -80,10 +80,11 @@ func initModel() (err error) {
 	//init public model
 	db := ormer.db
 	if !db.HasTable(User{}.TableName()) {
-		db.Table(Public + User{}.TableName()).AutoMigrate(new(User))
-		db.Table(Public + Company{}.TableName()).AutoMigrate(new(Company))
-		db.Table(Public + UserCompany{}.TableName()).AutoMigrate(new(UserCompany))
-		db.Table(Public + Function{}.TableName()).AutoMigrate(new(Function))
+		prefix := Public + "."
+		db.Table(prefix + User{}.TableName()).AutoMigrate(new(User))
+		db.Table(prefix + Company{}.TableName()).AutoMigrate(new(Company))
+		db.Table(prefix + UserCompany{}.TableName()).AutoMigrate(new(UserCompany))
+		db.Table(prefix + Function{}.TableName()).AutoMigrate(new(Function))
 	}
 	//init schema model
 	comps := []Company{}

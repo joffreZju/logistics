@@ -8,11 +8,17 @@ import (
 	"time"
 )
 
+func GetRoles(prefix string) (roles []*model.Role, e error) {
+	roles = []*model.Role{}
+	e = model.NewOrm().Table(prefix + "." + model.Role{}.TableName()).Find(&roles).Error
+	return
+}
+
 func addFuncsToRole(prefix string, tx *gorm.DB, r *model.Role, fids []int) (e error) {
 	for _, id := range fids {
 		f := model.Function{}
-		e = tx.Table(model.Public+model.Function{}.TableName()).First(&f, id).Error
-		if e == gorm.ErrRecordNotFound || e != nil {
+		e = tx.First(&f, id).Error
+		if e != nil {
 			return fmt.Errorf("func %d is not found", id)
 		}
 		rf := model.RoleFunc{
@@ -20,7 +26,7 @@ func addFuncsToRole(prefix string, tx *gorm.DB, r *model.Role, fids []int) (e er
 			FuncId: id,
 			Ctime:  time.Now(),
 		}
-		e = tx.Table(prefix + rf.TableName()).Create(&rf).Error
+		e = tx.Table(prefix + "." + rf.TableName()).Create(&rf).Error
 		if e != nil {
 			return
 		}
@@ -28,15 +34,15 @@ func addFuncsToRole(prefix string, tx *gorm.DB, r *model.Role, fids []int) (e er
 	return nil
 }
 
-func delFuncsOfRole(prefix string, tx *gorm.DB, r *model.Role) (e error) {
-	e = tx.Table(prefix+model.RoleFunc{}.TableName()).
-		Delete(model.RoleFunc{}, "role_id = ? ", r.Id).Error
+func delAllFuncsOfRole(prefix string, tx *gorm.DB, r *model.Role) (e error) {
+	e = tx.Table(prefix+"."+model.RoleFunc{}.TableName()).
+		Delete(model.RoleFunc{}, "role_id=?", r.Id).Error
 	return
 }
 
 func AddRole(prefix string, r *model.Role, fids []int) (e error) {
 	tx := model.NewOrm().Begin()
-	e = tx.Table(prefix + r.TableName()).Create(r).Error
+	e = tx.Table(prefix + "." + r.TableName()).Create(r).Error
 	if e != nil {
 		tx.Rollback()
 		return
@@ -51,13 +57,13 @@ func AddRole(prefix string, r *model.Role, fids []int) (e error) {
 
 func UpdateRole(prefix string, r *model.Role, fids []int) (e error) {
 	tx := model.NewOrm().Begin()
-	e = tx.Table(prefix + r.TableName()).Model(r).
-		Updates(model.Role{Name: r.Name, Desc: r.Desc}).Error
+	e = tx.Table(prefix + "." + r.TableName()).Model(r).
+		Updates(r).Error
 	if e != nil {
 		tx.Rollback()
 		return
 	}
-	e = delFuncsOfRole(prefix, tx, r)
+	e = delAllFuncsOfRole(prefix, tx, r)
 	if e != nil {
 		tx.Rollback()
 		return
@@ -71,26 +77,41 @@ func UpdateRole(prefix string, r *model.Role, fids []int) (e error) {
 }
 
 func DelRole(prefix string, rid int) (e error) {
-	db := model.NewOrm()
+	tx := model.NewOrm().Begin()
 	count := 0
-	e = db.Table(prefix+model.UserRole{}.TableName()).
+	e = tx.Table(prefix+"."+model.UserRole{}.TableName()).
 		Where("role_id = ?", rid).Count(&count).Error
 	if e != nil || count != 0 {
 		return fmt.Errorf("there some users in this role!%v", e)
 	}
-	e = db.Table(prefix + model.Role{}.TableName()).
-		Delete(model.Role{Id: rid}).Error
+	e = tx.Table(prefix + "." + model.Role{}.TableName()).
+		Delete(&model.Role{Id: rid}).Error
 	if e != nil {
+		tx.Rollback()
 		return
 	}
-	return nil
+	e = tx.Table(prefix+"."+model.RoleFunc{}.TableName()).
+		Delete(&model.RoleFunc{}, "role_id=?", rid).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	return tx.Commit().Error
+}
+
+func GetUsersOfRole(prefix string, rid int) (users []*model.User, e error) {
+	sql := fmt.Sprintf(`select * from "%s".user as t1 inner join "%s".user_role as t2
+		on t1.id = t2.user_id where t2.role_id=%d`, prefix, prefix, rid)
+	users = []*model.User{}
+	e = model.NewOrm().Raw(sql).Scan(&users).Error
+	return
 }
 
 func AddUsersToRole(prefix string, rid int, uids []int) (e error) {
-	db := model.NewOrm().Table(prefix + model.UserRole{}.TableName())
-	ug := model.UserRole{}
+	db := model.NewOrm().Table(prefix + "." + model.UserRole{}.TableName())
 	for _, uid := range uids {
-		e = db.FirstOrCreate(&ug, &model.UserRole{UserId: uid, RoleId: rid}).Error
+		ug := &model.UserRole{UserId: uid, RoleId: rid, Ctime: time.Now()}
+		e = db.FirstOrCreate(ug, ug).Error
 		if e != nil {
 			return
 		}
@@ -99,8 +120,8 @@ func AddUsersToRole(prefix string, rid int, uids []int) (e error) {
 }
 
 func DelUsersFromRole(prefix string, rid int, uids []int) (e error) {
-	tx := model.NewOrm().Table(prefix + model.UserRole{}.TableName()).Begin()
-	del := tx.Delete(&model.UserRole{}, "role_id = ? and user_id in (?)", rid, uids)
+	tx := model.NewOrm().Table(prefix + "." + model.UserRole{}.TableName()).Begin()
+	del := tx.Delete(&model.UserRole{}, "role_id=? and user_id in (?)", rid, uids)
 	if int(del.RowsAffected) != len(uids) {
 		tx.Rollback()
 		return errors.New("del failed,amount of users in this role is not match")
@@ -108,7 +129,6 @@ func DelUsersFromRole(prefix string, rid int, uids []int) (e error) {
 		tx.Rollback()
 		return del.Error
 	} else {
-		tx.Commit()
+		return tx.Commit().Error
 	}
-	return nil
 }

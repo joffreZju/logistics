@@ -3,6 +3,7 @@ package main
 import (
 	"allsum_oa/controller/file"
 	"allsum_oa/controller/group"
+	"allsum_oa/controller/role"
 	"allsum_oa/controller/user"
 	"common/filter"
 	"github.com/astaxie/beego"
@@ -19,7 +20,7 @@ const (
 func LoadRouter() {
 
 	// user相关
-	beego.Router(ExemptPrefix+"/test", &user.Controller{}, "*:Test")
+	beego.Router(ExemptPrefix+"/get_functions", &user.Controller{}, "*:GetFunctionsTree")
 	beego.Router(ExemptPrefix+"/user/getcode", &user.Controller{}, "*:GetCode")
 	beego.Router(ExemptPrefix+"/user/register", &user.Controller{}, "*:UserRegister")
 	beego.Router(ExemptPrefix+"/user/login", &user.Controller{}, "*:UserLogin")
@@ -43,6 +44,7 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/add_license", &user.Controller{}, "*:AddLicenseFile")
 	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
 	beego.Router(FirmPrefix+"/update_user", &user.Controller{}, "Post:UpdateUserProfile")
+	//组织树
 	beego.Router(FirmPrefix+"/add_attr", &group.Controller{}, "*:AddAttr")
 	beego.Router(FirmPrefix+"/get_attrs", &group.Controller{}, "*:GetAttrList")
 	beego.Router(FirmPrefix+"/update_attr", &group.Controller{}, "*:UpdateAttr")
@@ -52,6 +54,18 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/del_group", &group.Controller{}, "*:DelGroup")
 	beego.Router(FirmPrefix+"/update_group", &group.Controller{}, "Post:UpdateGroup")
 	beego.Router(FirmPrefix+"/get_groups", &group.Controller{}, "*:GetGroupList")
+	beego.Router(FirmPrefix+"/getusers_ofgroup", &group.Controller{}, "*:GetUsersOfGroup")
+	beego.Router(FirmPrefix+"/addusers_togroup", &group.Controller{}, "Post:AddUsersToGroup")
+	beego.Router(FirmPrefix+"/delusers_fromgroup", &group.Controller{}, "Post:DelUsersFromGroup")
+	//角色
+	beego.Router(FirmPrefix+"/get_roles", &role.Controller{}, "*:GetRoleList")
+	beego.Router(FirmPrefix+"/add_role", &role.Controller{}, "Post:AddRole")
+	beego.Router(FirmPrefix+"/update_role", &role.Controller{}, "Post:UpdateRole")
+	beego.Router(FirmPrefix+"/del_role", &role.Controller{}, "*:DelRole")
+	beego.Router(FirmPrefix+"/getusers_ofrole", &role.Controller{}, "*:GetUsersOfRole")
+	beego.Router(FirmPrefix+"/addusers_torole", &role.Controller{}, "Post:AddUsersToRole")
+	beego.Router(FirmPrefix+"/delusers_fromrole", &role.Controller{}, "Post:DelUsersFromRole")
+	//审批相关
 
 	// 非登录态列表
 	notNeedAuthList := []string{
@@ -61,6 +75,7 @@ func LoadRouter() {
 		ExemptPrefix + "/user/getcode", ExemptPrefix + "/user/register",
 		ExemptPrefix + "/user/login", ExemptPrefix + "/user/login_phone",
 		ExemptPrefix + "/user/login_out", ExemptPrefix + "/test",
+		ExemptPrefix + "/get_functions",
 	}
 
 	// add filter
