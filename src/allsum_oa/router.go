@@ -2,6 +2,7 @@ package main
 
 import (
 	"allsum_oa/controller/file"
+	"allsum_oa/controller/form"
 	"allsum_oa/controller/group"
 	"allsum_oa/controller/role"
 	"allsum_oa/controller/user"
@@ -66,6 +67,7 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/addusers_torole", &role.Controller{}, "Post:AddUsersToRole")
 	beego.Router(FirmPrefix+"/delusers_fromrole", &role.Controller{}, "Post:DelUsersFromRole")
 	//审批相关
+	beego.Router(FirmPrefix+"/add_formtpl", &form.Controller{}, "Post:AddFormtpl")
 
 	// 非登录态列表
 	notNeedAuthList := []string{

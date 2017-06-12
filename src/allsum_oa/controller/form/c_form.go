@@ -16,9 +16,7 @@ type Controller struct {
 }
 
 const (
-	TimeFormat = "2006-01-02 15:04:05"
-	DateFormat = "2006-01-02"
-	CommonErr  = 99999
+	CommonErr = 99999
 )
 
 func (c *Controller) AddFormtpl() {
@@ -31,7 +29,7 @@ func (c *Controller) AddFormtpl() {
 		beego.Error(e)
 		return
 	}
-	ftpl.No = fmt.Sprintf("ftpl%d", time.Now().Unix())
+	ftpl.No = model.UniqueNo("Ftpl")
 	ftpl.Ctime = time.Now()
 	if ftpl.BeginTime.Sub(time.Now()).Hours() < 0 {
 		t := time.Now()
@@ -40,13 +38,13 @@ func (c *Controller) AddFormtpl() {
 	} else {
 		ftpl.Status = model.TplInit
 	}
-	//ftpl.Attachment = model.NewStrSlice() todo
+	ftpl.Attachment = model.NewStrSlice()
 	e = service.AddFormtpl(prefix, &ftpl)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -74,7 +72,7 @@ func (c *Controller) UpdateFormtpl() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -92,7 +90,7 @@ func (c *Controller) ControlFormtpl() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -104,7 +102,7 @@ func (c *Controller) DelFormtpl() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -132,7 +130,7 @@ func (c *Controller) AddApprovaltpl() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -158,7 +156,7 @@ func (c *Controller) UpdateApprovaltpl() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -176,7 +174,7 @@ func (c *Controller) ControlApprovaltpl() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -188,7 +186,7 @@ func (c *Controller) DelApprovaltpl() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -221,7 +219,7 @@ func (c *Controller) AddApproval() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -249,7 +247,7 @@ func (c *Controller) UpdateApproval() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -261,7 +259,7 @@ func (c *Controller) CancelApproval() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
 
@@ -279,11 +277,11 @@ func (c *Controller) Approve() {
 		c.ReplyErr(errcode.New(CommonErr, "opinion is wrong"))
 		return
 	}
-	e = service.Approve(prefix, aflow)
+	e = service.Approve(prefix, &aflow)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplyErr("success")
+		c.ReplySucc(nil)
 	}
 }
