@@ -31,7 +31,7 @@ const (
 type User struct {
 	Id        int       `gorm:"primary_key" ` // 用户id,继承自public
 	No        string    `gorm:"unique;size:64"`
-	Tel       string    `gorm:"size:15;not null" json:",omitempty"`
+	Tel       string    `gorm:"unique;size:15;not null" json:",omitempty"`
 	Password  string    `json:"-"` // 密码
 	UserName  string    `gorm:"size:64" json:",omitempty"`
 	Icon      string    `gorm:"size:64" json:",omitempty"`
@@ -54,6 +54,11 @@ func (User) TableName() string {
 }
 
 func CreateUser(prefix string, u *User) (err error) {
+	err = NewOrm().Table(prefix + "." + u.TableName()).Create(u).Error
+	return
+}
+
+func FirstOrCreateUser(prefix string, u *User) (err error) {
 	err = NewOrm().Table(prefix+"."+u.TableName()).
 		FirstOrCreate(u, User{Tel: u.Tel}).Error
 	return

@@ -182,7 +182,7 @@ func AuditCompany(cno string, approverId int, status int, msg string) (err error
 		} else {
 			beego.Info(users)
 			for _, u := range users {
-				err = model.CreateUser(cno, &u)
+				err = model.FirstOrCreateUser(cno, &u)
 				if err != nil {
 					beego.Error(err)
 					tx.Rollback()

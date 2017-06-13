@@ -21,6 +21,7 @@ const (
 func LoadRouter() {
 
 	// user相关
+	beego.Router(ExemptPrefix+"/test", &user.Controller{}, "*:Test")
 	beego.Router(ExemptPrefix+"/get_functions", &user.Controller{}, "*:GetFunctionsTree")
 	beego.Router(ExemptPrefix+"/user/getcode", &user.Controller{}, "*:GetCode")
 	beego.Router(ExemptPrefix+"/user/register", &user.Controller{}, "*:UserRegister")
@@ -29,6 +30,7 @@ func LoadRouter() {
 	beego.Router(ExemptPrefix+"/user/login_out", &user.Controller{}, "*:LoginOut")
 	beego.Router(UserPrefix+"/info", &user.Controller{}, "*:GetUserInfo")
 	beego.Router(UserPrefix+"/resetpwd", &user.Controller{}, "*:Resetpwd")
+	beego.Router(UserPrefix+"/switch_company", &user.Controller{}, "*:SwitchCurrentFirm")
 
 	//allsum管理员审核公司
 	beego.Router(AdminPrefix+"/firm_info", &user.Controller{}, "*:AdminGetFirmInfo")
