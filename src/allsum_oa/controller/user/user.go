@@ -130,7 +130,7 @@ func (c *Controller) UserRegister() {
 	if err != nil {
 		beego.Error("o2o.Auth.NewSingleToken error:", err, u.Tel)
 	}
-	beego.Info("login ok,token:%+v", token)
+	beego.Info("register and login ok,token:%+v", token)
 	c.ReplySucc(u)
 }
 
@@ -228,10 +228,66 @@ func (c *Controller) loginAction(user *model.User) {
 	beego.Debug("login ok,token:%+v", token)
 }
 
+//登录之后切换当前公司
+func (c *Controller) SwitchCurrentFirm() {
+	cno := c.GetString("cno")
+	uid := c.UserID
+	if len(cno) == 0 {
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	token, err := o2o.Auth.NewSingleToken(strconv.Itoa(uid), cno, "", c.Ctx.ResponseWriter)
+	if err != nil {
+		beego.Error("o2o.Auth.NewSingleToken error:", err)
+		c.ReplyErr(errcode.ErrAuthCreateFailed)
+		return
+	}
+	user, e := service.GetUserById(cno, uid)
+	if e != nil {
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
+		return
+	}
+	var currentCompanyIndex int
+	for k, v := range user.Companys {
+		if v.No == cno {
+			currentCompanyIndex = k
+			break
+		}
+	}
+	beego.Info("------------------", currentCompanyIndex)
+	user.Companys = user.Companys[currentCompanyIndex : currentCompanyIndex+1]
+	//将用户的groups和roles放入缓存
+	uidstr := fmt.Sprintf("%d", user.Id)
+	roles, groups := "", ""
+	for _, v := range user.Roles {
+		roles += fmt.Sprintf("%d_", v.Id)
+	}
+	for _, v := range user.Groups {
+		groups += fmt.Sprintf("%d_", v.Id)
+	}
+	_, e = c.RedisClient.Hmset(uidstr, map[string]interface{}{
+		"roles":  roles,
+		"groups": groups,
+	})
+
+	if e != nil {
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
+	} else {
+		c.ReplySucc(user)
+		beego.Info("switch company success with token:%v", token)
+	}
+}
+
 func (c *Controller) Test() {
 	a, e := c.RedisClient.Hmset("group_1", map[string]interface{}{
 		"roles":  "1_2_3",
 		"groups": "4_5_6",
+	})
+	beego.Info(a, e)
+
+	a, e = c.RedisClient.Hmset("group_1", map[string]interface{}{
+		"roles":  "1_2",
+		"groups": "4_5",
 	})
 	beego.Info(a, e)
 
@@ -378,13 +434,13 @@ func (c *Controller) FirmAddUser() {
 		UserType: model.UserTypeNormal,
 		Status:   model.UserStatusOk,
 	}
-	e := model.CreateUser("public", user)
+	e := model.FirstOrCreateUser("public", user)
 	if e != nil {
 		beego.Error(e)
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	e = model.CreateUser(cno, user)
+	e = model.FirstOrCreateUser(cno, user)
 	if e != nil {
 		beego.Error(e)
 		c.ReplyErr(errcode.ErrServerError)
@@ -440,8 +496,7 @@ func (c *Controller) GetFunctionsTree() {
 	c.ReplySucc(funcs)
 }
 
-//**********************************************************
-//暂未开放的接口
+//暂未开放的接口**********************************************************
 func (c *Controller) UserLoginAuth() {
 	tel := c.GetString("tel")
 	passwd := c.GetString("password")
@@ -544,20 +599,4 @@ func (c *Controller) FirmModify() {
 		return
 	}
 	c.ReplySucc("ok")
-}
-
-//登录之后切换当前公司
-func (c *Controller) SwitchCurrentFirm() {
-	cno := c.GetString("cno")
-	uid := c.UserID
-	token, err := o2o.Auth.NewSingleToken(strconv.Itoa(uid), cno, "", c.Ctx.ResponseWriter)
-	if err != nil {
-		beego.Error("o2o.Auth.NewSingleToken error:", err)
-		c.ReplyErr(errcode.ErrAuthCreateFailed)
-		return
-	} else {
-		c.ReplySucc(nil)
-		beego.Debug("switch company success,token:%+v", token)
-		return
-	}
 }
