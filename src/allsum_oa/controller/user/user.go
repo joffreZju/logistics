@@ -110,7 +110,7 @@ func (c *Controller) UserRegister() {
 		FirmName: firm_name,
 		FirmType: firm_type,
 		Creator:  u.Id,
-		Status:   0,
+		Status:   model.CompApproveWait,
 	}
 	err = model.CreateCompany(&comp)
 	if err != nil {
