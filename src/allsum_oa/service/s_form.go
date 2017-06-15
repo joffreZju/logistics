@@ -169,10 +169,10 @@ func Approve(prefix string, aflow *model.ApproveFlow) (e error) {
 				tx.Rollback()
 				return
 			}
-			if aflow.Opinion == model.ApproveFlowAgree && k == len(a.UserFlow)-1 {
+			if aflow.Opinion == model.ApproveOpinionAgree && k == len(a.UserFlow)-1 {
 				//最后一位审批人同意
 				status = model.ApproveAccessed
-			} else if aflow.Opinion == model.ApproveFlowRefuse {
+			} else if aflow.Opinion == model.ApproveOpinionRefuse {
 				//不同意
 				status = model.ApproveNotAccessed
 			}

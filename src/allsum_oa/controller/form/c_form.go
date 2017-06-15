@@ -273,7 +273,7 @@ func (c *Controller) Approve() {
 		beego.Error(e)
 		return
 	}
-	if aflow.Opinion != model.ApproveFlowAgree && aflow.Opinion != model.ApproveFlowRefuse {
+	if aflow.Opinion != model.ApproveOpinionAgree && aflow.Opinion != model.ApproveOpinionRefuse {
 		c.ReplyErr(errcode.New(CommonErr, "opinion is wrong"))
 		return
 	}

@@ -52,7 +52,7 @@ func main() {
 		AllowAllOrigins:  true,
 		AllowHeaders:     []string{"Origin", "Authorization", "Access-Control-Allow-Origin", "uid", "Access-Control-Allow-Headers", "Content-Type"},
 		AllowMethods:     []string{"GET", "DELETE", "PUT", "PATCH", "POST", "OPTIONS"},
-		ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type"},
+		ExposeHeaders:    []string{"Authorization", "Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type"},
 		AllowCredentials: true,
 	}))
 

@@ -20,8 +20,8 @@ const (
 )
 
 const (
-	ApproveFlowAgree = iota
-	ApproveFlowRefuse
+	ApproveOpinionAgree = iota
+	ApproveOpinionRefuse
 )
 
 type Formtpl struct {
