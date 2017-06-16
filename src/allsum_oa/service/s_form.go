@@ -128,14 +128,14 @@ func DelApprovaltpl(prefix, no string) (e error) {
 	return tx.Commit().Error
 }
 
-func AddApproval(prefix string, f *model.Form, a *model.Approval) (e error) {
+func AddApproval(prefix string, a *model.Approval) (e error) {
 	tx := model.NewOrm().Begin()
-	e = tx.Table(prefix + f.TableName()).Create(f).Error
+	e = tx.Table(prefix + "." + a.FormContent.TableName()).Create(&(a.FormContent)).Error
 	if e != nil {
 		tx.Rollback()
 		return
 	}
-	e = tx.Table(prefix + a.TableName()).Create(a).Error
+	e = tx.Table(prefix + "." + a.TableName()).Create(a).Error
 	if e != nil {
 		tx.Rollback()
 		return
@@ -143,10 +143,10 @@ func AddApproval(prefix string, f *model.Form, a *model.Approval) (e error) {
 	return tx.Commit().Error
 }
 
-func UpdateApproval(prefix string, f *model.Form, a *model.Approval) (e error) {
+func UpdateApproval(prefix string, a *model.Approval) (e error) {
 	tx := model.NewOrm().Begin()
 	aprvl := model.Approval{}
-	e = tx.Table(prefix+aprvl.TableName()).First(&aprvl, a.No).Error
+	e = tx.Table(prefix+"."+aprvl.TableName()).First(&aprvl, "no=?", a.No).Error
 	if e != nil {
 		return
 	}
@@ -154,13 +154,14 @@ func UpdateApproval(prefix string, f *model.Form, a *model.Approval) (e error) {
 		e = errors.New("approval is already commited")
 		return
 	}
-	c := tx.Table(prefix+f.TableName()).Where("no = ?", f.No).Updates(f).RowsAffected
+	c := tx.Table(prefix + "." + a.FormContent.TableName()).
+		Model(&(a.FormContent)).Updates(&(a.FormContent)).RowsAffected
 	if c != 1 {
 		tx.Rollback()
 		e = errors.New("wrong form no")
 		return
 	}
-	c = tx.Table(prefix+a.TableName()).Where("no =?", a.No).Updates(a).RowsAffected
+	c = tx.Table(prefix + "." + a.TableName()).Model(a).Updates(a).RowsAffected
 	if c != 1 {
 		tx.Rollback()
 		e = errors.New("wrong approval no")

@@ -6,7 +6,6 @@ import (
 	"allsum_oa/service"
 	"common/lib/errcode"
 	"encoding/json"
-	"fmt"
 	"github.com/astaxie/beego"
 	"time"
 )
@@ -214,60 +213,63 @@ func (c *Controller) DelApprovaltpl() {
 //审批流相关接口***************************
 func (c *Controller) AddApproval() {
 	prefix := c.UserComp
-	astr := c.GetString("approval")
-	fstr := c.GetString("form")
+	str := c.GetString("approval")
 	a := model.Approval{}
-	f := model.Form{}
-	e1 := json.Unmarshal([]byte(astr), &a)
-	e2 := json.Unmarshal([]byte(fstr), &f)
-	if e1 != nil || e2 != nil {
+	e := json.Unmarshal([]byte(str), &a)
+	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
-		beego.Error(e1, e2)
+		beego.Error(e)
 		return
 	}
 	if a.Status != model.ApproveDraft && a.Status != model.ApproveCommited {
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.New(CommonErr, "审批单状态错误"))
 		beego.Error("approval status is wrong")
 		return
 	}
-	f.No = fmt.Sprintf("form%d", time.Now().Unix())
-	f.Ctime = time.Now()
-	a.No = fmt.Sprintf("aprvl%d", time.Now().Unix())
+	a.FormContent.No = model.UniqueNo("F")
+	a.FormContent.Ctime = time.Now()
+	a.No = model.UniqueNo("A")
 	a.Ctime = time.Now()
-	a.FormNo = f.No
-	e := service.AddApproval(prefix, &f, &a)
+	a.FormNo = a.FormContent.No
+	e = service.AddApproval(prefix, &a)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
+		if a.Status == model.ApproveCommited {
+			//todo 向第一个审批人推送消息
+		}
 		c.ReplySucc(nil)
 	}
 }
 
 func (c *Controller) UpdateApproval() {
 	prefix := c.UserComp
-	astr := c.GetString("approval")
-	fstr := c.GetString("form")
+	str := c.GetString("approval")
 	a := model.Approval{}
-	f := model.Form{}
-	e1 := json.Unmarshal([]byte(astr), &a)
-	e2 := json.Unmarshal([]byte(fstr), &f)
-	if e1 != nil || e2 != nil {
+	e := json.Unmarshal([]byte(str), &a)
+	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
-		beego.Error(e1, e2)
+		beego.Error(e)
 		return
 	}
 	if a.Status != model.ApproveDraft && a.Status != model.ApproveCommited {
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.New(CommonErr, "审批单状态错误"))
 		beego.Error("approval status is wrong")
 		return
 	}
-	//f.Attachment = model.NewStrSlice() todo
-	e := service.UpdateApproval(prefix, &f, &a)
+	if len(a.No) == 0 || len(a.FormNo) == 0 || a.FormNo != a.FormContent.No {
+		c.ReplyErr(errcode.New(CommonErr, "审批单编号有误"))
+		return
+	}
+	e = service.UpdateApproval(prefix, &a)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
+		if a.Status == model.ApproveCommited {
+			//todo 向第一个审批人推送消息
+		}
 		c.ReplySucc(nil)
 	}
 }

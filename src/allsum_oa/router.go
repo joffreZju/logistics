@@ -84,6 +84,7 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/del_atpl", &form.Controller{}, "*:DelApprovaltpl")
 	//审批流相关
 	beego.Router(FirmPrefix+"/add_approval", &form.Controller{}, "*:AddApproval")
+	beego.Router(FirmPrefix+"/update_approval", &form.Controller{}, "*:UpdateApproval")
 
 	// 非登录态列表
 	notNeedAuthList := []string{
