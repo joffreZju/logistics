@@ -68,8 +68,22 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/getusers_ofrole", &role.Controller{}, "*:GetUsersOfRole")
 	beego.Router(FirmPrefix+"/addusers_torole", &role.Controller{}, "Post:AddUsersToRole")
 	beego.Router(FirmPrefix+"/delusers_fromrole", &role.Controller{}, "Post:DelUsersFromRole")
+
 	//审批相关
+	//表单模板操作
 	beego.Router(FirmPrefix+"/add_formtpl", &form.Controller{}, "Post:AddFormtpl")
+	beego.Router(FirmPrefix+"/get_formtpls", &form.Controller{}, "*:GetFormtplList")
+	beego.Router(FirmPrefix+"/update_formtpl", &form.Controller{}, "Post:UpdateFormtpl")
+	beego.Router(FirmPrefix+"/control_formtpl", &form.Controller{}, "*:ControlFormtpl")
+	beego.Router(FirmPrefix+"/del_formtpl", &form.Controller{}, "*:DelFormtpl")
+	//审批单模板操作
+	beego.Router(FirmPrefix+"/add_atpl", &form.Controller{}, "Post:AddApprovaltpl")
+	beego.Router(FirmPrefix+"/get_atpls", &form.Controller{}, "*:GetApprovaltplList")
+	beego.Router(FirmPrefix+"/update_atpl", &form.Controller{}, "Post:UpdateApprovaltpl")
+	beego.Router(FirmPrefix+"/control_atpl", &form.Controller{}, "*:ControlApprovaltpl")
+	beego.Router(FirmPrefix+"/del_atpl", &form.Controller{}, "*:DelApprovaltpl")
+	//审批流相关
+	beego.Router(FirmPrefix+"/add_approval", &form.Controller{}, "*:AddApproval")
 
 	// 非登录态列表
 	notNeedAuthList := []string{

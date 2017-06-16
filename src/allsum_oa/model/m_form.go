@@ -11,17 +11,23 @@ const (
 )
 
 const (
-	ApproveInit = iota
-	//ApproveCommited
+	ApproveDraft = iota
+	ApproveCommited
 	Approving
 	ApproveAccessed
 	ApproveNotAccessed
 	ApproveCanceled
+	//草稿->提交->审批中->审批通过（或不通过）->取消审批(除了审批通过或不通过，其他都可以取消)
 )
 
 const (
 	ApproveOpinionAgree = iota
 	ApproveOpinionRefuse
+)
+
+const (
+	TreeFlowUpNo = iota
+	TreeFlowUpYes
 )
 
 type Formtpl struct {
@@ -42,7 +48,7 @@ func (Formtpl) TableName() string {
 
 type Form struct {
 	No         string `gorm:"primary_key"`
-	Name       string `gorm:"not null"`
+	Name       string `gorm:""`
 	Type       string
 	Desc       string
 	Ctime      time.Time
@@ -55,16 +61,16 @@ func (Form) TableName() string {
 }
 
 type Approvaltpl struct {
-	No          string `gorm:"primary_key"`
-	Name        string `gorm:"not null"`
-	Desc        string
-	Ctime       time.Time
-	FormtplNo   string    `gorm:"not null"`
-	TreeFlowTag int       //是否按组织树向上流动 0:否，1:是
-	RoleFlow    IntSlice  `gorm:"type:int[]"` //role_id 的组成的数组
-	AllowRows   IntSlice  `gorm:"type:int[]"`
-	BeginTime   time.Time `gorm:"not null"`
-	Status      int       `gorm:"not null"`
+	No         string `gorm:"primary_key"`
+	Name       string `gorm:"not null"`
+	Desc       string
+	Ctime      time.Time
+	FormtplNo  string    `gorm:"not null"`
+	TreeFlowUp int       //是否按组织树向上流动 0:否，1:是
+	RoleFlow   IntSlice  `gorm:"type:int[]"` //role_id 的组成的数组
+	AllowRows  IntSlice  `gorm:"type:int[]"`
+	BeginTime  time.Time `gorm:"not null"`
+	Status     int       `gorm:"not null"`
 
 	FormtplContent Formtpl `gorm:"-"`
 }

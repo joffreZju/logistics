@@ -19,6 +19,18 @@ const (
 	CommonErr = 99999
 )
 
+//表单模板增删改查*************************
+func (c *Controller) GetFormtplList() {
+	prefix := c.UserComp
+	ftpls, e := service.GetFormtplList(prefix)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc(ftpls)
+	}
+}
+
 func (c *Controller) AddFormtpl() {
 	prefix := c.UserComp
 	str := c.GetString("formtpl")
@@ -38,7 +50,6 @@ func (c *Controller) AddFormtpl() {
 	} else {
 		ftpl.Status = model.TplInit
 	}
-	ftpl.Attachment = model.NewStrSlice()
 	e = service.AddFormtpl(prefix, &ftpl)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
@@ -65,8 +76,6 @@ func (c *Controller) UpdateFormtpl() {
 	} else {
 		ftpl.Status = model.TplInit
 	}
-	//ftpl.Attachment = model.NewStrSlice() todo
-
 	e = service.UpdateFormtpl(prefix, &ftpl)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
@@ -78,9 +87,9 @@ func (c *Controller) UpdateFormtpl() {
 
 func (c *Controller) ControlFormtpl() {
 	prefix := c.UserComp
-	no := c.GetString("No")
-	status, e := c.GetInt("Status")
-	if e != nil {
+	no := c.GetString("no")
+	status, e := c.GetInt("status")
+	if e != nil || len(no) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
@@ -96,13 +105,25 @@ func (c *Controller) ControlFormtpl() {
 
 func (c *Controller) DelFormtpl() {
 	prefix := c.UserComp
-	no := c.GetString("No")
+	no := c.GetString("no")
 	e := service.DelFormtpl(prefix, no)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
 		c.ReplySucc(nil)
+	}
+}
+
+//审批单模板增删改查*************************
+func (c *Controller) GetApprovaltplList() {
+	prefix := c.UserComp
+	atpls, e := service.GetApprocvaltplList(prefix)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc(atpls)
 	}
 }
 
@@ -116,7 +137,7 @@ func (c *Controller) AddApprovaltpl() {
 		beego.Error(e)
 		return
 	}
-	atpl.No = fmt.Sprintf("atpl%d", time.Now().Unix())
+	atpl.No = model.UniqueNo("Atpl")
 	atpl.Ctime = time.Now()
 	if atpl.BeginTime.Sub(time.Now()).Hours() < 0 {
 		t := time.Now()
@@ -162,8 +183,8 @@ func (c *Controller) UpdateApprovaltpl() {
 
 func (c *Controller) ControlApprovaltpl() {
 	prefix := c.UserComp
-	no := c.GetString("No")
-	status, e := c.GetInt("Status")
+	no := c.GetString("no")
+	status, e := c.GetInt("status")
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
@@ -180,7 +201,7 @@ func (c *Controller) ControlApprovaltpl() {
 
 func (c *Controller) DelApprovaltpl() {
 	prefix := c.UserComp
-	no := c.GetString("No")
+	no := c.GetString("no")
 	e := service.DelApprovaltpl(prefix, no)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
@@ -190,6 +211,7 @@ func (c *Controller) DelApprovaltpl() {
 	}
 }
 
+//审批流相关接口***************************
 func (c *Controller) AddApproval() {
 	prefix := c.UserComp
 	astr := c.GetString("approval")
@@ -203,14 +225,13 @@ func (c *Controller) AddApproval() {
 		beego.Error(e1, e2)
 		return
 	}
-	if a.Status != model.ApproveInit && a.Status != model.Approving {
+	if a.Status != model.ApproveDraft && a.Status != model.ApproveCommited {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error("approval status is wrong")
 		return
 	}
 	f.No = fmt.Sprintf("form%d", time.Now().Unix())
 	f.Ctime = time.Now()
-	//f.Attachment = model.NewStrSlice() todo
 	a.No = fmt.Sprintf("aprvl%d", time.Now().Unix())
 	a.Ctime = time.Now()
 	a.FormNo = f.No
@@ -236,7 +257,7 @@ func (c *Controller) UpdateApproval() {
 		beego.Error(e1, e2)
 		return
 	}
-	if a.Status != model.ApproveInit && a.Status != model.Approving {
+	if a.Status != model.ApproveDraft && a.Status != model.ApproveCommited {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error("approval status is wrong")
 		return

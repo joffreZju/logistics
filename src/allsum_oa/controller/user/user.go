@@ -327,6 +327,8 @@ func (c *Controller) LoginOut() {
 	c.ReplySucc(nil)
 }
 
+//todo 增加重置密码接口
+
 func (c *Controller) Resetpwd() {
 	uid := c.UserID
 	pwd := keycrypt.Sha256Cal(c.GetString("password"))
