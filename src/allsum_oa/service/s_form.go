@@ -171,9 +171,9 @@ func UpdateApproval(prefix string, a *model.Approval) (e error) {
 }
 
 func CancelApproval(prefix, no string) (e error) {
-	tx := model.NewOrm().Table(prefix + model.Approval{}.TableName()).Begin()
+	tx := model.NewOrm().Table(prefix + "." + model.Approval{}.TableName()).Begin()
 	a := model.Approval{}
-	e = tx.First(&a, no).Error
+	e = tx.First(&a, "no=?", no).Error
 	if e != nil {
 		return
 	}
@@ -193,31 +193,50 @@ func CancelApproval(prefix, no string) (e error) {
 func Approve(prefix string, aflow *model.ApproveFlow) (e error) {
 	tx := model.NewOrm().Begin()
 	a := model.Approval{}
-	e = tx.First(&a, aflow.ApprovalNo).Error
+	//检查该审批单当前状态
+	e = tx.Table(prefix+"."+a.TableName()).First(&a, "no=?", aflow.ApprovalNo).Error
 	if e != nil {
 		return
 	}
-	status := -1
+	if a.Status != model.Approving {
+		return errors.New("approval has been finished")
+	}
+	//检查是否审批过
+	count := 0
+	e = tx.Table(prefix+"."+aflow.TableName()).
+		Where("approval_no=? and user_id=?", aflow.ApprovalNo, aflow.UserId).Count(&count).Error
+	if e != nil {
+		return
+	} else if count != 0 {
+		return errors.New("您已经审批过了")
+	}
+	//审批，修改审批单状态
+	newStatus := -1
 	for k, u := range a.UserFlow {
 		if u == aflow.UserId {
-			e = tx.Table(prefix + aflow.TableName()).Create(aflow).Error
+			e = tx.Table(prefix + "." + aflow.TableName()).Create(aflow).Error
 			if e != nil {
 				tx.Rollback()
 				return
 			}
-			if aflow.Opinion == model.ApproveOpinionAgree && k == len(a.UserFlow)-1 {
-				//最后一位审批人同意
-				status = model.ApproveAccessed
-			} else if aflow.Opinion == model.ApproveOpinionRefuse {
+			if aflow.Opinion == model.ApproveOpinionRefuse {
 				//不同意
-				status = model.ApproveNotAccessed
+				newStatus = model.ApproveNotAccessed
+			} else if aflow.Opinion == model.ApproveOpinionAgree && k == len(a.UserFlow)-1 {
+				//最后一位审批人同意
+				newStatus = model.ApproveAccessed
+			} else {
+				//中间审批人同意
+				//todo 给下一位审批人发推送
+				//userNext := a.UserFlow[k + 1]
 			}
 			break
 		}
 	}
-	if status != -1 {
-		c := tx.Table(prefix+a.TableName()).
-			Model(&a).Update("status", status).RowsAffected
+	if newStatus != -1 {
+		//todo 给发起审批的人推送
+		c := tx.Table(prefix+"."+a.TableName()).
+			Model(&a).Update("status", newStatus).RowsAffected
 		if c != 1 {
 			tx.Rollback()
 			e = errors.New("update approval status failed")

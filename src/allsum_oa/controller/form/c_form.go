@@ -276,7 +276,7 @@ func (c *Controller) UpdateApproval() {
 
 func (c *Controller) CancelApproval() {
 	prefix := c.UserComp
-	no := c.GetString("No")
+	no := c.GetString("no")
 	e := service.CancelApproval(prefix, no)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
@@ -294,6 +294,10 @@ func (c *Controller) Approve() {
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
+		return
+	}
+	if aflow.UserId != c.UserID {
+		c.ReplyErr(errcode.New(CommonErr, "user id is wrong"))
 		return
 	}
 	if aflow.Opinion != model.ApproveOpinionAgree && aflow.Opinion != model.ApproveOpinionRefuse {

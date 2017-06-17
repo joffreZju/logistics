@@ -102,9 +102,10 @@ type ApproveFlow struct {
 	Id         int    `gorm:"AUTO_INCREMENT,primary_key"`
 	ApprovalNo string `gorm:"not null"`
 	UserId     int
+	Opinion    int `gorm:"not null"`
+	Comment    string
+	Ctime      time.Time `gorm:"default:current_timestamp"`
 	//RoleId     int `gorm:"not null"`
-	Opinion int `gorm:"not null"`
-	Comment string
 }
 
 func (ApproveFlow) TableName() string {
