@@ -3,6 +3,7 @@ package service
 import (
 	"allsum_oa/model"
 	"errors"
+	"fmt"
 )
 
 func GetFormtplList(prefix string) (ftpls []*model.Formtpl, e error) {
@@ -201,37 +202,38 @@ func Approve(prefix string, aflow *model.ApproveFlow) (e error) {
 	if a.Status != model.Approving {
 		return errors.New("approval has been finished")
 	}
-	//检查是否审批过
-	count := 0
-	e = tx.Table(prefix+"."+aflow.TableName()).
-		Where("approval_no=? and user_id=?", aflow.ApprovalNo, aflow.UserId).Count(&count).Error
-	if e != nil {
-		return
-	} else if count != 0 {
-		return errors.New("您已经审批过了")
+	if a.Currentuser != aflow.UserId {
+		return errors.New("当前审批单您不可以审批")
 	}
 	//审批，修改审批单状态
+	e = tx.Table(prefix + "." + aflow.TableName()).Create(aflow).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
 	newStatus := -1
-	for k, u := range a.UserFlow {
-		if u == aflow.UserId {
-			e = tx.Table(prefix + "." + aflow.TableName()).Create(aflow).Error
-			if e != nil {
-				tx.Rollback()
-				return
+	if aflow.Opinion == model.ApproveOpinionRefuse {
+		//不同意
+		newStatus = model.ApproveNotAccessed
+	} else if aflow.Opinion == model.ApproveOpinionAgree &&
+		a.Currentuser == a.UserFlow[len(a.UserFlow)-1] {
+		//最后一位审批人同意
+		newStatus = model.ApproveAccessed
+	} else {
+		//中间审批人同意
+		for k, v := range a.UserFlow {
+			if v == a.Currentuser {
+				a.Currentuser = a.UserFlow[k+1]
+				e = tx.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
+				if e != nil {
+					tx.Rollback()
+					return
+				}
+				break
 			}
-			if aflow.Opinion == model.ApproveOpinionRefuse {
-				//不同意
-				newStatus = model.ApproveNotAccessed
-			} else if aflow.Opinion == model.ApproveOpinionAgree && k == len(a.UserFlow)-1 {
-				//最后一位审批人同意
-				newStatus = model.ApproveAccessed
-			} else {
-				//中间审批人同意
-				//todo 给下一位审批人发推送
-				//userNext := a.UserFlow[k + 1]
-			}
-			break
 		}
+		//todo 给下一位审批人发推送
+		//a.CurrentUser
 	}
 	if newStatus != -1 {
 		//todo 给发起审批的人推送
@@ -244,4 +246,58 @@ func Approve(prefix string, aflow *model.ApproveFlow) (e error) {
 		}
 	}
 	return tx.Commit().Error
+}
+
+func getApprovalDetails(prefix string, alist []*model.Approval) (e error) {
+	db := model.NewOrm()
+	for _, v := range alist {
+		e = db.Table(prefix+"."+model.Form{}.TableName()).
+			First(&v.FormContent, "no=?", v.FormNo).Error
+		if e != nil {
+			return
+		}
+		e = db.Table(prefix+"."+model.ApproveFlow{}.TableName()).Order("ctime").
+			Find(&v.ApproveSteps, model.ApproveFlow{ApprovalNo: v.No}).Error
+		if e != nil {
+			return
+		}
+	}
+	return nil
+}
+
+func GetApprovalsFromMe(prefix string, uid int) (alist []*model.Approval, e error) {
+	db := model.NewOrm()
+	alist = []*model.Approval{}
+	e = db.Table(prefix+"."+model.Approval{}.TableName()).
+		Find(&alist, "user_id=?", uid).Error
+	if e != nil {
+		return
+	}
+	e = getApprovalDetails(prefix, alist)
+	return
+}
+
+func GetTodoApprovalsToMe(prefix string, uid int) (alist []*model.Approval, e error) {
+	db := model.NewOrm()
+	alist = []*model.Approval{}
+	e = db.Table(prefix+"."+model.Approval{}.TableName()).
+		Where("status=? and currentuser=?", model.Approving, uid).Find(&alist).Error
+	if e != nil {
+		return
+	}
+	e = getApprovalDetails(prefix, alist)
+	return
+}
+
+func GetFinishedApprovalsToMe(prefix string, uid int) (alist []*model.Approval, e error) {
+	db := model.NewOrm()
+	alist = []*model.Approval{}
+	sql := fmt.Sprintf(`select * from "%s".approval as t1 inner join "%s".approve_flow as t2
+		on t1.no = t2.approval_no where t2.user_id=%d`, prefix, prefix, uid)
+	e = db.Raw(sql).Scan(&alist).Error
+	if e != nil {
+		return
+	}
+	e = getApprovalDetails(prefix, alist)
+	return
 }

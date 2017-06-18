@@ -221,7 +221,7 @@ func (c *Controller) AddApproval() {
 		beego.Error(e)
 		return
 	}
-	if a.Status != model.ApproveDraft && a.Status != model.ApproveCommited {
+	if a.Status != model.ApproveDraft && a.Status != model.Approving {
 		c.ReplyErr(errcode.New(CommonErr, "审批单状态错误"))
 		beego.Error("approval status is wrong")
 		return
@@ -231,13 +231,14 @@ func (c *Controller) AddApproval() {
 	a.No = model.UniqueNo("A")
 	a.Ctime = time.Now()
 	a.FormNo = a.FormContent.No
+	a.Currentuser = a.UserFlow[0]
 	e = service.AddApproval(prefix, &a)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		if a.Status == model.ApproveCommited {
-			//todo 向第一个审批人推送消息
+		if a.Status == model.Approving {
+			//todo 向第一个审批人推送消息,修改状态为approving
 		}
 		c.ReplySucc(nil)
 	}
@@ -253,7 +254,7 @@ func (c *Controller) UpdateApproval() {
 		beego.Error(e)
 		return
 	}
-	if a.Status != model.ApproveDraft && a.Status != model.ApproveCommited {
+	if a.Status != model.ApproveDraft && a.Status != model.Approving {
 		c.ReplyErr(errcode.New(CommonErr, "审批单状态错误"))
 		beego.Error("approval status is wrong")
 		return
@@ -262,13 +263,14 @@ func (c *Controller) UpdateApproval() {
 		c.ReplyErr(errcode.New(CommonErr, "审批单编号有误"))
 		return
 	}
+	a.Currentuser = a.UserFlow[0]
 	e = service.UpdateApproval(prefix, &a)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		if a.Status == model.ApproveCommited {
-			//todo 向第一个审批人推送消息
+		if a.Status == model.Approving {
+			//todo 向第一个审批人推送消息,修改状态为approving
 		}
 		c.ReplySucc(nil)
 	}
@@ -296,7 +298,9 @@ func (c *Controller) Approve() {
 		beego.Error(e)
 		return
 	}
-	if aflow.UserId != c.UserID {
+	aflow.Ctime = time.Now()
+	aflow.UserId = c.UserID
+	if aflow.UserId <= 0 || aflow.UserId != c.UserID {
 		c.ReplyErr(errcode.New(CommonErr, "user id is wrong"))
 		return
 	}
@@ -311,4 +315,43 @@ func (c *Controller) Approve() {
 	} else {
 		c.ReplySucc(nil)
 	}
+}
+
+//获取我发起的所有审批单
+func (c *Controller) GetApprovalsFromMe() {
+	prefix := c.UserComp
+	uid := c.UserID
+	alist, e := service.GetApprovalsFromMe(prefix, uid)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+		return
+	}
+	c.ReplySucc(alist)
+}
+
+//获取需要我审批的审批单
+func (c *Controller) GetTodoApprovalsToMe() {
+	prefix := c.UserComp
+	uid := c.UserID
+	alist, e := service.GetTodoApprovalsToMe(prefix, uid)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+		return
+	}
+	c.ReplySucc(alist)
+}
+
+//获取我审批过的审批单
+func (c *Controller) GetFinishedApprovalsToMe() {
+	prefix := c.UserComp
+	uid := c.UserID
+	alist, e := service.GetFinishedApprovalsToMe(prefix, uid)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+		return
+	}
+	c.ReplySucc(alist)
 }

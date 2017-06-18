@@ -12,7 +12,6 @@ const (
 
 const (
 	ApproveDraft = iota
-	ApproveCommited
 	Approving
 	ApproveAccessed
 	ApproveNotAccessed
@@ -80,18 +79,20 @@ func (Approvaltpl) TableName() string {
 }
 
 type Approval struct {
-	No       string `gorm:"primary_key"`
-	Name     string `gorm:"not null"`
-	Desc     string
-	Ctime    time.Time
-	FormNo   string   `gorm:"not null"`
-	UserFlow IntSlice `gorm:"type:int[]"` //创建审批单时确定具体审批人
-	UserId   int      `gorm:"not null"`
-	RoleId   int      `gorm:"not null"`
-	GroupId  int      `gorm:"not null"`
-	Status   int      `gorm:"not null"`
+	No          string `gorm:"primary_key"`
+	Name        string `gorm:"not null"`
+	Desc        string
+	Ctime       time.Time
+	FormNo      string   `gorm:"not null"`
+	UserFlow    IntSlice `gorm:"type:int[]"` //创建审批单时确定具体审批人
+	Currentuser int      //当前正在审批的用户id,current_user是pg的关键字
+	UserId      int      `gorm:"not null"`
+	RoleId      int      `gorm:""`
+	GroupId     int      `gorm:""`
+	Status      int      `gorm:"not null"`
 
-	FormContent Form `gorm:"-"`
+	FormContent  Form          `gorm:"-"`
+	ApproveSteps []ApproveFlow `gorm:"-"`
 }
 
 func (Approval) TableName() string {

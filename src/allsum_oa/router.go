@@ -86,6 +86,10 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/add_approval", &form.Controller{}, "*:AddApproval")
 	beego.Router(FirmPrefix+"/update_approval", &form.Controller{}, "*:UpdateApproval")
 	beego.Router(FirmPrefix+"/cancel_approval", &form.Controller{}, "*:CancelApproval")
+	beego.Router(FirmPrefix+"/approve", &form.Controller{}, "*:Approve")
+	beego.Router(FirmPrefix+"/get_approvals_from_me", &form.Controller{}, "*:GetApprovalsFromMe")
+	beego.Router(FirmPrefix+"/get_todo_approvals_to_me", &form.Controller{}, "*:GetTodoApprovalsToMe")
+	beego.Router(FirmPrefix+"/get_finished_approvals_to_me", &form.Controller{}, "*:GetFinishedApprovalsToMe")
 
 	// 非登录态列表
 	notNeedAuthList := []string{
