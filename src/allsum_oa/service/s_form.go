@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+//表单模板相关
 func GetFormtplList(prefix string) (ftpls []*model.Formtpl, e error) {
 	ftpls = []*model.Formtpl{}
 	e = model.NewOrm().Table(prefix + "." + model.Formtpl{}.TableName()).Find(&ftpls).Error
@@ -71,6 +72,7 @@ func DelFormtpl(prefix, no string) (e error) {
 	return tx.Commit().Error
 }
 
+//审批单模板相关
 func GetApprocvaltplList(prefix string) (atpls []*model.Approvaltpl, e error) {
 	db := model.NewOrm()
 	atpls = []*model.Approvaltpl{}
@@ -78,12 +80,22 @@ func GetApprocvaltplList(prefix string) (atpls []*model.Approvaltpl, e error) {
 	if e != nil {
 		return
 	}
-	for _, v := range atpls {
-		e = db.Table(prefix+"."+model.Formtpl{}.TableName()).
-			Find(&v.FormtplContent, "no=?", v.FormtplNo).Error
-		if e != nil {
-			return
-		}
+	return
+}
+
+func GetApprovaltplDetail(prefix, atplno string) (atpl *model.Approvaltpl, e error) {
+	db := model.NewOrm()
+	atpl = &model.Approvaltpl{}
+	e = db.Table(prefix+"."+model.Approvaltpl{}.TableName()).
+		First(atpl, "no=?", atplno).Error
+	if e != nil {
+		return
+	}
+	atpl.FormtplContent = new(model.Formtpl)
+	e = db.Table(prefix+"."+model.Formtpl{}.TableName()).
+		First(atpl.FormtplContent, "no=?", atpl.FormtplNo).Error
+	if e != nil {
+		return
 	}
 	return
 }
@@ -129,9 +141,10 @@ func DelApprovaltpl(prefix, no string) (e error) {
 	return tx.Commit().Error
 }
 
+//审批流相关
 func AddApproval(prefix string, a *model.Approval) (e error) {
 	tx := model.NewOrm().Begin()
-	e = tx.Table(prefix + "." + a.FormContent.TableName()).Create(&(a.FormContent)).Error
+	e = tx.Table(prefix + "." + a.FormContent.TableName()).Create(a.FormContent).Error
 	if e != nil {
 		tx.Rollback()
 		return
@@ -156,7 +169,7 @@ func UpdateApproval(prefix string, a *model.Approval) (e error) {
 		return
 	}
 	c := tx.Table(prefix + "." + a.FormContent.TableName()).
-		Model(&(a.FormContent)).Updates(&(a.FormContent)).RowsAffected
+		Model(a.FormContent).Updates(a.FormContent).RowsAffected
 	if c != 1 {
 		tx.Rollback()
 		e = errors.New("wrong form no")
@@ -248,21 +261,25 @@ func Approve(prefix string, aflow *model.ApproveFlow) (e error) {
 	return tx.Commit().Error
 }
 
-func getApprovalDetails(prefix string, alist []*model.Approval) (e error) {
+func GetApprovalDetail(prefix, no string) (a *model.Approval, e error) {
+	a = new(model.Approval)
 	db := model.NewOrm()
-	for _, v := range alist {
-		e = db.Table(prefix+"."+model.Form{}.TableName()).
-			First(&v.FormContent, "no=?", v.FormNo).Error
-		if e != nil {
-			return
-		}
-		e = db.Table(prefix+"."+model.ApproveFlow{}.TableName()).Order("ctime").
-			Find(&v.ApproveSteps, model.ApproveFlow{ApprovalNo: v.No}).Error
-		if e != nil {
-			return
-		}
+	e = db.Table(prefix+"."+a.TableName()).First(a, "no=?", no).Error
+	if e != nil {
+		return
 	}
-	return nil
+	a.FormContent = new(model.Form)
+	e = db.Table(prefix+"."+model.Form{}.TableName()).
+		First(a.FormContent, "no=?", a.FormNo).Error
+	if e != nil {
+		return
+	}
+	e = db.Table(prefix+"."+model.ApproveFlow{}.TableName()).Order("ctime").
+		Find(&a.ApproveSteps, model.ApproveFlow{ApprovalNo: a.No}).Error
+	if e != nil {
+		return
+	}
+	return
 }
 
 func GetApprovalsFromMe(prefix string, uid int) (alist []*model.Approval, e error) {
@@ -273,7 +290,6 @@ func GetApprovalsFromMe(prefix string, uid int) (alist []*model.Approval, e erro
 	if e != nil {
 		return
 	}
-	e = getApprovalDetails(prefix, alist)
 	return
 }
 
@@ -285,7 +301,6 @@ func GetTodoApprovalsToMe(prefix string, uid int) (alist []*model.Approval, e er
 	if e != nil {
 		return
 	}
-	e = getApprovalDetails(prefix, alist)
 	return
 }
 
@@ -298,6 +313,5 @@ func GetFinishedApprovalsToMe(prefix string, uid int) (alist []*model.Approval, 
 	if e != nil {
 		return
 	}
-	e = getApprovalDetails(prefix, alist)
 	return
 }

@@ -71,7 +71,7 @@ type Approvaltpl struct {
 	BeginTime  time.Time `gorm:"not null"`
 	Status     int       `gorm:"not null"`
 
-	FormtplContent Formtpl `gorm:"-"`
+	FormtplContent *Formtpl `gorm:"-"`
 }
 
 func (Approvaltpl) TableName() string {
@@ -91,8 +91,8 @@ type Approval struct {
 	GroupId     int      `gorm:""`
 	Status      int      `gorm:"not null"`
 
-	FormContent  Form          `gorm:"-"`
-	ApproveSteps []ApproveFlow `gorm:"-"`
+	FormContent  *Form          `gorm:"-"`
+	ApproveSteps []*ApproveFlow `gorm:"-"`
 }
 
 func (Approval) TableName() string {

@@ -126,6 +126,18 @@ func (c *Controller) GetApprovaltplList() {
 	}
 }
 
+func (c *Controller) GetApprovaltplDetail() {
+	prefix := c.UserComp
+	no := c.GetString("no")
+	atpl, e := service.GetApprovaltplDetail(prefix, no)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc(atpl)
+	}
+}
+
 func (c *Controller) AddApprovaltpl() {
 	prefix := c.UserComp
 	str := c.GetString("approvaltpl")
@@ -348,6 +360,19 @@ func (c *Controller) GetFinishedApprovalsToMe() {
 	prefix := c.UserComp
 	uid := c.UserID
 	alist, e := service.GetFinishedApprovalsToMe(prefix, uid)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+		return
+	}
+	c.ReplySucc(alist)
+}
+
+//获取我审批过的审批单
+func (c *Controller) GetApprovalDetail() {
+	prefix := c.UserComp
+	no := c.GetString("no")
+	alist, e := service.GetApprovalDetail(prefix, no)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
