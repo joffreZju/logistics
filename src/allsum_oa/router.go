@@ -28,6 +28,7 @@ func LoadRouter() {
 	beego.Router(ExemptPrefix+"/user/login", &user.Controller{}, "*:UserLogin")
 	beego.Router(ExemptPrefix+"/user/login_phone", &user.Controller{}, "*:UserLoginPhone")
 	beego.Router(ExemptPrefix+"/user/login_out", &user.Controller{}, "*:LoginOut")
+	beego.Router(ExemptPrefix+"/user/forgetpwd", &user.Controller{}, "*:Forgetpwd")
 	beego.Router(UserPrefix+"/info", &user.Controller{}, "*:GetUserInfo")
 	beego.Router(UserPrefix+"/resetpwd", &user.Controller{}, "*:Resetpwd")
 	beego.Router(UserPrefix+"/switch_company", &user.Controller{}, "*:SwitchCurrentFirm")

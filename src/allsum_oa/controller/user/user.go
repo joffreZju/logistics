@@ -327,13 +327,39 @@ func (c *Controller) LoginOut() {
 	c.ReplySucc(nil)
 }
 
-//todo 增加重置密码接口
+func (c *Controller) Forgetpwd() {
+	tel := c.GetString("tel")
+	code := c.GetString("code")
+	newPwd := keycrypt.Sha256Cal(c.GetString("password"))
+	mycode := c.Cache.Get(tel)
+	if mycode == nil {
+		c.ReplyErr(errcode.ErrAuthCodeExpired)
+		return
+	} else if fmt.Sprintf("%s", mycode) != code {
+		c.ReplyErr(errcode.ErrAuthCodeError)
+		return
+	}
+	prefixPublic := model.Public
+	user, e := service.GetUserByTel(prefixPublic, tel)
+	if e != nil {
+		c.ReplyErr(errcode.ErrGetUserInfoFailed)
+		beego.Error(e)
+		return
+	}
+	user.Password = newPwd
+	e = model.UpdateUser(prefixPublic, user)
+	if e != nil {
+		c.ReplyErr(e)
+	} else {
+		c.ReplySucc(nil)
+	}
+}
 
 func (c *Controller) Resetpwd() {
 	uid := c.UserID
 	pwd := keycrypt.Sha256Cal(c.GetString("password"))
 	owd := keycrypt.Sha256Cal(c.GetString("oldpassword"))
-	prefix := "public"
+	prefix := model.Public
 	user, e := service.GetUserById(prefix, uid)
 	if e != nil {
 		c.ReplyErr(errcode.ErrGetUserInfoFailed)

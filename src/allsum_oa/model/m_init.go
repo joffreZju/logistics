@@ -12,7 +12,7 @@ import (
 
 const (
 	ReadOnly = 1
-	Public   = "public."
+	Public   = "public"
 )
 
 type DBPool struct {
