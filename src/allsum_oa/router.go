@@ -52,6 +52,7 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/add_attr", &group.Controller{}, "*:AddAttr")
 	beego.Router(FirmPrefix+"/get_attrs", &group.Controller{}, "*:GetAttrList")
 	beego.Router(FirmPrefix+"/update_attr", &group.Controller{}, "*:UpdateAttr")
+	beego.Router(FirmPrefix+"/del_attr", &group.Controller{}, "*:DelAttr")
 	beego.Router(FirmPrefix+"/add_group", &group.Controller{}, "Post:AddGroup")
 	beego.Router(FirmPrefix+"/merge_groups", &group.Controller{}, "Post:MergeGroups")
 	beego.Router(FirmPrefix+"/move_group", &group.Controller{}, "*:MoveGroup")

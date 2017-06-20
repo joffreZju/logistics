@@ -27,6 +27,17 @@ func UpdateAttr(prefix string, a *model.Attribute) (e error) {
 	return
 }
 
+func DelAttr(prefix string, a *model.Attribute) (e error) {
+	db := model.NewOrm()
+	count := 0
+	e = db.Table(prefix+"."+model.Group{}.TableName()).Where("attr_id=?", a.Id).Count(&count).Error
+	if e != nil || count != 0 {
+		return errors.New("仍有组织绑定此属性")
+	}
+	e = db.Table(prefix + "." + a.TableName()).Delete(a).Error
+	return
+}
+
 func GetGroup(prefix string, id int) (g *model.Group, e error) {
 	g = new(model.Group)
 	e = model.NewOrm().Table(prefix+g.TableName()).First(g, id).Error

@@ -72,7 +72,7 @@ func InitPgSQL(key string) (err error) {
 	} else {
 		ormer.db.LogMode(true)
 	}
-	//Ormer.db.SetLogger(beego.BeeLogger)
+	//ormer.db.SetLogger(beego.BeeLogger)
 	return
 }
 

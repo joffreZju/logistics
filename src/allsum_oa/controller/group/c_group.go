@@ -75,6 +75,25 @@ func (c *Controller) UpdateAttr() {
 	}
 }
 
+func (c *Controller) DelAttr() {
+	prefix := c.UserComp
+	aid, e := c.GetInt("id")
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	a := &model.Attribute{
+		Id: aid,
+	}
+	e = service.DelAttr(prefix, a)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc(nil)
+	}
+}
+
 //新增组织树上下级
 func (c *Controller) AddGroup() {
 	uid := c.UserID
