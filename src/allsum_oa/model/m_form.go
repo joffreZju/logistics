@@ -67,7 +67,7 @@ type Approvaltpl struct {
 	FormtplNo  string    `gorm:"not null"`
 	TreeFlowUp int       //是否按组织树向上流动 0:否，1:是
 	RoleFlow   IntSlice  `gorm:"type:int[]"` //role_id 的组成的数组
-	AllowRows  IntSlice  `gorm:"type:int[]"`
+	AllowRoles IntSlice  `gorm:"type:int[]"`
 	BeginTime  time.Time `gorm:"not null"`
 	Status     int       `gorm:"not null"`
 
