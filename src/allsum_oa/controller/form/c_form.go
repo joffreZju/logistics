@@ -6,7 +6,9 @@ import (
 	"allsum_oa/service"
 	"common/lib/errcode"
 	"encoding/json"
+	"fmt"
 	"github.com/astaxie/beego"
+	"strings"
 	"time"
 )
 
@@ -223,6 +225,29 @@ func (c *Controller) DelApprovaltpl() {
 }
 
 //审批流相关接口***************************
+//获取符合条件的审批人
+func (c *Controller) GetApproverList() {
+	prefix := c.UserComp
+	currentGroup, e := c.GetInt("currentGroup")
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	atplNo := c.GetString("approvaltplNo")
+	if strings.Contains(c.UserGroups, fmt.Sprintf("%d", currentGroup)) == false {
+		c.ReplyErr(errcode.ErrGroupOfUser)
+		return
+	}
+	users, e := service.GetApproverList(prefix, atplNo, currentGroup)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc(users)
+	}
+}
+
 func (c *Controller) AddApproval() {
 	prefix := c.UserComp
 	str := c.GetString("approval")
@@ -233,7 +258,7 @@ func (c *Controller) AddApproval() {
 		beego.Error(e)
 		return
 	}
-	if a.Status != model.ApproveDraft && a.Status != model.Approving {
+	if (a.Status != model.ApproveDraft && a.Status != model.Approving) || len(a.UserFlow) == 0 {
 		c.ReplyErr(errcode.New(CommonErr, "审批单状态错误"))
 		beego.Error("approval status is wrong")
 		return
@@ -266,7 +291,7 @@ func (c *Controller) UpdateApproval() {
 		beego.Error(e)
 		return
 	}
-	if a.Status != model.ApproveDraft && a.Status != model.Approving {
+	if (a.Status != model.ApproveDraft && a.Status != model.Approving) || len(a.UserFlow) == 0 {
 		c.ReplyErr(errcode.New(CommonErr, "审批单状态错误"))
 		beego.Error("approval status is wrong")
 		return

@@ -4,6 +4,8 @@ import (
 	"allsum_oa/model"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 //表单模板相关
@@ -142,6 +144,48 @@ func DelApprovaltpl(prefix, no string) (e error) {
 }
 
 //审批流相关
+func GetApproverList(prefix, atplno string, currentGroup int) (users []*model.User, e error) {
+	db := model.NewOrm()
+	users = []*model.User{}
+	atpl := &model.Approvaltpl{}
+	e = db.Table(prefix+"."+atpl.TableName()).First(atpl, "no=?", atplno).Error
+	if e != nil {
+		return
+	}
+	//完全按照角色流动
+	if atpl.TreeFlowUp == model.TreeFlowUpNo {
+		for _, rid := range atpl.RoleFlow {
+			usersTmp, e := GetUsersOfRole(prefix, rid)
+			if e != nil {
+				return nil, e
+			}
+			users = append(users, usersTmp...)
+		}
+		return
+	}
+	//在组织树路径上寻找符合条件的角色
+	g := &model.Group{}
+	e = db.Table(prefix+"."+g.TableName()).First(g, "id=?", currentGroup).Error
+	if e != nil {
+		return
+	}
+	pids := []int{}
+	for _, v := range strings.Split(g.Path, "-") {
+		pid, e := strconv.Atoi(v)
+		if e != nil {
+			return nil, e
+		}
+		pids = append(pids, pid)
+	}
+	//找到同时在组织路径上，在审批角色流里面的所有用户
+	sql := fmt.Sprintf(`SELECT * from "%s".user WHERE id in
+	(SELECT t1.user_id FROM "%s".user_group as t1 INNER JOIN "%s".user_role as t2
+	on t1.user_id = t2.user_id
+	where t1.group_id in (?) and t2.role_id in (?) )`, prefix, prefix, prefix)
+	e = db.Raw(sql, pids, atpl.RoleFlow).Scan(&users).Error
+	return
+}
+
 func AddApproval(prefix string, a *model.Approval) (e error) {
 	tx := model.NewOrm().Begin()
 	e = tx.Table(prefix + "." + a.FormContent.TableName()).Create(a.FormContent).Error

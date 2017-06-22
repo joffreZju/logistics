@@ -19,6 +19,9 @@ const (
 )
 
 func LoadRouter() {
+	//文件上传下载
+	beego.Router(FilePrefix+"/upload", &file.Controller{}, "Post:UploadFile")
+	//beego.Router(FilePrefix+"/download", &file.Controller{}, "*:DownloadFile")
 
 	// user相关
 	beego.Router(ExemptPrefix+"/test", &user.Controller{}, "*:Test")
@@ -38,17 +41,13 @@ func LoadRouter() {
 	beego.Router(AdminPrefix+"/firm_list", &user.Controller{}, "*:AdminGetFirmList")
 	beego.Router(AdminPrefix+"/firm_audit", &user.Controller{}, "*:AdminFirmAudit")
 
-	//文件上传下载
-	beego.Router(FilePrefix+"/upload", &file.Controller{}, "Post:UploadFile")
-	//beego.Router(FilePrefix+"/download", &file.Controller{}, "*:DownloadFile")
-
-	//comapny相关
+	//公司管理员相关
 	//beego.Router(FirmPrefix+"/register", &user.Controller{}, "Post:FirmRegister")
 	//beego.Router(FirmPrefix+"/modify", &user.Controller{}, "Post:FirmModify")
 	beego.Router(FirmPrefix+"/add_license", &user.Controller{}, "*:AddLicenseFile")
 	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
 	beego.Router(FirmPrefix+"/update_user", &user.Controller{}, "Post:UpdateUserProfile")
-	//组织树
+	//管理组织树
 	beego.Router(FirmPrefix+"/add_attr", &group.Controller{}, "*:AddAttr")
 	beego.Router(FirmPrefix+"/get_attrs", &group.Controller{}, "*:GetAttrList")
 	beego.Router(FirmPrefix+"/update_attr", &group.Controller{}, "*:UpdateAttr")
@@ -62,7 +61,7 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/getusers_ofgroup", &group.Controller{}, "*:GetUsersOfGroup")
 	beego.Router(FirmPrefix+"/addusers_togroup", &group.Controller{}, "Post:AddUsersToGroup")
 	beego.Router(FirmPrefix+"/delusers_fromgroup", &group.Controller{}, "Post:DelUsersFromGroup")
-	//角色
+	//管理角色
 	beego.Router(FirmPrefix+"/get_roles", &role.Controller{}, "*:GetRoleList")
 	beego.Router(FirmPrefix+"/add_role", &role.Controller{}, "Post:AddRole")
 	beego.Router(FirmPrefix+"/update_role", &role.Controller{}, "Post:UpdateRole")
@@ -72,7 +71,7 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/delusers_fromrole", &role.Controller{}, "Post:DelUsersFromRole")
 
 	//审批相关
-	//表单模板操作
+	//管理表单模板
 	beego.Router(FirmPrefix+"/add_formtpl", &form.Controller{}, "Post:AddFormtpl")
 	beego.Router(FirmPrefix+"/get_formtpls", &form.Controller{}, "*:GetFormtplList")
 	beego.Router(FirmPrefix+"/update_formtpl", &form.Controller{}, "Post:UpdateFormtpl")
@@ -86,6 +85,7 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/control_atpl", &form.Controller{}, "*:ControlApprovaltpl")
 	beego.Router(FirmPrefix+"/del_atpl", &form.Controller{}, "*:DelApprovaltpl")
 	//审批流相关
+	beego.Router(FirmPrefix+"/get_approver_list", &form.Controller{}, "*:GetApproverList")
 	beego.Router(FirmPrefix+"/add_approval", &form.Controller{}, "*:AddApproval")
 	beego.Router(FirmPrefix+"/update_approval", &form.Controller{}, "*:UpdateApproval")
 	beego.Router(FirmPrefix+"/cancel_approval", &form.Controller{}, "*:CancelApproval")

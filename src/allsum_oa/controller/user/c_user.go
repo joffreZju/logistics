@@ -23,17 +23,6 @@ type Controller struct {
 	base.Controller
 }
 
-var AllsumUserList = []string{"15158134537", "15558085697", "18867543358", "18694582678", "18667907711", "13735544671", "15301107268"}
-
-func getGroup(tel string) string {
-	for _, v := range AllsumUserList {
-		if tel == v {
-			return "aaa"
-		}
-	}
-	return "bbb"
-}
-
 func (c *Controller) GetCode() {
 	tel := c.GetString("tel")
 
@@ -254,7 +243,6 @@ func (c *Controller) SwitchCurrentFirm() {
 			break
 		}
 	}
-	beego.Info("------------------", currentCompanyIndex)
 	user.Companys = user.Companys[currentCompanyIndex : currentCompanyIndex+1]
 	//将用户的groups和roles放入缓存
 	uidstr := fmt.Sprintf("%d", user.Id)

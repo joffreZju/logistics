@@ -36,6 +36,7 @@ var (
 	ErrSendSMSMsgError              = &CodeError{20011, "发送短消息失败，请稍后重试"}
 	ErrUserNeedInit                 = &CodeError{20012, "用户xu yao"}
 	ErrUserLocked                   = &CodeError{20013, "用户被锁定了"}
+	ErrGroupOfUser                  = &CodeError{20014, "用户组织错误"}
 
 	ErrAuthCreateFailed         = &CodeError{20101, "出问题了，稍后再试吧~"}
 	ErrAuthCheckFailed          = &CodeError{20102, "出问题了，稍后再试吧~"}
