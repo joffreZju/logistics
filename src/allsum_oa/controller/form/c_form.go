@@ -43,7 +43,7 @@ func (c *Controller) AddFormtpl() {
 		return
 	}
 	ftpl.No = model.UniqueNo("Ftpl")
-	ftpl.Ctime = time.Now()
+	//ftpl.Ctime = time.Now()
 	if ftpl.BeginTime.Sub(time.Now()).Hours() < 0 {
 		t := time.Now()
 		ftpl.BeginTime = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
@@ -151,7 +151,7 @@ func (c *Controller) AddApprovaltpl() {
 		return
 	}
 	atpl.No = model.UniqueNo("Atpl")
-	atpl.Ctime = time.Now()
+	//atpl.Ctime = time.Now()
 	if atpl.BeginTime.Sub(time.Now()).Hours() < 0 {
 		t := time.Now()
 		atpl.BeginTime = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
@@ -264,9 +264,9 @@ func (c *Controller) AddApproval() {
 		return
 	}
 	a.FormContent.No = model.UniqueNo("F")
-	a.FormContent.Ctime = time.Now()
+	//a.FormContent.Ctime = time.Now()
 	a.No = model.UniqueNo("A")
-	a.Ctime = time.Now()
+	//a.Ctime = time.Now()
 	a.FormNo = a.FormContent.No
 	a.Currentuser = a.UserFlow[0]
 	e = service.AddApproval(prefix, &a)

@@ -6,7 +6,7 @@ type Role struct {
 	Id    int    `gorm:"primary_key;AUTO_INCREMENT"`
 	Name  string `gorm:"not null"`
 	Desc  string
-	Ctime time.Time `gorm:"not null"`
+	Ctime time.Time `gorm:"default:current_timestamp"`
 }
 
 func (Role) TableName() string {
@@ -17,7 +17,7 @@ type RoleFunc struct {
 	Id     int       `gorm:"primary_key;AUTO_INCREMENT"`
 	RoleId int       `gorm:"not null"`
 	FuncId int       `gorm:"not null"`
-	Ctime  time.Time `gorm:"not null"`
+	Ctime  time.Time `gorm:"default:current_timestamp"`
 }
 
 func (RoleFunc) TableName() string {
@@ -28,7 +28,7 @@ type UserRole struct {
 	Id     int       `gorm:"primary_key;AUTO_INCREMENT"`
 	RoleId int       `gorm:"not null"`
 	UserId int       `gorm:"not null"`
-	Ctime  time.Time `gorm:"not null"`
+	Ctime  time.Time `gorm:"default:current_timestamp"`
 }
 
 func (UserRole) TableName() string {

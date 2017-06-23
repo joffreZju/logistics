@@ -34,7 +34,7 @@ type Formtpl struct {
 	Name       string `gorm:"not null"`
 	Type       string
 	Desc       string
-	Ctime      time.Time
+	Ctime      time.Time `gorm:"default:current_timestamp"`
 	Content    string    `gorm:"type:jsonb;not null"`
 	Attachment StrSlice  `gorm:"type:text[]"`
 	BeginTime  time.Time `gorm:"not null"`
@@ -50,9 +50,9 @@ type Form struct {
 	Name       string `gorm:""`
 	Type       string
 	Desc       string
-	Ctime      time.Time
-	Content    string   `gorm:"type:jsonb;not null"`
-	Attachment StrSlice `gorm:"type:text[]"`
+	Ctime      time.Time `gorm:"default:current_timestamp"`
+	Content    string    `gorm:"type:jsonb;not null"`
+	Attachment StrSlice  `gorm:"type:text[]"`
 }
 
 func (Form) TableName() string {
@@ -63,7 +63,7 @@ type Approvaltpl struct {
 	No         string `gorm:"primary_key"`
 	Name       string `gorm:"not null"`
 	Desc       string
-	Ctime      time.Time
+	Ctime      time.Time `gorm:"default:current_timestamp"`
 	FormtplNo  string    `gorm:"not null"`
 	TreeFlowUp int       //是否按组织树向上流动 0:否，1:是
 	RoleFlow   IntSlice  `gorm:"type:int[]"` //role_id 的组成的数组
@@ -82,14 +82,14 @@ type Approval struct {
 	No          string `gorm:"primary_key"`
 	Name        string `gorm:"not null"`
 	Desc        string
-	Ctime       time.Time
-	FormNo      string   `gorm:"not null"`
-	UserFlow    IntSlice `gorm:"type:int[]"` //创建审批单时确定具体审批人
-	Currentuser int      //当前正在审批的用户id,current_user是pg的关键字
-	UserId      int      `gorm:"not null"`
-	RoleId      int      `gorm:""`
-	GroupId     int      `gorm:""`
-	Status      int      `gorm:"not null"`
+	Ctime       time.Time `gorm:"default:current_timestamp"`
+	FormNo      string    `gorm:"not null"`
+	UserFlow    IntSlice  `gorm:"type:int[]"` //创建审批单时确定具体审批人
+	Currentuser int       //当前正在审批的用户id,current_user是pg的关键字
+	UserId      int       `gorm:"not null"`
+	RoleId      int       `gorm:""`
+	GroupId     int       `gorm:""`
+	Status      int       `gorm:"not null"`
 
 	FormContent  *Form          `gorm:"-"`
 	ApproveSteps []*ApproveFlow `gorm:"-"`

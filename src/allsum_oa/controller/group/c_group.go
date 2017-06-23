@@ -37,10 +37,10 @@ func (c *Controller) AddAttr() {
 		return
 	}
 	a := &model.Attribute{
-		No:    model.UniqueNo("GA"),
-		Name:  name,
-		Desc:  desc,
-		Ctime: time.Now(),
+		No:   model.UniqueNo("GA"),
+		Name: name,
+		Desc: desc,
+		//Ctime: time.Now(),
 	}
 	e := service.AddAttr(prefix, a)
 	if e != nil {
@@ -120,7 +120,7 @@ func (c *Controller) AddGroup() {
 	ng.AdminId = uid
 	ng.CreatorId = uid
 	ng.No = model.UniqueNo("G")
-	ng.Ctime = time.Now()
+	//ng.Ctime = time.Now()
 	if ng.Pid == 0 && len(sons) == 0 {
 		e = service.AddRootGroup(prefix, ng)
 	} else {

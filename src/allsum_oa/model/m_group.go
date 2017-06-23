@@ -24,7 +24,7 @@ type Group struct {
 	AttrId    int       `gorm:""` //属性id
 	Name      string    `gorm:"not null"`
 	Pid       int       `gorm:"not null"` //父节点id
-	Ctime     time.Time `gorm:"not null"`
+	Ctime     time.Time `gorm:"default:current_timestamp"`
 	Utime     time.Time
 	Path      string //`gorm:"not null"` 需要先插入记录再更新path
 	//Level     int    `gorm:"not null"`
@@ -39,7 +39,7 @@ type Attribute struct {
 	No    string `gorm:"unique;not null"`
 	Desc  string
 	Name  string    `gorm:"not null"`
-	Ctime time.Time `gorm:"not null"`
+	Ctime time.Time `gorm:"default:current_timestamp"`
 	Utime time.Time
 }
 
@@ -66,7 +66,7 @@ type HistoryGroup struct {
 	AttrId    int       `gorm:"not null"` //属性id
 	Name      string    `gorm:"not null"`
 	Pid       int       `gorm:"not null"` //父节点id
-	Ctime     time.Time `gorm:"not null"`
+	Ctime     time.Time `gorm:"default:current_timestamp"`
 	Utime     time.Time
 	Path      string //`gorm:"not null"`
 	//Level     int    `gorm:"not null"`
