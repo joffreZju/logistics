@@ -113,7 +113,11 @@ func GetFuncIdsOfUser(prefix string, uid int) (fids []int, e error) {
 		return
 	}
 	fids = []int{}
-	sql = fmt.Sprintf(`select distinct(func_id) from "%s".role_func where role_id in (?)`, prefix)
+	sql = fmt.Sprintf(`select t1.func_id from "%s".role_func as t1 INNER JOIN "public"."function" as t2
+		on t1.func_id = t2."id"
+		where role_id in (?)
+		ORDER BY t2.pid`, prefix)
+	//sql = fmt.Sprintf(`select distinct(func_id) from "%s".role_func where role_id in (?)`, prefix)
 	e = db.Raw(sql, rids).Pluck("func_id", &fids).Error
 	if e != nil {
 		return
