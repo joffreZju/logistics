@@ -88,7 +88,7 @@ func initModel() (err error) {
 	}
 	//init schema model
 	comps := []Company{}
-	err = db.Find(&comps, Company{Status: CompApproveAccessed}).Error
+	err = db.Find(&comps, Company{Status: CompanyApproveAccessed}).Error
 	if err != nil {
 		return
 	}
@@ -114,6 +114,7 @@ func InitSchemaModel(prefix string) (e error) {
 	db.Table(prefix + UserGroup{}.TableName()).AutoMigrate(new(UserGroup))
 	db.Table(prefix + Attribute{}.TableName()).AutoMigrate(new(Attribute))
 	db.Table(prefix + Operation{}.TableName()).AutoMigrate(new(Operation))
+	db.Table(prefix + GroupOperation{}.TableName()).AutoMigrate(new(GroupOperation))
 	db.Table(prefix + HistoryGroup{}.TableName()).AutoMigrate(new(HistoryGroup))
 	db.Table(prefix + Role{}.TableName()).AutoMigrate(new(Role))
 	db.Table(prefix + RoleFunc{}.TableName()).AutoMigrate(new(RoleFunc))

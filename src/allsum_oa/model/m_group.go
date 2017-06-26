@@ -4,6 +4,10 @@ import (
 	"time"
 )
 
+const (
+	GroupTreeIsFuture = 1
+)
+
 type UserGroup struct {
 	Id      int       `gorm:"AUTO_INCREMENT;primary_key"`
 	UserId  int       `gorm:"not null"`
@@ -55,6 +59,18 @@ func (Operation) TableName() string {
 	return "operation"
 }
 
+type GroupOperation struct {
+	Id        int    `gorm:"primary_key;AUTO_INCREMENT"`
+	Groups    string `gorm:"type:jsonb;not null"`
+	EndTime   time.Time
+	BeginTime time.Time
+	IsFuture  int `gorm:"default:0"` // 0:历史组织树，1:还未生效的组织树
+}
+
+func (GroupOperation) TableName() string {
+	return "group_operation"
+}
+
 type HistoryGroup struct {
 	Pk        int       `gorm:"primary_key;AUTO_INCREMENT"`
 	EndTime   time.Time `gorm:"not null"`
@@ -69,7 +85,6 @@ type HistoryGroup struct {
 	Ctime     time.Time `gorm:"default:current_timestamp"`
 	Utime     time.Time
 	Path      string //`gorm:"not null"`
-	//Level     int    `gorm:"not null"`
 }
 
 func (HistoryGroup) TableName() string {

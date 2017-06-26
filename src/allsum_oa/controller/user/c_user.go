@@ -99,7 +99,7 @@ func (c *Controller) UserRegister() {
 		FirmName: firm_name,
 		FirmType: firm_type,
 		Creator:  u.Id,
-		Status:   model.CompApproveWait,
+		Status:   model.CompanyApproveWait,
 	}
 	err = model.CreateCompany(&comp)
 	if err != nil {
@@ -115,11 +115,14 @@ func (c *Controller) UserRegister() {
 	}
 	u.Companys = append(u.Companys, comp)
 	//生成token失败的话也注册成功，客户端提示用户重新登录
-	token, err := o2o.Auth.NewSingleToken(strconv.Itoa(u.Id), comp.No, "", c.Ctx.ResponseWriter)
+	token, err := o2o.Auth.NewSingleToken(strconv.Itoa(u.Id), "", "", c.Ctx.ResponseWriter)
 	if err != nil {
 		beego.Error("o2o.Auth.NewSingleToken error:", err, u.Tel)
 	}
 	beego.Info("register and login ok,token:%+v", token)
+	key := fmt.Sprintf("%d_%s", u.Id, token.Value)
+	err = c.saveUserInfoToRedis(key, comp.No, &u)
+
 	c.ReplySucc(u)
 }
 
@@ -175,38 +178,28 @@ func (c *Controller) loginAction(user *model.User) {
 		c.ReplyErr(errcode.ErrUserLocked)
 		return
 	}
-	var comNo string
-	if len(user.Companys) > 0 {
-		comNo = user.Companys[0].No
-	} else {
-		comNo = ""
+	comNo := ""
+	for _, v := range user.Companys {
+		if v.Status == model.CompanyApproveAccessed {
+			comNo = v.No
+			break
+		}
 	}
-	token, err := o2o.Auth.NewSingleToken(strconv.Itoa(user.Id), comNo, "", c.Ctx.ResponseWriter)
+	token, err := o2o.Auth.NewSingleToken(strconv.Itoa(user.Id), "", "", c.Ctx.ResponseWriter)
 	if err != nil {
 		beego.Error("o2o.Auth.NewSingleToken error:", err, *user)
 		c.ReplyErr(errcode.ErrAuthCreateFailed)
 		return
 	}
 	if len(comNo) != 0 {
-		u, e := service.GetUserByTel(comNo, user.Tel)
+		userInSchema, e := service.GetUserByTel(comNo, user.Tel)
 		if e == nil {
-			uidstr := fmt.Sprintf("%d", u.Id)
-			roles, groups := "", ""
-			for _, v := range u.Roles {
-				roles += fmt.Sprintf("%d_", v.Id)
-			}
-			for _, v := range u.Groups {
-				groups += fmt.Sprintf("%d_", v.Id)
-			}
-			//将用户的groups和roles放入缓存
-			_, e = c.RedisClient.Hmset(uidstr, map[string]interface{}{
-				"roles":  roles,
-				"groups": groups,
-			})
+			uKey := fmt.Sprintf("%d_%s", userInSchema.Id, token.Value)
+			e = c.saveUserInfoToRedis(uKey, comNo, userInSchema)
 			if e != nil {
 				c.ReplyErr(errcode.New(commonErr, e.Error()))
 			} else {
-				c.ReplySucc(u)
+				c.ReplySucc(userInSchema)
 			}
 			return
 		}
@@ -217,21 +210,47 @@ func (c *Controller) loginAction(user *model.User) {
 	beego.Debug("login ok,token:%+v", token)
 }
 
+func (c *Controller) saveUserInfoToRedis(key, cno string, u *model.User) (e error) {
+	roles, groups := "", ""
+	for _, v := range u.Roles {
+		roles += fmt.Sprintf("%d_", v.Id)
+	}
+	for _, v := range u.Groups {
+		groups += fmt.Sprintf("%d_", v.Id)
+	}
+	_, e = c.RedisClient.Hmset(key, map[string]interface{}{
+		"company": cno,
+		"roles":   roles,
+		"groups":  groups,
+	})
+	if e != nil {
+		return
+	}
+	_, e = c.RedisClient.Expire(key, int64(tokenauth.TokenPeriod+10))
+	return
+}
+
 //登录之后切换当前公司
 func (c *Controller) SwitchCurrentFirm() {
 	cno := c.GetString("cno")
+	tokenStr := c.Ctx.Request.Header.Get("access_token")
 	uid := c.UserID
 	if len(cno) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	token, err := o2o.Auth.NewSingleToken(strconv.Itoa(uid), cno, "", c.Ctx.ResponseWriter)
-	if err != nil {
-		beego.Error("o2o.Auth.NewSingleToken error:", err)
-		c.ReplyErr(errcode.ErrAuthCreateFailed)
+	company, e := model.GetCompany(cno)
+	if e != nil {
+		beego.Error(e)
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		return
 	}
-	user, e := service.GetUserById(cno, uid)
+	user := &model.User{}
+	if company.Status == model.CompanyApproveAccessed {
+		user, e = service.GetUserById(cno, uid)
+	} else {
+		user, e = service.GetUserById("public", uid)
+	}
 	if e != nil {
 		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		return
@@ -244,25 +263,15 @@ func (c *Controller) SwitchCurrentFirm() {
 		}
 	}
 	user.Companys = user.Companys[currentCompanyIndex : currentCompanyIndex+1]
-	//将用户的groups和roles放入缓存
-	uidstr := fmt.Sprintf("%d", user.Id)
-	roles, groups := "", ""
-	for _, v := range user.Roles {
-		roles += fmt.Sprintf("%d_", v.Id)
-	}
-	for _, v := range user.Groups {
-		groups += fmt.Sprintf("%d_", v.Id)
-	}
-	_, e = c.RedisClient.Hmset(uidstr, map[string]interface{}{
-		"roles":  roles,
-		"groups": groups,
-	})
+	//将用户的company,groups和roles放入缓存
+	key := fmt.Sprintf("%d_%s", user.Id, tokenStr)
+	e = c.saveUserInfoToRedis(key, cno, user)
 
 	if e != nil {
 		c.ReplyErr(errcode.New(commonErr, e.Error()))
 	} else {
 		c.ReplySucc(user)
-		beego.Info("switch company success with token:%v", token)
+		beego.Info("switch company success with cno:%s", cno)
 	}
 }
 
@@ -288,6 +297,12 @@ func (c *Controller) Test() {
 	f, e := c.RedisClient.Hmget("group_1", []string{"roles", "groups"})
 	beego.Info(f, e, len(f["roles"]))
 
+	g, e := c.RedisClient.Expire("group_1", 120)
+	beego.Info(g, e)
+
+	g, e = c.RedisClient.Expire("group_1", 30)
+	beego.Info(g, e)
+
 	c.ReplySucc(nil)
 }
 
@@ -303,14 +318,11 @@ func (c *Controller) LoginOut() {
 		beego.Error("tokenauth.Store.DeleteToken:", err)
 	}
 	beego.Info("login_out success token:", token.Value)
-	uidstr := fmt.Sprintf("%d", c.UserID)
-	_, err = c.RedisClient.HDel(uidstr, "roles")
+
+	key := fmt.Sprintf("%s_%s", token.SingleID, token.Value)
+	_, err = c.RedisClient.Expire(key, 2)
 	if err != nil {
-		beego.Debug(err)
-	}
-	_, err = c.RedisClient.HDel(uidstr, "groups")
-	if err != nil {
-		beego.Debug(err)
+		beego.Error(err)
 	}
 	c.ReplySucc(nil)
 }

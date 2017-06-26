@@ -37,6 +37,7 @@ var (
 	ErrUserNeedInit                 = &CodeError{20012, "用户xu yao"}
 	ErrUserLocked                   = &CodeError{20013, "用户被锁定了"}
 	ErrGroupOfUser                  = &CodeError{20014, "用户组织错误"}
+	ErrGetLoginInfo                 = &CodeError{20015, "获取登录信息失败,请重新登录"}
 
 	ErrAuthCreateFailed         = &CodeError{20101, "出问题了，稍后再试吧~"}
 	ErrAuthCheckFailed          = &CodeError{20102, "出问题了，稍后再试吧~"}

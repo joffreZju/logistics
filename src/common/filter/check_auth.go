@@ -92,8 +92,9 @@ func CheckAuthFilter(group string, notNeedAuthList []string) beego.FilterFunc {
 			//		o2o.Auth.ReturnFailueInfo(err, ctx)
 			//	}
 			//} else {
+			ctx.Request.Header.Add("access_token", token.Value)
 			ctx.Request.Header.Add("uid", token.SingleID)
-			ctx.Request.Header.Add("cno", token.GroupID)
+			//ctx.Request.Header.Add("cno", token.GroupID)
 			token.DeadLine = time.Now().Unix() + int64(tokenauth.TokenPeriod)
 			tokenauth.Store.FlushToken(token)
 			//}

@@ -2,10 +2,12 @@ package base
 
 import (
 	mycache "common/lib/cache"
+	"common/lib/errcode"
 	"common/lib/redis"
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/cache"
+	"github.com/ysqi/tokenauth"
 	"strconv"
 	"strings"
 )
@@ -92,11 +94,16 @@ func (c *Controller) Prepare() {
 		c.Ctx.Input.SetParam("uid", uid)
 		c.UserID, _ = strconv.Atoi(uid)
 	}
-	c.UserComp = c.Ctx.Request.Header.Get("cno")
-	m, e := c.RedisClient.Hmget(uid, []string{"roles", "groups"})
+	tokenStr := c.Ctx.Request.Header.Get("access_token")
+	uKey := fmt.Sprintf("%s_%s", uid, tokenStr)
+	c.RedisClient.Expire(uKey, int64(tokenauth.TokenPeriod+10))
+
+	m, e := c.RedisClient.Hmget(uKey, []string{"company", "roles", "groups"})
 	if e != nil {
 		beego.Error(e)
+		c.ReplyErr(errcode.ErrGetLoginInfo)
 	}
+	c.UserComp = m["company"]
 	c.UserGroups = m["groups"]
 	c.UserRoles = m["roles"]
 }

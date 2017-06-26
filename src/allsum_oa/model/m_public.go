@@ -22,9 +22,9 @@ const (
 )
 
 const (
-	CompApproveWait = iota
-	CompApproveAccessed
-	CompApproveNotAccessed
+	CompanyApproveWait = iota
+	CompanyApproveAccessed
+	CompanyApproveNotAccessed
 	CompanyDeleted
 )
 
@@ -167,7 +167,7 @@ func CreateCompany(c *Company) (err error) {
 }
 
 func UpdateCompany(c *Company) (err error) {
-	count := NewOrm().Table(c.TableName()).Where("no=? and creator = ? and status <> ?", c.No, c.Creator, CompApproveAccessed).
+	count := NewOrm().Table(c.TableName()).Where("no=? and creator = ? and status <> ?", c.No, c.Creator, CompanyApproveAccessed).
 		Updates(&c).RowsAffected
 	if count != 1 {
 		err = errors.New("update license file failed")
