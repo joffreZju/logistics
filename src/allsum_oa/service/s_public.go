@@ -109,6 +109,7 @@ func GetFuncIdsOfUser(prefix string, uid int) (fids []int, e error) {
 	rids := []int{}
 	sql := fmt.Sprintf(`select distinct(role_id) from "%s".user_role where user_id = %d`, prefix, uid)
 	e = db.Raw(sql).Pluck("role_id", &rids).Error
+	//e = db.Table(prefix + "." + model.UserRole{}.TableName()).Where("user_id=?", uid).Pluck("role_id", &rids).Error
 	if e != nil {
 		return
 	}

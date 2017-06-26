@@ -51,14 +51,6 @@ func (Attribute) TableName() string {
 	return "attribute"
 }
 
-type Operation struct {
-	//todo
-}
-
-func (Operation) TableName() string {
-	return "operation"
-}
-
 type GroupOperation struct {
 	Id        int    `gorm:"primary_key;AUTO_INCREMENT"`
 	Groups    string `gorm:"type:jsonb;not null"`
@@ -71,22 +63,22 @@ func (GroupOperation) TableName() string {
 	return "group_operation"
 }
 
-type HistoryGroup struct {
-	Pk        int       `gorm:"primary_key;AUTO_INCREMENT"`
-	EndTime   time.Time `gorm:"not null"`
-	Id        int       `gorm:"not null"`
-	No        string    `gorm:"unique;not null"`
-	AdminId   int       `gorm:"not null"`
-	CreatorId int       `gorm:"not null"`
-	Desc      string
-	AttrId    int       `gorm:"not null"` //属性id
-	Name      string    `gorm:"not null"`
-	Pid       int       `gorm:"not null"` //父节点id
-	Ctime     time.Time `gorm:"default:current_timestamp"`
-	Utime     time.Time
-	Path      string //`gorm:"not null"`
-}
-
-func (HistoryGroup) TableName() string {
-	return "history_group"
-}
+//type HistoryGroup struct {
+//	Pk        int       `gorm:"primary_key;AUTO_INCREMENT"`
+//	EndTime   time.Time `gorm:"not null"`
+//	Id        int       `gorm:"not null"`
+//	No        string    `gorm:"unique;not null"`
+//	AdminId   int       `gorm:"not null"`
+//	CreatorId int       `gorm:"not null"`
+//	Desc      string
+//	AttrId    int       `gorm:"not null"` //属性id
+//	Name      string    `gorm:"not null"`
+//	Pid       int       `gorm:"not null"` //父节点id
+//	Ctime     time.Time `gorm:"default:current_timestamp"`
+//	Utime     time.Time
+//	Path      string //`gorm:"not null"`
+//}
+//
+//func (HistoryGroup) TableName() string {
+//	return "history_group"
+//}

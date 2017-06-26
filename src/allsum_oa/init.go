@@ -2,6 +2,7 @@ package main
 
 import (
 	"allsum_oa/model"
+	"allsum_oa/service"
 	"common/filter"
 	"common/lib/cache"
 	"common/lib/push"
@@ -58,6 +59,8 @@ func Init() (err error) {
 		beego.Error("init database failed : ", err)
 		return
 	}
+
+	go service.Ticker()
 
 	beego.Info("init success, start server ...")
 

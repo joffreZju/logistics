@@ -94,16 +94,41 @@ func (c *Controller) DelAttr() {
 	}
 }
 
+func (c *Controller) getBeginTimeOfOperation() (t time.Time, e error) {
+	timeStr := c.GetString("beginTime")
+	t = time.Now()
+	if len(timeStr) != 0 {
+		t, e = time.ParseInLocation(model.TimeFormatWithLocal, timeStr, time.Local)
+		if e != nil {
+			return
+		}
+	}
+	//t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	//todo beginTime可以设置一天中任何时间，方便测试
+	return t, nil
+}
+
 //新增组织树上下级
 func (c *Controller) AddGroup() {
+	//检测是否有未提交的修改
+	e := service.CheckFutureGroupOperation(c.UserComp)
+	if e != nil {
+		c.ReplyErr(errcode.ErrUpdateGroupTree)
+		return
+	}
 	uid := c.UserID
 	prefix := c.UserComp
 	newGroupStr := c.GetString("newGroup")
 	sonsStr := c.GetString("sons")
-
+	beginTime, e := c.getBeginTimeOfOperation()
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
 	ng := &model.Group{}
 	sons := make([]int, 0)
-	e := json.Unmarshal([]byte(newGroupStr), ng)
+	e = json.Unmarshal([]byte(newGroupStr), ng)
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
@@ -122,9 +147,9 @@ func (c *Controller) AddGroup() {
 	ng.No = model.UniqueNo("G")
 	ng.Ctime = time.Now()
 	if ng.Pid == 0 && len(sons) == 0 {
-		e = service.AddRootGroup(prefix, ng)
+		e = service.AddRootGroup(prefix, beginTime, ng)
 	} else {
-		e = service.AddGroup(prefix, ng, sons)
+		e = service.AddGroup(prefix, beginTime, ng, sons)
 	}
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
@@ -136,14 +161,25 @@ func (c *Controller) AddGroup() {
 
 //合并
 func (c *Controller) MergeGroups() {
+	//检测是否有未提交的修改
+	e := service.CheckFutureGroupOperation(c.UserComp)
+	if e != nil {
+		c.ReplyErr(errcode.ErrUpdateGroupTree)
+		return
+	}
 	uid := c.UserID
 	prefix := c.UserComp
 	oldIdsStr := c.GetString("oldGroups")
 	newGroupStr := c.GetString("newGroup")
-
+	beginTime, e := c.getBeginTimeOfOperation()
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
 	ng := &model.Group{}
 	oldIds := make([]int, 0)
-	e := json.Unmarshal([]byte(newGroupStr), ng)
+	e = json.Unmarshal([]byte(newGroupStr), ng)
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
@@ -164,7 +200,7 @@ func (c *Controller) MergeGroups() {
 	ng.CreatorId = uid
 	ng.No = model.UniqueNo("G")
 	ng.Ctime = time.Now()
-	e = service.MergeGroups(prefix, ng, oldIds)
+	e = service.MergeGroups(prefix, beginTime, ng, oldIds)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -175,6 +211,12 @@ func (c *Controller) MergeGroups() {
 
 //转让升级
 func (c *Controller) MoveGroup() {
+	//检测是否有未提交的修改
+	e := service.CheckFutureGroupOperation(c.UserComp)
+	if e != nil {
+		c.ReplyErr(errcode.ErrUpdateGroupTree)
+		return
+	}
 	prefix := c.UserComp
 	gid, e := c.GetInt("id")
 	newPid, e2 := c.GetInt("newPid")
@@ -183,7 +225,13 @@ func (c *Controller) MoveGroup() {
 		beego.Error(e, e2)
 		return
 	}
-	e = service.MoveGroup(prefix, gid, newPid)
+	beginTime, e := c.getBeginTimeOfOperation()
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	e = service.MoveGroup(prefix, beginTime, gid, newPid)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -194,6 +242,12 @@ func (c *Controller) MoveGroup() {
 
 //删除组织
 func (c *Controller) DelGroup() {
+	//检测是否有未提交的修改
+	e := service.CheckFutureGroupOperation(c.UserComp)
+	if e != nil {
+		c.ReplyErr(errcode.ErrUpdateGroupTree)
+		return
+	}
 	prefix := c.UserComp
 	gid, e := c.GetInt("id")
 	if e != nil {
@@ -201,7 +255,13 @@ func (c *Controller) DelGroup() {
 		beego.Error(e)
 		return
 	}
-	e = service.DelGroup(prefix, gid)
+	beginTime, e := c.getBeginTimeOfOperation()
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	e = service.DelGroup(prefix, beginTime, gid)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -212,17 +272,29 @@ func (c *Controller) DelGroup() {
 
 //更新组织
 func (c *Controller) UpdateGroup() {
+	//检测是否有未提交的修改
+	e := service.CheckFutureGroupOperation(c.UserComp)
+	if e != nil {
+		c.ReplyErr(errcode.ErrUpdateGroupTree)
+		return
+	}
 	prefix := c.UserComp
 	str := c.GetString("group")
 	g := new(model.Group)
-	e := json.Unmarshal([]byte(str), g)
+	e = json.Unmarshal([]byte(str), g)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	beginTime, e := c.getBeginTimeOfOperation()
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
 	}
 	//更新属性
-	e = service.UpdateGroup(prefix, g)
+	e = service.UpdateGroup(prefix, beginTime, g)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
