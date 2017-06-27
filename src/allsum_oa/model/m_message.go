@@ -4,7 +4,7 @@ import "time"
 
 //for users
 type Message struct {
-	Id      int `gorm:primary_key;auto_increment`
+	Id      int `gorm:"primary_key;auto_increment"`
 	Title   string
 	Mtype   int
 	Content string

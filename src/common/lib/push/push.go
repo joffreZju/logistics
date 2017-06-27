@@ -98,12 +98,15 @@ func JPushCommonMsg(uid []string, content string, info map[string]interface{}) {
 
 	var msg jpushclient.Message
 	msg.Title = "提示"
-	msg.Content = content
+	msg.Extras = map[string]interface{}{
+		"wy": "123",
+	}
 
 	payload := jpushclient.NewPushPayLoad()
 	payload.SetPlatform(&pf)
 	payload.SetAudience(&ad)
-	payload.SetNotice(&notice)
+	//payload.SetNotice(&notice)
+	payload.SetMessage(&msg)
 	payload.Options.SetApns(true)
 
 	t := time.Now().Unix()

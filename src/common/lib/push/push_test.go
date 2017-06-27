@@ -18,7 +18,7 @@ import (
 //}
 
 func TestJPush(t *testing.T) {
-	tels := []string{"1", "2"}
+	tels := []string{"wy"}
 	JPushCommonMsg(tels, "nihao", map[string]interface{}{})
 	t.Log("hello world\n")
 }
