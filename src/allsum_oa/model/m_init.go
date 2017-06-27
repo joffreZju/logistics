@@ -62,6 +62,10 @@ func InitPgSQL(key string) (err error) {
 		}
 		hasReadOnly = true
 	}
+	ormer.db.DB().SetConnMaxLifetime(time.Minute * 5)
+	ormer.db.DB().SetMaxIdleConns(5)
+	ormer.db.DB().SetMaxOpenConns(25)
+
 	err = initModel()
 	if err != nil {
 		return
