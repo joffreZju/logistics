@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/jinzhu/gorm"
 	"math"
 	"time"
 )
@@ -75,7 +76,9 @@ func handleGroupOperation(prefix string, interval float64) {
 	txx := model.NewOrm().Table(prefix + "." + op.TableName()).Begin()
 	e := txx.Find(op, "is_future=?", model.GroupTreeIsFuture).Error
 	if e != nil {
-		beego.Error(e)
+		if e != gorm.ErrRecordNotFound {
+			beego.Error(e)
+		}
 		txx.Rollback()
 		return
 	}
