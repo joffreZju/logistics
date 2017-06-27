@@ -37,7 +37,7 @@ type User struct {
 	UserName  string `gorm:"size:64"`
 	Icon      string `gorm:"size:64"`
 	Desc      string
-	Gender    int8
+	Gender    int       // 0:男 1：女
 	Address   string    `gorm:"size:64"`
 	Ctime     time.Time `gorm:"default:current_timestamp"`
 	LoginTime time.Time `gorm:"timestamp"`

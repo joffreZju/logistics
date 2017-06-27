@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/ysqi/tokenauth"
 	"github.com/ysqi/tokenauth2beego/o2o"
@@ -448,21 +449,50 @@ func (c *Controller) AdminFirmAudit() {
 	c.ReplySucc(nil)
 }
 
+func (c *Controller) FirmGetUserList() {
+	prefix := c.UserComp
+	users, e := service.GetUserListOfCompany(prefix)
+	if e != nil {
+		beego.Error(e)
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
+	} else {
+		c.ReplySucc(users)
+	}
+}
+
 func (c *Controller) FirmAddUser() {
 	cno := c.GetString("cno")
 	tel := c.GetString("tel")
 	name := c.GetString("name")
-	mail := c.GetString("mail")
+	gender, e := c.GetInt("gender")
+	if e != nil {
+		gender = 0
+	}
+	groups, roles := []int{}, []int{}
+	gstr, rstr := c.GetString("groups"), c.GetString("roles")
+	e = json.Unmarshal([]byte(gstr), &groups)
+	if e != nil {
+		beego.Error(e)
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	e = json.Unmarshal([]byte(rstr), &roles)
+	if e != nil {
+		beego.Error(e)
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+
 	user := &model.User{
 		Tel:      tel,
 		No:       model.UniqueNo("U"),
 		Password: keycrypt.Sha256Cal("123456"),
 		UserName: name,
-		Mail:     mail,
+		Gender:   gender,
 		UserType: model.UserTypeNormal,
 		Status:   model.UserStatusOk,
 	}
-	e := model.FirstOrCreateUser("public", user)
+	e = model.FirstOrCreateUser("public", user)
 	if e != nil {
 		beego.Error(e)
 		c.ReplyErr(errcode.ErrServerError)
@@ -480,7 +510,19 @@ func (c *Controller) FirmAddUser() {
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	c.ReplySucc(user)
+	e = service.AddUserToGroups(cno, groups, user.Id)
+	if e != nil {
+		beego.Error(e)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	e = service.AddUserToRoles(cno, roles, user.Id)
+	if e != nil {
+		beego.Error(e)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	c.ReplySucc(nil)
 }
 
 func (c *Controller) UpdateUserProfile() {

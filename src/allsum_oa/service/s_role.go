@@ -110,8 +110,20 @@ func GetUsersOfRole(prefix string, rid int) (users []*model.User, e error) {
 func AddUsersToRole(prefix string, rid int, uids []int) (e error) {
 	db := model.NewOrm().Table(prefix + "." + model.UserRole{}.TableName())
 	for _, uid := range uids {
-		ug := &model.UserRole{UserId: uid, RoleId: rid, Ctime: time.Now()}
-		e = db.FirstOrCreate(ug, ug).Error
+		ur := &model.UserRole{UserId: uid, RoleId: rid}
+		e = db.FirstOrCreate(ur, ur).Error
+		if e != nil {
+			return
+		}
+	}
+	return nil
+}
+
+func AddUserToRoles(prefix string, rids []int, uid int) (e error) {
+	db := model.NewOrm().Table(prefix + "." + model.UserRole{}.TableName())
+	for _, rid := range rids {
+		ur := &model.UserRole{UserId: uid, RoleId: rid}
+		e = db.FirstOrCreate(ur, ur).Error
 		if e != nil {
 			return
 		}

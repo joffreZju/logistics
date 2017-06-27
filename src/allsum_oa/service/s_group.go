@@ -353,6 +353,18 @@ func AddUsersToGroup(prefix string, gid int, uids []int) (e error) {
 	return nil
 }
 
+func AddUserToGroups(prefix string, gids []int, uid int) (e error) {
+	db := model.NewOrm().Table(prefix + "." + model.UserGroup{}.TableName())
+	for _, gid := range gids {
+		ug := &model.UserGroup{UserId: uid, GroupId: gid}
+		e = db.FirstOrCreate(ug, ug).Error
+		if e != nil {
+			return
+		}
+	}
+	return nil
+}
+
 func DelUsersFromGroup(prefix string, gid int, uids []int) (e error) {
 	tx := model.NewOrm().Table(prefix + "." + model.UserGroup{}.TableName()).Begin()
 	del := tx.Delete(&model.UserGroup{}, "group_id = ? and user_id in (?)", gid, uids)

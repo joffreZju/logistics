@@ -136,8 +136,15 @@ func createSchema(schema string) (e error) {
 	return
 }
 
-func GetUserList(prefix string, uids []int) (users []model.User, e error) {
-	users = []model.User{}
+func GetUserListOfCompany(prefix string) (users []*model.User, e error) {
+	users = []*model.User{}
+	e = model.NewOrm().Table(prefix + "." + model.User{}.TableName()).
+		Find(&users).Error
+	return
+}
+
+func GetUserList(prefix string, uids []int) (users []*model.User, e error) {
+	users = []*model.User{}
 	e = model.NewOrm().Table(prefix+"."+model.User{}.TableName()).
 		Find(&users, "id in (?)", uids).Error
 	return
@@ -185,9 +192,8 @@ func AuditCompany(cno string, approverId int, status int, msg string) (err error
 			tx.Rollback()
 			return err
 		} else {
-			beego.Info(users)
 			for _, u := range users {
-				err = model.FirstOrCreateUser(cno, &u)
+				err = model.FirstOrCreateUser(cno, u)
 				if err != nil {
 					beego.Error(err)
 					tx.Rollback()

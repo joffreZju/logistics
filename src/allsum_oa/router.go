@@ -45,6 +45,7 @@ func LoadRouter() {
 	//beego.Router(FirmPrefix+"/register", &user.Controller{}, "Post:FirmRegister")
 	//beego.Router(FirmPrefix+"/modify", &user.Controller{}, "Post:FirmModify")
 	beego.Router(FirmPrefix+"/add_license", &user.Controller{}, "*:AddLicenseFile")
+	beego.Router(FirmPrefix+"/getusers_ofcompany", &user.Controller{}, "*:FirmGetUserList")
 	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
 	beego.Router(FirmPrefix+"/update_user", &user.Controller{}, "Post:UpdateUserProfile")
 	//管理组织树
