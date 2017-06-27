@@ -59,14 +59,16 @@ func handleTX(prefix string, beginTime time.Time, tx *gorm.DB) (e error) {
 	if beginTime.Sub(time.Now()).Nanoseconds() <= 0 {
 		return tx.Commit().Error
 	}
-	//需要定时更改，创建定时任务
+	//需要定时更改组织树，创建定时任务
 	groups := []*model.Group{}
 	e = tx.Table(prefix + "." + model.Group{}.TableName()).Find(&groups).Error
 	if e != nil {
+		tx.Rollback()
 		return
 	}
 	b, e := json.Marshal(groups)
 	if e != nil {
+		tx.Rollback()
 		return e
 	}
 	op := &model.GroupOperation{
@@ -76,6 +78,7 @@ func handleTX(prefix string, beginTime time.Time, tx *gorm.DB) (e error) {
 	}
 	e = model.NewOrm().Table(prefix + "." + op.TableName()).Create(op).Error
 	if e != nil {
+		tx.Rollback()
 		return
 	}
 	//创建完定时任务之后回滚当前操作

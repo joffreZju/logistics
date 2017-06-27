@@ -76,9 +76,11 @@ func handleGroupOperation(prefix string, interval float64) {
 	e := txx.Find(op, "is_future=?", model.GroupTreeIsFuture).Error
 	if e != nil {
 		beego.Error(e)
+		txx.Rollback()
 		return
 	}
 	if math.Abs(op.BeginTime.Sub(time.Now()).Minutes()) > interval {
+		txx.Rollback()
 		return
 	}
 	//删掉任务
@@ -93,17 +95,20 @@ func handleGroupOperation(prefix string, interval float64) {
 	e = json.Unmarshal([]byte(op.Groups), &newGroups)
 	if e != nil {
 		beego.Error(e)
+		tx.Rollback()
 		return
 	}
 	//拿到旧组织树并转为json
 	e = tx.Table(prefix + "." + model.Group{}.TableName()).Find(&oldGroups).Error
 	if e != nil {
 		beego.Error(e)
+		tx.Rollback()
 		return
 	}
 	oldStr, e := json.Marshal(&oldGroups)
 	if e != nil {
 		beego.Error(e)
+		tx.Rollback()
 		return
 	}
 	//保存旧组织树

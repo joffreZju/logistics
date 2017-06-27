@@ -33,10 +33,9 @@ func UpdateFormtpl(prefix string, ftpl *model.Formtpl) (e error) {
 }
 
 func ControlFormtpl(prefix, no string, status int) (e error) {
-	tx := model.NewOrm().Begin()
 	count := 0
 	if status == model.TplDisabled {
-		e = tx.Table(prefix+"."+model.Approvaltpl{}.TableName()).
+		e = model.NewOrm().Table(prefix+"."+model.Approvaltpl{}.TableName()).
 			Where("formtpl_no=?", no).Count(&count).Error
 		if e != nil {
 			return
@@ -44,6 +43,7 @@ func ControlFormtpl(prefix, no string, status int) (e error) {
 			return errors.New("some approvaltpl are using this formtpl")
 		}
 	}
+	tx := model.NewOrm().Begin()
 	c := tx.Table(prefix+"."+model.Formtpl{}.TableName()).
 		Model(&model.Formtpl{No: no}).Update("status", status).RowsAffected
 	if c != 1 {
@@ -55,15 +55,15 @@ func ControlFormtpl(prefix, no string, status int) (e error) {
 }
 
 func DelFormtpl(prefix, no string) (e error) {
-	tx := model.NewOrm().Begin()
 	count := 0
-	e = tx.Table(prefix+"."+model.Approvaltpl{}.TableName()).
+	e = model.NewOrm().Table(prefix+"."+model.Approvaltpl{}.TableName()).
 		Where("formtpl_no=?", no).Count(&count).Error
 	if e != nil {
 		return
 	} else if count != 0 {
 		return errors.New("some approvaltpl are using this formtpl")
 	}
+	tx := model.NewOrm().Begin()
 	c := tx.Table(prefix + "." + model.Formtpl{}.TableName()).
 		Delete(&model.Formtpl{No: no}).RowsAffected
 	if c != 1 {
@@ -202,9 +202,8 @@ func AddApproval(prefix string, a *model.Approval) (e error) {
 }
 
 func UpdateApproval(prefix string, a *model.Approval) (e error) {
-	tx := model.NewOrm().Begin()
 	aprvl := model.Approval{}
-	e = tx.Table(prefix+"."+aprvl.TableName()).First(&aprvl, "no=?", a.No).Error
+	e = model.NewOrm().Table(prefix+"."+aprvl.TableName()).First(&aprvl, "no=?", a.No).Error
 	if e != nil {
 		return
 	}
@@ -212,6 +211,7 @@ func UpdateApproval(prefix string, a *model.Approval) (e error) {
 		e = errors.New("approval is already commited")
 		return
 	}
+	tx := model.NewOrm().Begin()
 	c := tx.Table(prefix + "." + a.FormContent.TableName()).
 		Model(a.FormContent).Updates(a.FormContent).RowsAffected
 	if c != 1 {
@@ -233,10 +233,12 @@ func CancelApproval(prefix, no string) (e error) {
 	a := model.Approval{}
 	e = tx.First(&a, "no=?", no).Error
 	if e != nil {
+		tx.Rollback()
 		return
 	}
 	if a.Status == model.ApproveAccessed || a.Status == model.ApproveNotAccessed {
 		e = errors.New("approval has been finished")
+		tx.Rollback()
 		return
 	}
 	c := tx.Model(&a).Update("status", model.ApproveCanceled).RowsAffected
@@ -249,10 +251,9 @@ func CancelApproval(prefix, no string) (e error) {
 }
 
 func Approve(prefix string, aflow *model.ApproveFlow) (e error) {
-	tx := model.NewOrm().Begin()
 	a := model.Approval{}
 	//检查该审批单当前状态
-	e = tx.Table(prefix+"."+a.TableName()).First(&a, "no=?", aflow.ApprovalNo).Error
+	e = model.NewOrm().Table(prefix+"."+a.TableName()).First(&a, "no=?", aflow.ApprovalNo).Error
 	if e != nil {
 		return
 	}
@@ -262,6 +263,7 @@ func Approve(prefix string, aflow *model.ApproveFlow) (e error) {
 	if a.Currentuser != aflow.UserId {
 		return errors.New("当前审批单您不可以审批")
 	}
+	tx := model.NewOrm().Begin()
 	//审批，修改审批单状态
 	e = tx.Table(prefix + "." + aflow.TableName()).Create(aflow).Error
 	if e != nil {
