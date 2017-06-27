@@ -150,6 +150,54 @@ func GetUserList(prefix string, uids []int) (users []*model.User, e error) {
 	return
 }
 
+func createCreatorRole(prefix string) (e error) {
+	tx := model.NewOrm().Begin()
+	r := &model.Role{
+		Name: "创始人",
+		Desc: "公司初始注册者",
+	}
+	e = tx.Table(prefix + "." + r.TableName()).Create(r).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	funcs := []*model.Function{}
+	e = tx.Find(&funcs).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	for _, v := range funcs {
+		if len(strings.Split(v.Path, "-")) > 2 {
+			rf := &model.RoleFunc{
+				RoleId: r.Id,
+				FuncId: v.Id,
+			}
+			e = tx.Table(prefix + "." + rf.TableName()).Create(rf).Error
+			if e != nil {
+				tx.Rollback()
+				return
+			}
+		}
+	}
+	comp := &model.Company{}
+	e = tx.Find(comp, "no=?", prefix).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	ur := &model.UserRole{
+		UserId: comp.Creator,
+		RoleId: r.Id,
+	}
+	e = tx.Table(prefix + "." + ur.TableName()).Create(ur).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	return tx.Commit().Error
+}
+
 func AuditCompany(cno string, approverId int, status int, msg string) (err error) {
 	tx := model.NewOrm().Begin()
 	c := tx.Model(&model.Company{}).Where("no=?", cno).
@@ -185,7 +233,6 @@ func AuditCompany(cno string, approverId int, status int, msg string) (err error
 			tx.Rollback()
 			return
 		}
-		beego.Info(uids)
 		users, err := GetUserList("public", uids)
 		if err != nil {
 			beego.Error(err)
@@ -200,6 +247,13 @@ func AuditCompany(cno string, approverId int, status int, msg string) (err error
 					return err
 				}
 			}
+		}
+		//创建创始人角色并将其functions赋予公司的创始人
+		err = createCreatorRole(cno)
+		if err != nil {
+			beego.Error(err)
+			tx.Rollback()
+			return err
 		}
 	}
 	return tx.Commit().Error
