@@ -9,8 +9,21 @@ import (
 )
 
 func GetRoles(prefix string) (roles []*model.Role, e error) {
+	db := model.NewOrm()
 	roles = []*model.Role{}
-	e = model.NewOrm().Table(prefix + "." + model.Role{}.TableName()).Find(&roles).Error
+	e = db.Table(prefix + "." + model.Role{}.TableName()).Find(&roles).Error
+	if e != nil {
+		return
+	}
+	sql := fmt.Sprintf(`SELECT * from "public"."function" as t1 inner join "%s".role_func as t2
+		on t1."id" = t2.func_id
+		where t2.role_id = ?`, prefix)
+	for _, v := range roles {
+		e = db.Raw(sql, v.Id).Scan(&v.Funcs).Error
+		if e != nil {
+			return
+		}
+	}
 	return
 }
 

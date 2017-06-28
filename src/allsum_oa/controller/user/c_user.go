@@ -393,15 +393,22 @@ func (c *Controller) Resetpwd() {
 
 //注册之后增加公司资质信息
 func (c *Controller) AddLicenseFile() {
-	fileUrl := c.GetString("url")
+	urlstr := c.GetString("url")
+	urlslice := model.StrSlice{}
+	e := json.Unmarshal([]byte(urlstr), &urlslice)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
 	compNo := c.UserComp
 	uid := c.UserID
 	comp := model.Company{
 		No:          compNo,
 		Creator:     uid,
-		LicenseFile: fileUrl,
+		LicenseFile: urlslice,
 	}
-	e := model.UpdateCompany(&comp)
+	e = model.UpdateCompany(&comp)
 	if e != nil {
 		c.ReplyErr(errcode.ErrFirmUpdateFailed)
 		beego.Error(e)
@@ -625,18 +632,18 @@ func (c *Controller) FirmRegister() {
 	name := c.GetString("firm_name")
 	desc := c.GetString("desc")
 	phone := c.GetString("phone")
-	lf := c.GetString("license_file")
+	//lf := c.GetString("license_file")
 	tp := c.GetString("firm_type")
 
 	firm := model.Company{
-		No:          model.UniqueNo("O"),
-		Creator:     uid,
-		FirmName:    name,
-		Desc:        desc,
-		Phone:       phone,
-		LicenseFile: lf,
-		FirmType:    tp,
-		Status:      0,
+		No:       model.UniqueNo("O"),
+		Creator:  uid,
+		FirmName: name,
+		Desc:     desc,
+		Phone:    phone,
+		//LicenseFile: lf,
+		FirmType: tp,
+		Status:   0,
 	}
 	err := model.CreateCompany(&firm)
 	if err != nil {
@@ -652,15 +659,15 @@ func (c *Controller) FirmModify() {
 	name := c.GetString("name")
 	desc := c.GetString("desc")
 	phone := c.GetString("phone")
-	lf := c.GetString("license_file")
+	//lf := c.GetString("license_file")
 	uid := c.UserID
 	firm := model.Company{
-		No:          no,
-		Creator:     uid,
-		FirmName:    name,
-		Desc:        desc,
-		Phone:       phone,
-		LicenseFile: lf,
+		No:       no,
+		Creator:  uid,
+		FirmName: name,
+		Desc:     desc,
+		Phone:    phone,
+		//LicenseFile: lf,
 	}
 	err := model.UpdateCompany(&firm)
 	if err != nil {

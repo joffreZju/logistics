@@ -133,7 +133,7 @@ type Company struct {
 	FirmType    string
 	Desc        string
 	Phone       string
-	LicenseFile string    `gorm:"not null"`
+	LicenseFile StrSlice  `gorm:"type:text[]"`
 	Status      int       //0:待审核;1:审核通过;2:审核不通过3:删除;
 	Approver    int       //审核人
 	ApproveTime time.Time //批复时间

@@ -6,7 +6,8 @@ type Role struct {
 	Id    int    `gorm:"primary_key;AUTO_INCREMENT"`
 	Name  string `gorm:"not null"`
 	Desc  string
-	Ctime time.Time `gorm:"default:current_timestamp"`
+	Ctime time.Time  `gorm:"default:current_timestamp"`
+	Funcs []Function `gorm:"-"`
 }
 
 func (Role) TableName() string {
