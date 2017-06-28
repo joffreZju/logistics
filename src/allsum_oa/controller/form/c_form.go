@@ -239,12 +239,12 @@ func (c *Controller) GetApproverList() {
 		c.ReplyErr(errcode.ErrGroupOfUser)
 		return
 	}
-	users, e := service.GetApproverList(prefix, atplNo, currentGroup)
+	rolemap, e := service.GetApproverList(prefix, atplNo, currentGroup)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		c.ReplySucc(users)
+		c.ReplySucc(rolemap)
 	}
 }
 

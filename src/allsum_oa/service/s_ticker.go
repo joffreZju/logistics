@@ -3,7 +3,6 @@ package service
 import (
 	"allsum_oa/model"
 	"encoding/json"
-	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/jinzhu/gorm"
 	"math"
@@ -16,13 +15,12 @@ func Ticker() {
 	for {
 		select {
 		case <-tick:
-			fmt.Println(time.Now())
-			go ScanGroupOperation(15)
+			go ScanAllSchema(15)
 		}
 	}
 }
 
-func ScanGroupOperation(interval float64) {
+func ScanAllSchema(interval float64) {
 	db := model.NewOrm()
 	comps := []model.Company{}
 	e := db.Find(&comps, model.Company{Status: model.CompanyApproveAccessed}).Error

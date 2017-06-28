@@ -4,6 +4,7 @@ import (
 	"allsum_oa/model"
 	"errors"
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"strconv"
 	"strings"
 )
@@ -144,9 +145,9 @@ func DelApprovaltpl(prefix, no string) (e error) {
 }
 
 //审批流相关
-func GetApproverList(prefix, atplno string, currentGroup int) (users []*model.User, e error) {
+func GetApproverList(prefix, atplno string, currentGroup int) (rolemap []map[string]interface{}, e error) {
 	db := model.NewOrm()
-	users = []*model.User{}
+	rolemap = []map[string]interface{}{}
 	atpl := &model.Approvaltpl{}
 	e = db.Table(prefix+"."+atpl.TableName()).First(atpl, "no=?", atplno).Error
 	if e != nil {
@@ -156,10 +157,13 @@ func GetApproverList(prefix, atplno string, currentGroup int) (users []*model.Us
 	if atpl.TreeFlowUp == model.TreeFlowUpNo {
 		for _, rid := range atpl.RoleFlow {
 			usersTmp, e := GetUsersOfRole(prefix, rid)
-			if e != nil {
+			if e != nil && e != gorm.ErrRecordNotFound {
 				return nil, e
 			}
-			users = append(users, usersTmp...)
+			rolemap = append(rolemap, map[string]interface{}{
+				"Role":  rid,
+				"Users": usersTmp,
+			})
 		}
 		return
 	}
@@ -179,10 +183,20 @@ func GetApproverList(prefix, atplno string, currentGroup int) (users []*model.Us
 	}
 	//找到同时在组织路径上，在审批角色流里面的所有用户
 	sql := fmt.Sprintf(`SELECT * from "%s".user WHERE id in
-	(SELECT t1.user_id FROM "%s".user_group as t1 INNER JOIN "%s".user_role as t2
-	on t1.user_id = t2.user_id
-	where t1.group_id in (?) and t2.role_id in (?) )`, prefix, prefix, prefix)
-	e = db.Raw(sql, pids, atpl.RoleFlow).Scan(&users).Error
+		(SELECT t1.user_id FROM "%s".user_group as t1 INNER JOIN "%s".user_role as t2
+		on t1.user_id = t2.user_id
+		where t1.group_id in (?) and t2.role_id=? )`, prefix, prefix, prefix)
+	for _, rid := range atpl.RoleFlow {
+		usersTmp := []*model.User{}
+		e = db.Raw(sql, pids, rid).Scan(&usersTmp).Error
+		if e != nil && e != gorm.ErrRecordNotFound {
+			return nil, e
+		}
+		rolemap = append(rolemap, map[string]interface{}{
+			"Role":  rid,
+			"Users": usersTmp,
+		})
+	}
 	return
 }
 
