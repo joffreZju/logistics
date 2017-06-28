@@ -7,7 +7,7 @@ type Role struct {
 	Name  string `gorm:"not null"`
 	Desc  string
 	Ctime time.Time  `gorm:"default:current_timestamp"`
-	Funcs []Function `gorm:"-"`
+	Funcs []Function `gorm:"-" json:",omitempty"`
 }
 
 func (Role) TableName() string {
