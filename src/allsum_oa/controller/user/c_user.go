@@ -535,19 +535,19 @@ func (c *Controller) FirmAddUser() {
 func (c *Controller) UpdateUserProfile() {
 	cno := c.GetString("cno")
 	tel := c.GetString("tel")
-	username := c.GetString("username")
+	uname := c.GetString("username")
 	mail := c.GetString("mail")
-	status, e := c.GetInt("status")
+	rstr := c.GetString("roles")
+	gstr := c.GetString("groups")
+	beego.Info(rstr, gstr)
+	user, e := service.GetUserByTel("public", tel)
 	if e != nil {
+		beego.Error(e)
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	user := &model.User{
-		Tel:      tel,
-		UserName: username,
-		Mail:     mail,
-		Status:   status,
-	}
+	user.UserName = uname
+	user.Mail = mail
 	e = model.UpdateUser("public", user)
 	if e != nil {
 		beego.Error(e)
@@ -559,6 +559,36 @@ func (c *Controller) UpdateUserProfile() {
 		beego.Error(e)
 		c.ReplyErr(errcode.ErrServerError)
 		return
+	}
+	if len(rstr) != 0 {
+		rids := []int{}
+		e = json.Unmarshal([]byte(rstr), &rids)
+		if e != nil {
+			c.ReplyErr(errcode.ErrParams)
+			beego.Error(e)
+			return
+		}
+		e = service.UpdateRolesOfUser(cno, rids, user.Id)
+		if e != nil {
+			c.ReplyErr(errcode.ErrServerError)
+			beego.Error(e)
+			return
+		}
+	}
+	if len(gstr) != 0 {
+		gids := []int{}
+		e = json.Unmarshal([]byte(gstr), &gids)
+		if e != nil {
+			c.ReplyErr(errcode.ErrParams)
+			beego.Error(e)
+			return
+		}
+		e = service.UpdateGroupssOfUser(cno, gids, user.Id)
+		if e != nil {
+			c.ReplyErr(errcode.ErrServerError)
+			beego.Error(e)
+			return
+		}
 	}
 	c.ReplySucc(nil)
 }

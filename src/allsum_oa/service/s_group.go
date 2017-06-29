@@ -377,3 +377,21 @@ func DelUsersFromGroup(prefix string, gid int, uids []int) (e error) {
 	}
 	return tx.Commit().Error
 }
+
+func UpdateGroupssOfUser(prefix string, newGids []int, uid int) (e error) {
+	tx := model.NewOrm().Table(prefix + "." + model.UserGroup{}.TableName()).Begin()
+	e = tx.Where("user_id=?", uid).Delete(&model.UserGroup{}).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	for _, gid := range newGids {
+		ug := &model.UserGroup{UserId: uid, GroupId: gid}
+		e = tx.FirstOrCreate(ug, ug).Error
+		if e != nil {
+			tx.Rollback()
+			return
+		}
+	}
+	return tx.Commit().Error
+}

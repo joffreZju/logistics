@@ -44,10 +44,10 @@ type User struct {
 	Mail      string    `gorm:"size:64"`
 	Status    int       `gorm:"not null"`
 	UserType  int       `gorm:"default:1"` //1 普通用户
-	Companys  []Company `gorm:"-" json:",omitempty"`
-	Groups    []Group   `gorm:"-" json:",omitempty"`
-	Roles     []Role    `gorm:"-" json:",omitempty"`
-	Funcs     []int     `gorm:"-" json:",omitempty"`
+	Companys  []Company `gorm:"-"`
+	Groups    []Group   `gorm:"-"`
+	Roles     []Role    `gorm:"-"`
+	Funcs     []int     `gorm:"-"`
 }
 
 func (User) TableName() string {

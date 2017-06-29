@@ -157,3 +157,21 @@ func DelUsersFromRole(prefix string, rid int, uids []int) (e error) {
 		return tx.Commit().Error
 	}
 }
+
+func UpdateRolesOfUser(prefix string, newRids []int, uid int) (e error) {
+	tx := model.NewOrm().Table(prefix + "." + model.UserRole{}.TableName()).Begin()
+	e = tx.Where("user_id=?", uid).Delete(&model.UserRole{}).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	for _, rid := range newRids {
+		ur := &model.UserRole{UserId: uid, RoleId: rid}
+		e = tx.FirstOrCreate(ur, ur).Error
+		if e != nil {
+			tx.Rollback()
+			return
+		}
+	}
+	return tx.Commit().Error
+}
