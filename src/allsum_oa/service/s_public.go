@@ -224,7 +224,7 @@ func AuditCompany(cno string, approverId int, status int, msg string) (err error
 		return
 	}
 	tx.Model(&model.Company{}).Where("no=?", cno).Updates(&model.Company{ApproveTime: time.Now()})
-	if status == model.CompanyApproveAccessed {
+	if status == model.CompanyStatApproveAccessed {
 		//创建schema，直接提交
 		err = createSchema(cno)
 		if err != nil {

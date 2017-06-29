@@ -23,7 +23,7 @@ func Ticker() {
 func ScanAllSchema(interval float64) {
 	db := model.NewOrm()
 	comps := []model.Company{}
-	e := db.Find(&comps, model.Company{Status: model.CompanyApproveAccessed}).Error
+	e := db.Find(&comps, model.Company{Status: model.CompanyStatApproveAccessed}).Error
 	if e != nil {
 		return
 	}

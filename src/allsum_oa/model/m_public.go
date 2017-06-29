@@ -13,20 +13,23 @@ const (
 	DateFormat          = "2006-01-02"
 )
 
+//用户类型
 const (
 	UserTypeNormal = iota + 1
 )
 
+//用户状态
 const (
-	UserStatusOk = iota
+	UserStatusOk = iota + 1
 	UserStatusLocked
 )
 
+//公司状态
 const (
-	CompanyApproveWait = iota
-	CompanyApproveAccessed
-	CompanyApproveNotAccessed
-	CompanyDeleted
+	CompanyStatApproveWait = iota + 1
+	CompanyStatApproveAccessed
+	CompanyStatApproveNotAccessed
+	CompanyStatDeleted
 )
 
 type User struct {
@@ -134,7 +137,7 @@ type Company struct {
 	Desc        string
 	Phone       string
 	LicenseFile StrSlice  `gorm:"type:text[]"`
-	Status      int       //0:待审核;1:审核通过;2:审核不通过3:删除;
+	Status      int       //1:待审核;2:审核通过;3:审核不通过4:删除;
 	Approver    int       //审核人
 	ApproveTime time.Time //批复时间
 	ApproveMsg  string    //审批意见
@@ -158,7 +161,7 @@ func GetCompanyList() (list []Company, err error) {
 }
 
 func DeleteCompany(cno string) (err error) {
-	err = NewOrm().Table(Company{}.TableName()).Where("no=?", cno).Update("status", CompanyDeleted).Error
+	err = NewOrm().Table(Company{}.TableName()).Where("no=?", cno).Update("status", CompanyStatDeleted).Error
 	return
 }
 
@@ -168,7 +171,7 @@ func CreateCompany(c *Company) (err error) {
 }
 
 func UpdateCompany(c *Company) (err error) {
-	count := NewOrm().Table(c.TableName()).Where("no=? and creator = ? and status <> ?", c.No, c.Creator, CompanyApproveAccessed).
+	count := NewOrm().Table(c.TableName()).Where("no=? and creator = ? and status <> ?", c.No, c.Creator, CompanyStatApproveAccessed).
 		Updates(&c).RowsAffected
 	if count != 1 {
 		err = errors.New("update license file failed")

@@ -1,3 +1,33 @@
+### 系统常量定义
+
+```
+User.Status{1:正常,2:锁定}
+
+User.UserType{1:普通用户}
+
+Company.Status{1:注册,2:管理员审核通过,3:审核不通过,4:删除}
+
+表单状态
+Formtpl.Status{1:初始化,2:启用,3:禁用}
+
+审批单模板状态
+Approvaltpl.Status{1:初始化,2:启用,3:禁用}
+
+审批单是否向组织树向上流动
+Approvaltpl.TreeFlowUp{1:No,2:Yes}
+
+审批单状态
+Approval.Status{1：存为草稿，2：正在审批，3：审批通过，4：审批不通过，5：审批取消}
+
+审批人的审批意见
+ApproveFlow.Opinion{1:同意,2:拒绝}
+
+涉及修改的接口:
+1. 管理员审核公司
+2. 启用/禁用 审批单模板，表单模板
+```
+
+
 ### 用户相关接口
 
 - 获取验证码（get，post）

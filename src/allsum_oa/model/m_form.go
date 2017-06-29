@@ -4,14 +4,16 @@ import (
 	"time"
 )
 
+//审批/表单模板的状态
 const (
-	TplInit = iota
+	TplInit = iota + 1
 	TplAbled
 	TplDisabled
 )
 
+//审批单生命周期状态
 const (
-	ApproveDraft = iota
+	ApproveDraft = iota + 1
 	Approving
 	ApproveAccessed
 	ApproveNotAccessed
@@ -19,13 +21,15 @@ const (
 	//草稿->提交->审批中->审批通过（或不通过）->取消审批(除了审批通过或不通过，其他都可以取消)
 )
 
+//审批审批单的意见
 const (
-	ApproveOpinionAgree = iota
+	ApproveOpinionAgree = iota + 1
 	ApproveOpinionRefuse
 )
 
+//审批单是否沿组织树流动
 const (
-	TreeFlowUpNo = iota
+	TreeFlowUpNo = iota + 1
 	TreeFlowUpYes
 )
 
@@ -65,7 +69,7 @@ type Approvaltpl struct {
 	Desc       string
 	Ctime      time.Time `gorm:"default:current_timestamp"`
 	FormtplNo  string    `gorm:"not null"`
-	TreeFlowUp int       //是否按组织树向上流动 0:否，1:是
+	TreeFlowUp int       //是否按组织树向上流动 1:否，2:是
 	RoleFlow   IntSlice  `gorm:"type:int[]"` //role_id 的组成的数组
 	AllowRoles IntSlice  `gorm:"type:int[]"`
 	BeginTime  time.Time `gorm:"not null"`

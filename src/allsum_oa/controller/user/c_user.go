@@ -100,7 +100,7 @@ func (c *Controller) UserRegister() {
 		FirmName: firm_name,
 		FirmType: firm_type,
 		Creator:  u.Id,
-		Status:   model.CompanyApproveWait,
+		Status:   model.CompanyStatApproveWait,
 	}
 	err = model.CreateCompany(&comp)
 	if err != nil {
@@ -175,40 +175,36 @@ func (c *Controller) UserLoginPhone() {
 }
 
 func (c *Controller) loginAction(user *model.User) {
-	if user.Status == model.UserStatusLocked {
-		c.ReplyErr(errcode.ErrUserLocked)
-		return
-	}
-	comNo := ""
-	for _, v := range user.Companys {
-		if v.Status == model.CompanyApproveAccessed {
-			comNo = v.No
-			break
-		}
-	}
+	user.LoginTime = time.Now()
+	defer model.UpdateUser("public", user)
 	token, err := o2o.Auth.NewSingleToken(strconv.Itoa(user.Id), "", "", c.Ctx.ResponseWriter)
 	if err != nil {
 		beego.Error("o2o.Auth.NewSingleToken error:", err, *user)
 		c.ReplyErr(errcode.ErrAuthCreateFailed)
 		return
 	}
-	if len(comNo) != 0 {
-		userInSchema, e := service.GetUserByTel(comNo, user.Tel)
-		if e == nil {
-			uKey := fmt.Sprintf("%d_%s", userInSchema.Id, token.Value)
-			e = c.saveUserInfoToRedis(uKey, comNo, userInSchema)
-			if e != nil {
-				c.ReplyErr(errcode.New(commonErr, e.Error()))
-			} else {
-				c.ReplySucc(userInSchema)
-			}
+	for _, v := range user.Companys {
+		if v.Status != model.CompanyStatApproveAccessed {
+			continue
+		}
+		userInSchema, e := service.GetUserByTel(v.No, user.Tel)
+		if e != nil || userInSchema.Status != model.UserStatusOk {
+			continue
+		}
+		uKey := fmt.Sprintf("%d_%s", userInSchema.Id, token.Value)
+		e = c.saveUserInfoToRedis(uKey, v.No, userInSchema)
+		if e != nil {
+			c.ReplyErr(errcode.New(commonErr, e.Error()))
+			beego.Error(e)
+			return
+		} else {
+			c.ReplySucc(userInSchema)
+			beego.Info("login ok:%+v", token)
 			return
 		}
 	}
-	user.LoginTime = time.Now()
-	model.UpdateUser("public", user)
 	c.ReplySucc(user)
-	beego.Debug("login ok,token:%+v", token)
+	beego.Info("login ok:%+v", token)
 }
 
 func (c *Controller) saveUserInfoToRedis(key, cno string, u *model.User) (e error) {
@@ -247,12 +243,17 @@ func (c *Controller) SwitchCurrentFirm() {
 		return
 	}
 	user := &model.User{}
-	if company.Status == model.CompanyApproveAccessed {
+	if company.Status == model.CompanyStatApproveAccessed {
 		user, e = service.GetUserById(cno, uid)
+		if user.Status != model.UserStatusOk {
+			c.ReplyErr(errcode.ErrUserLocked)
+			return
+		}
 	} else {
 		user, e = service.GetUserById("public", uid)
 	}
 	if e != nil {
+		beego.Error(e)
 		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		return
 	}
@@ -527,6 +528,25 @@ func (c *Controller) FirmAddUser() {
 	if e != nil {
 		beego.Error(e)
 		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	c.ReplySucc(nil)
+}
+
+func (c *Controller) FirmControlUserStatus() {
+	prefix := c.UserComp
+	tel := c.GetString("tel")
+	status, e := c.GetInt("status")
+	if e != nil || (status != model.UserStatusOk && status != model.UserStatusLocked) {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	e = model.UpdateUser(prefix, &model.User{Tel: tel, Status: status})
+	e = model.UpdateUser(prefix, &model.User{Tel: tel, Status: status})
+	if e != nil {
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
+		beego.Error(e)
 		return
 	}
 	c.ReplySucc(nil)
