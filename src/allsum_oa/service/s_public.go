@@ -140,10 +140,23 @@ func GetUserListOfCompany(prefix string) (users []*model.User, e error) {
 	users = []*model.User{}
 	e = model.NewOrm().Table(prefix + "." + model.User{}.TableName()).
 		Find(&users).Error
+	if e != nil {
+		return
+	}
+	for _, v := range users {
+		v.Roles, e = GetRolesOfUser(prefix, v.Id)
+		if e != nil {
+			return
+		}
+		v.Groups, e = GetGroupsOfUser(prefix, v.Id)
+		if e != nil {
+			return
+		}
+	}
 	return
 }
 
-func GetUserList(prefix string, uids []int) (users []*model.User, e error) {
+func GetUserListByUids(prefix string, uids []int) (users []*model.User, e error) {
 	users = []*model.User{}
 	e = model.NewOrm().Table(prefix+"."+model.User{}.TableName()).
 		Find(&users, "id in (?)", uids).Error
@@ -233,7 +246,7 @@ func AuditCompany(cno string, approverId int, status int, msg string) (err error
 			tx.Rollback()
 			return
 		}
-		users, err := GetUserList("public", uids)
+		users, err := GetUserListByUids("public", uids)
 		if err != nil {
 			beego.Error(err)
 			tx.Rollback()
