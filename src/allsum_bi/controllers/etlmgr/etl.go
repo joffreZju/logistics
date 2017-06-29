@@ -18,13 +18,18 @@ type Controller struct {
 func (c *Controller) ShowSycnList() {
 	dbid := c.GetString("dbid")
 	schema := c.GetString("schema")
+	beego.Debug("schema ", dbid, schema)
 	tableNames, err := db.ListSchemaTable(dbid, schema)
 	if err != nil {
 		beego.Error("ListSchemaTable err ", err)
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	sync, err := models.ListSyncInSourceTables(tableNames)
+	var schemaTables []string
+	for _, v := range tableNames {
+		schemaTables = append(schemaTables, schema+"."+v)
+	}
+	sync, err := models.ListSyncInSourceTables(dbid, schemaTables)
 	if err != nil {
 		beego.Error("GetSyncBy err ", err)
 		c.ReplyErr(errcode.ErrServerError)
@@ -40,6 +45,7 @@ func (c *Controller) ShowSycnList() {
 				"status": util.SYNC_NONE,
 			}
 		} else {
+			syncuuid := sync[schema_table].Uuid
 			syncid := sync[schema_table].Id
 			errornum, err := models.CountSynchronousLogsBySyncid(syncid, util.SYNC_ENABLE)
 			if err != nil {
@@ -49,7 +55,7 @@ func (c *Controller) ShowSycnList() {
 			tableMap = map[string]interface{}{
 				"name":        table,
 				"status":      sync[schema_table].Status,
-				"syncid":      syncid,
+				"syncuuid":    syncuuid,
 				"owner":       sync[schema_table].Owner,
 				"script":      sync[schema_table].Script,
 				"sourcetable": sync[schema_table].SourceTable,
@@ -71,14 +77,16 @@ func (c *Controller) DataCalibration() {
 	schema := c.GetString("schema")
 	table := c.GetString("table")
 	schema_table := schema + "." + table
-	syncmap, err := models.ListSyncInSourceTables([]string{schema_table})
-	if err != nil {
-		beego.Error("ListSyncInSourceTables fail err :", err)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-
-	if _, ok := syncmap[schema_table]; ok {
+	//	syncmap, err := models.ListSyncInSourceTables([]string{schema_table})
+	//	if err != nil {
+	//		beego.Error("ListSyncInSourceTables fail err :", err)
+	//		c.ReplyErr(errcode.ErrServerError)
+	//		return
+	//	}
+	checkres := db.CheckTableExist(util.BASEDB_CONNID, schema_table)
+	beego.Debug("checkres", checkres)
+	var err error
+	if checkres {
 		err = etl.DoEtlCalibration(dbid, schema, table)
 	} else {
 		err = etl.DoEtlWithoutTable(dbid, schema, table)
@@ -95,7 +103,7 @@ func (c *Controller) DataCalibration() {
 }
 
 func (c *Controller) SetEtl() {
-	syncid := c.GetString("syncid")
+	syncUuid := c.GetString("sync_uuid")
 	script := c.GetString("script")
 	cron := c.GetString("cron")
 	documents := c.GetString("documents")
@@ -103,12 +111,12 @@ func (c *Controller) SetEtl() {
 	if err != nil {
 		errorlimit = 10
 	}
-	if syncid == "" || script == "" || cron == "" || documents == "" {
+	if syncUuid == "" || script == "" || cron == "" || documents == "" {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error("set etl some params is null ")
 	}
 	setdata := map[string]interface{}{
-		"syncid":      syncid,
+		"sync_uuid":   syncUuid,
 		"script":      script,
 		"cron":        cron,
 		"documents":   documents,
@@ -120,6 +128,7 @@ func (c *Controller) SetEtl() {
 		//because this  action is set, so return params err
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error("set etl error : ", err)
+		return
 	}
 	res := map[string]string{
 		"res": "success",
@@ -127,6 +136,16 @@ func (c *Controller) SetEtl() {
 	c.ReplySucc(res)
 }
 
-func (c *Controller) StartEtl() {
-
+func (c *Controller) StopEtl() {
+	uuid := c.GetString("uuid")
+	err := etl.StopCronBySyncUuid(uuid)
+	if err != nil {
+		beego.Error("stop etl err", err)
+		c.ReplyErr(err)
+		return
+	}
+	res := map[string]string{
+		"res": "success",
+	}
+	c.ReplySucc(res)
 }

@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/astaxie/beego"
 	"github.com/satori/go.uuid"
 )
 
@@ -98,7 +99,7 @@ func (p *Pipeline) MakeSinkJs() (err error) {
 	return
 }
 
-func (p *Pipeline) MakeTransPortForm(transportform string, transform string, params ...string) {
+func (p *Pipeline) MakeTransPortForm(transportform string, transform string, params ...interface{}) {
 	if transform == "" {
 		p.TransformJs = ""
 		p.TransPortForm = transportform
@@ -115,7 +116,7 @@ func (p *Pipeline) MakeTransportJs(sourceNameSpace string, sinkNameSpace string)
 	return
 }
 
-func (p *Pipeline) MakeTransformJs(js []byte, params ...string) (err error) {
+func (p *Pipeline) MakeTransformJs(js []byte, params ...interface{}) (err error) {
 	p.TransformJs = fmt.Sprintf(string(js), params)
 	uid := uuid.NewV4()
 
@@ -157,15 +158,18 @@ func (p *Pipeline) MakeFullCreateScript(createsql string) (createscript string, 
 func (p *Pipeline) MakeDefaultTransPortScript(dbid string) (script string, err error) {
 	schema_table := strings.Split(p.DestTable, ".")
 	fields, err := db.GetTableFields(dbid, schema_table[0], schema_table[1])
-	fieldvalues, err := db.QueryToFields(dbid, util.DEFAULT_PARAMS_SQL, fields[0:1], fields[0], fields[0], schema_table)
+	beego.Debug("fields: ", fields)
+	sqlstr := fmt.Sprintf(util.DEFAULT_PARAMS_SQL, fields[0], "maxnum", p.DestTable)
+	fieldvalues, err := db.QueryDatas(dbid, sqlstr)
 	if err != nil {
 		return
 	}
+	beego.Debug("fieldvalues", fieldvalues)
 	scriptMap := map[string]string{
-		"transport":   fmt.Sprintf(util.DEFAULT_TRANSPORT, fields[0], fieldvalues[0]),
+		"transport":   fmt.Sprintf(util.TRANSPORTFORM_GOJA, fmt.Sprintf(util.DEFAULT_TRANSPORT, fields[0], fieldvalues[0][0])),
 		"transform":   "",
 		"paramsql":    util.DEFAULT_PARAMS_SQL,
-		"paramfields": fields[0],
+		"paramfields": strings.Join([]string{fields[0], fields[0], p.DestTable}, ","),
 	}
 	script, err = EncodeScript(scriptMap)
 	if err != nil {
@@ -194,7 +198,8 @@ func DecodeScript(script string) (scriptMap map[string]string, err error) {
 	_, ok2 := scriptMap["transform"]
 	_, ok3 := scriptMap["paramsql"]
 	_, ok4 := scriptMap["paramfields"]
-	if ok1 && ok2 && ok3 && ok4 {
+	if !(ok1 && ok2 && ok3 && ok4) {
+		beego.Error("1 2 3 4", ok1, ok2, ok3, ok4)
 		err = errors.New("miss script")
 		return
 	}

@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	_ "fmt"
 	"io/ioutil"
-	"strconv"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -40,12 +39,15 @@ func (c *Controller) ListDemand() {
 	var values []interface{}
 	var action string
 	if roleType == util.ROLETYPE_ASSIGNER {
-		fields = []string{"assignerid"}
-		values = []interface{}{c.UserID}
+		fields = []string{}
+		values = []interface{}{}
 		action = util.ACTION_LISTDEMAND_ASSIGNER
 	} else if roleType == util.ROLETYPE_PROJECTOR {
 		fields = []string{"handlerid"}
 		values = []interface{}{c.UserID}
+		if c.UserID == 0 {
+			values = []interface{}{-1}
+		}
 		action = util.ACTION_LISTDEMAND_PROJECTOR
 	} else if roleType == util.ROLETYPE_TESTER {
 		fields = []string{"status"}
@@ -56,7 +58,7 @@ func (c *Controller) ListDemand() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	if oa.CheckActionEnable(c.UserID, action) {
+	if !oa.CheckActionEnable(c.UserID, action) {
 		beego.Error("no have authority", c.UserID)
 		c.ReplyErr(errcode.ErrActionNoAuthority)
 		return
@@ -78,7 +80,7 @@ func (c *Controller) ListDemand() {
 			//			"reportid":          demand.Reportid,
 			"description": demand.Description,
 			//			"handleid":          demand.Handleid,
-			"handle_name": demand.HandleName,
+			"handler_name": demand.HandlerName,
 			//			"assignerid":        demand.Assignerid,
 			"assigner_name": demand.AssignerName,
 			"init_time":     demand.Inittime,
@@ -95,18 +97,7 @@ func (c *Controller) ListDemand() {
 
 //工单过来的需求
 func (c *Controller) AddDemand() {
-	var testmap map[string]interface{}
-	err := json.Unmarshal(c.Ctx.Input.RequestBody, &testmap)
-	beego.Debug("--->", err, testmap)
-	beego.Debug("reqbody :", string(c.Ctx.Input.RequestBody))
-	ownerstr := c.GetString("ownerid")
-	beego.Debug("owner str ", ownerstr)
-	owner, err := strconv.Atoi(ownerstr)
-	if err != nil {
-		beego.Error("get owner err", err)
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
+	owner := c.GetString("ownerid")
 
 	ownername := c.GetString("owner_name")
 	description := c.GetString("description")
@@ -119,7 +110,7 @@ func (c *Controller) AddDemand() {
 		Inittime:    inittime,
 		Status:      status,
 	}
-	err = models.InsertDemand(demand)
+	err := models.InsertDemand(demand)
 	if err != nil {
 		beego.Error("insert demand err : ", err)
 		c.ReplyErr(errcode.ErrServerError)
@@ -144,6 +135,7 @@ func (c *Controller) AnalyzeDemand() {
 		report_create := models.Report{
 			Demandid:    demand.Id,
 			Name:        "",
+			Owner:       demand.Owner,
 			Status:      util.REPORT_STATUS_ANALYS,
 			Description: demand.Description,
 		}
@@ -151,12 +143,21 @@ func (c *Controller) AnalyzeDemand() {
 		if err != nil {
 			beego.Error("insert report err : ", err)
 			c.ReplyErr(errcode.ErrServerError)
+			return
+		}
+		demand.Reportid = report.Id
+		err = models.UpdateDemand(demand, "reportid")
+		if err != nil {
+			beego.Error("update demand err", err)
+			c.ReplyErr(errcode.ErrServerError)
+			return
 		}
 	} else {
 		report, err = models.GetReport(demand.Reportid)
 		if err != nil {
 			beego.Error("get report err : ", err)
 			c.ReplyErr(errcode.ErrServerError)
+			return
 		}
 	}
 	res := map[string]interface{}{
@@ -172,7 +173,7 @@ func (c *Controller) AnalyzeDemand() {
 //获取需求分析数据
 func (c *Controller) GetAnalyzeReport() {
 	demanduuid := c.GetString("demanduuid")
-	reportuuid := c.GetString("reportuuid")
+	//	reportuuid := c.GetString("reportuuid")
 
 	demand, err := models.GetDemandByUuid(demanduuid)
 	if err != nil {
@@ -180,16 +181,20 @@ func (c *Controller) GetAnalyzeReport() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	report, err := models.GetReportByUuid(reportuuid)
+	report, err := models.GetReport(demand.Reportid)
 	if err != nil {
 		beego.Error("get report err :", err)
 		c.ReplyErr(errcode.ErrParams)
 	}
 	var assigner_authority map[string][]string
-	err = json.Unmarshal([]byte(demand.AssignerAuthority), &assigner_authority)
-	if err != nil {
-		beego.Error("unmarshal assigner_authority err :", err)
-		c.ReplyErr(errcode.ErrParams)
+	if demand.AssignerAuthority == "" {
+		assigner_authority = map[string][]string{}
+	} else {
+		err = json.Unmarshal([]byte(demand.AssignerAuthority), &assigner_authority)
+		if err != nil {
+			beego.Error("unmarshal assigner_authority err :", err)
+			c.ReplyErr(errcode.ErrParams)
+		}
 	}
 	res := map[string]interface{}{
 		"reportuuid":         report.Uuid,
@@ -201,7 +206,7 @@ func (c *Controller) GetAnalyzeReport() {
 		"report_type":        report.Reporttype,
 		"doc_name":           demand.DocName,
 		"assignetime":        demand.Assignetime,
-		"handlename":         demand.HandleName,
+		"handler_name":       demand.HandlerName,
 		"deadline":           demand.Deadline,
 		"assigner_authority": assigner_authority,
 	}
@@ -218,11 +223,11 @@ func (c *Controller) SetDemand() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	reportuuid := reqbody["reportuuid"].(string)
+	//	reportuuid := reqbody["reportuuid"].(string)
 	demanduuid := reqbody["demanduuid"].(string)
 	description := reqbody["description"].(string)
-	report_type := reqbody["report_type"].(int)
-	handleid := reqbody["handleid"].(int)
+	report_type := int(reqbody["report_type"].(float64))
+	handlerid := int(reqbody["handlerid"].(float64))
 	var deadline time.Time
 	deadlinestr := reqbody["deadline"].(string)
 	deadline, err = time.Parse("2015-01-01 00:00:00", deadlinestr)
@@ -243,14 +248,14 @@ func (c *Controller) SetDemand() {
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	report, err := models.GetReportByUuid(reportuuid)
+	report, err := models.GetReport(demand.Id)
 	if err != nil {
 		beego.Error("get report err : ", err)
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
 	demand.Description = description
-	demand.Handleid = handleid
+	demand.Handlerid = handlerid
 	demand.Deadline = deadline
 	demand.AssignerAuthority = assigner_authority
 	demand.Status = util.DEMAND_STATUS_BUILDING
@@ -323,7 +328,7 @@ func (c *Controller) UploadDemandDoc() {
 
 	demand, err := models.GetDemandByUuid(demanduuid)
 	demand.DocUrl = uri
-	demand.DocName = filename
+	demand.DocName = h.Filename
 	err = models.UpdateDemand(demand, "doc_url", "doc_name")
 	if err != nil {
 		beego.Error("update demand err :", err)

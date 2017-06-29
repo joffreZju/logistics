@@ -11,13 +11,13 @@ import (
 type Demand struct {
 	Id                int
 	Uuid              string
-	Owner             int
+	Owner             string
 	OwnerName         string
 	Reportid          int
 	Description       string
 	Contactid         int
-	Handleid          int
-	HandleName        string
+	Handlerid         int
+	HandlerName       string
 	Assignerid        int
 	AssignerName      string
 	Price             float32
@@ -39,7 +39,7 @@ func InsertDemand(demand Demand) (err error) {
 	}
 	demand.Uuid = uuid.NewV4().String()
 	exist := db.NewRecord(demand)
-	if exist {
+	if !exist {
 		return fmt.Errorf("exist")
 	}
 	err = db.Table(GetDemandTableName()).Create(&demand).Error

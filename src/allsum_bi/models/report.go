@@ -2,7 +2,6 @@ package models
 
 import (
 	"allsum_bi/db/conn"
-	"fmt"
 
 	"github.com/satori/go.uuid"
 )
@@ -11,6 +10,7 @@ type Report struct {
 	Id          int
 	Uuid        string
 	Demandid    int
+	Owner       string
 	Name        string
 	Reporttype  int
 	Description string
@@ -25,12 +25,21 @@ func InsertReport(report Report) (res_report Report, err error) {
 		return
 	}
 	report.Uuid = uuid.NewV4().String()
-	exist := db.NewRecord(report)
-	if exist {
-		return res_report, fmt.Errorf("exist")
-	}
+	//	_, err = GetReportByDemandid(report.Demandid)
+	//	if err == nil || !strings.Contains(err.Error(), "not found") {
+	//		return res_report, fmt.Errorf("exist", err)
+	//	}
 	err = db.Table(GetReportTableName()).Create(&report).Error
 	res_report = report
+	return
+}
+
+func GetReportByDemandid(demandid int) (report Report, err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	err = db.Table(GetReportTableName()).Where("demandid=?", demandid).First(&report).Error
 	return
 }
 

@@ -22,7 +22,12 @@ func StartEtlCron() (err error) {
 		if etlrecord.Status != util.SYNC_STARTED {
 			continue
 		}
-		AddCronWithFullScript(etlrecord.Id, etlrecord.Cron, etlrecord.Script)
+		err = StartEtl(etlrecord.Uuid)
+		if err != nil {
+			etlrecord.Status = util.SYNC_ERROR
+			models.UpdateSynchronous(etlrecord, "status")
+		}
+		//	AddCronWithFullScript(etlrecord.Id, etlrecord.Cron, etlrecord.Script)
 	}
 	return
 }
@@ -53,6 +58,17 @@ func AddCronWithScript(id int, cronstr string, script string) (err error) {
 	CronEtls[id] = cron.New()
 	CronEtls[id].Start()
 	err = CronEtls[id].AddFunc(cronstr, func() { DoETL([]byte(script)) })
+	return
+}
+
+func StopCronBySyncUuid(uuid string) (err error) {
+	sync, err := models.GetSynchronousByUuid(uuid)
+	if err != nil {
+		return
+	}
+	StopCronById(sync.Id)
+	sync.Status = util.SYNC_STOP
+	err = models.UpdateSynchronous(sync, "status")
 	return
 }
 

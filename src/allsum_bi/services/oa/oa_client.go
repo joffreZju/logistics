@@ -1,6 +1,6 @@
 package oa
 
-func CheckActionEnable(roleid int64, action string) (enable bool) {
+func CheckActionEnable(roleid int, action string) (enable bool) {
 	enable = true
 	return
 }

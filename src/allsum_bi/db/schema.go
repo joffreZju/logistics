@@ -65,8 +65,9 @@ func ListSchemaTable(dbid string, schema string) (tablenames []string, err error
 	if err != nil {
 		return
 	}
-	rows, err := db.Raw("SELECT table_name FROM information_schema.tables WHERE table_schema = '?'", schema).Rows()
+	rows, err := db.Raw("SELECT table_name FROM information_schema.tables WHERE table_schema = ?", schema).Rows()
 	if err != nil {
+		beego.Error("1")
 		return
 	}
 	defer rows.Close()
@@ -75,6 +76,7 @@ func ListSchemaTable(dbid string, schema string) (tablenames []string, err error
 		var tableName string
 		err = rows.Scan(&tableName)
 		if err != nil {
+			beego.Error("2")
 			return tablenames, err
 		}
 		tablenames = append(tablenames, tableName)

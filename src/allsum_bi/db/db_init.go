@@ -35,6 +35,9 @@ func InitDatabase() {
 	beego.Debug("create system schema")
 	db.Table(models.GetDatabaseManagerTableName()).AutoMigrate(&models.DatabaseManager{})
 	db.Table(models.GetDemandTableName()).AutoMigrate(&models.Demand{})
+	db.Table(models.GetReportTableName()).AutoMigrate(&models.Report{})
+	db.Table(models.GetSynchronousTableName()).AutoMigrate(&models.Synchronous{})
+	db.Table(models.GetSynchronousLogTableName()).AutoMigrate(&models.SynchronousLog{})
 
 }
 
@@ -83,6 +86,7 @@ func InitSourceDBConn() (err error) {
 			Passwd: dbinfo.Password,
 			Dbname: dbinfo.Dbname,
 		}
+		beego.Debug("init db", connStruct.Id)
 		err = conn.CreateConn(connStruct)
 		if err != nil {
 			beego.Error("db:  conn err:", dbinfo.Name, err)

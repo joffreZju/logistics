@@ -33,6 +33,10 @@ func CreateConn(conninfo Conn) (err error) {
 	}
 	db.DB().SetMaxIdleConns(5)
 	db.DB().SetMaxOpenConns(30)
+	isdebug := beego.AppConfig.String("log::debug")
+	if isdebug == "true" {
+		db.LogMode(true)
+	}
 	conninfo.Db = db
 	conninfo.Status = true
 	conninfo.Lastusetime = time.Now()

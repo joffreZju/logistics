@@ -5,12 +5,14 @@ import (
 	_ "allsum_bi/routers"
 	"allsum_bi/services/etl"
 	"net/http"
+	"os"
+	"os/signal"
 
 	"github.com/astaxie/beego"
 )
 
 func main() {
-	beego.LoadAppConfig("ini", "conf/bi_web.conf")
+	beego.LoadAppConfig("ini", "conf/allsum_bi.conf")
 
 	//pprf 工具
 	go pprof()
@@ -20,11 +22,18 @@ func main() {
 
 	//启动etl
 	etl.Start()
-	etl.TestETL()
-
-	beego.Run()
+	//	etl.TestETL()
+	go beego.Run()
+	signal_f()
 }
 
 func pprof() {
 	beego.Debug(http.ListenAndServe("0.0.0.0:6060", nil))
+}
+
+func signal_f() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+
+	<-c
 }

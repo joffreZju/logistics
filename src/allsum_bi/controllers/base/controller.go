@@ -1,9 +1,11 @@
 package base
 
 import (
+	"common/lib/redis"
 	"fmt"
-	"strconv"
 	"strings"
+
+	mycache "common/lib/cache"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/cache"
@@ -15,51 +17,17 @@ type Controller struct {
 	ActionName     string
 	IsFailed       bool
 
-	Cache      cache.Cache // 共享缓存
-	LocalCache cache.Cache // 本机缓存
+	Cache       cache.Cache         // 共享缓存
+	LocalCache  cache.Cache         // 本机缓存
+	RedisClient *redis.RedisManager // 本机缓存
 
-	UserID  int64  // 用户ID
-	appName string // app 名称
-	appOS   string // app 系统
-	appVer  string // app 版本号
-}
-
-func (c *Controller) GetAppName() string {
-	if len(c.appName) > 0 {
-		return c.appName
-	}
-	return "app"
-}
-
-func (c *Controller) GetAppOS() string {
-	if strings.Index(c.appOS, "iphone") >= 0 {
-		return "ios"
-	}
-	if strings.Index(c.appOS, "android") >= 0 {
-		return "android"
-	}
-	return "unkown"
-}
-
-func (c *Controller) GetOSVersion() string {
-	if strings.Index(c.appOS, "iphone") >= 0 {
-		return strings.TrimSpace(c.appOS[6:])
-	} else if strings.Index(c.appOS, "android") >= 0 {
-		return strings.TrimSpace(c.appOS[7:])
-	}
-	return "unknown"
-}
-
-func (c *Controller) GetAppVersion() string {
-	return c.appVer
-}
-
-func (c *Controller) GetAppMainVersion() string {
-	fs := strings.Split(c.appVer, ".")
-	if len(fs) >= 2 {
-		return fmt.Sprintf("%s.%s", fs[0], fs[1])
-	}
-	return c.appVer
+	UserID     int    // 用户ID
+	UserComp   string // 用户公司
+	UserGroups string // 用户组织
+	UserRoles  string // 用户角色
+	appName    string // app 名称
+	appOS      string // app 系统
+	appVer     string // app 版本号
 }
 
 func (c *Controller) Prepare() {
@@ -72,9 +40,9 @@ func (c *Controller) Prepare() {
 	//perfcounter.Add(beego.BConfig.AppName+".request.total", 1)
 	//perfcounter.Add(fmt.Sprintf("%s.%s.%s.request.total", beego.BConfig.AppName,
 	//	c.ControllerName, c.ActionName), 1)
-
-	//	c.LocalCache = mycache.LocalCache
-	//	c.Cache = mycache.Cache
+	c.LocalCache = mycache.LocalCache
+	c.Cache = mycache.Cache
+	c.RedisClient = redis.Client
 
 	// 获取客户端版本号
 	c.appName = strings.ToLower(strings.TrimSpace(c.GetString("source")))
@@ -82,11 +50,23 @@ func (c *Controller) Prepare() {
 	c.appVer = strings.ToLower(strings.TrimSpace(c.GetString("ver")))
 
 	// 从 access_token 中获取uid, 客户端可不传uid
-	uid := c.Ctx.Request.Header.Get("uid")
-	if len(uid) > 0 {
-		c.Ctx.Input.SetParam("uid", uid)
-		c.UserID, _ = strconv.ParseInt(uid, 10, 64)
-	}
+	//	uid := c.Ctx.Request.Header.Get("uid")
+	//	if len(uid) > 0 {
+	//		c.Ctx.Input.SetParam("uid", uid)
+	//		c.UserID, _ = strconv.Atoi(uid)
+	//	}
+	//	tokenStr := c.Ctx.Request.Header.Get("access_token")
+	//	uKey := fmt.Sprintf("%s_%s", uid, tokenStr)
+	//	c.RedisClient.Expire(uKey, int64(tokenauth.TokenPeriod+10))
+	//
+	//	m, e := c.RedisClient.Hmget(uKey, []string{"company", "roles", "groups"})
+	//	if e != nil {
+	//		beego.Error(e)
+	//		c.ReplyErr(errcode.ErrGetLoginInfo)
+	//	}
+	//	c.UserComp = m["company"]
+	//	c.UserGroups = m["groups"]
+	//	c.UserRoles = m["roles"]
 }
 
 func (c *Controller) Finish() {

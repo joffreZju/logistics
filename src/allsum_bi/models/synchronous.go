@@ -4,10 +4,14 @@ import (
 	"allsum_bi/db/conn"
 	"fmt"
 	"time"
+
+	"github.com/astaxie/beego"
+	uuid "github.com/satori/go.uuid"
 )
 
 type Synchronous struct {
 	Id           int
+	Uuid         string
 	Owner        string
 	CreateScript string
 	Script       string
@@ -27,8 +31,9 @@ func InsertSynchronous(sync Synchronous) (id int, err error) {
 	if err != nil {
 		return
 	}
+	sync.Uuid = uuid.NewV4().String()
 	exist := db.NewRecord(sync)
-	if exist {
+	if !exist {
 		return id, fmt.Errorf("exist")
 	}
 	err = db.Table(GetSynchronousTableName()).Create(&sync).Error
@@ -41,6 +46,15 @@ func GetSynchronous(id int) (sync Synchronous, err error) {
 		return
 	}
 	err = db.Table(GetSynchronousTableName()).Where("id=?", id).First(&sync).Error
+	return
+}
+
+func GetSynchronousByUuid(uuid string) (sync Synchronous, err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	err = db.Table(GetSynchronousTableName()).Where("uuid=?", uuid).First(&sync).Error
 	return
 }
 
@@ -89,19 +103,20 @@ func UpdateSynchronous(sync Synchronous, params ...string) (err error) {
 	return
 }
 
-func ListSyncInSourceTables(tableNames []string) (syncs map[string]Synchronous, err error) {
+func ListSyncInSourceTables(dbid string, tableNames []string) (syncs map[string]Synchronous, err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
 	}
-	rows, err := db.Table(GetSynchronousTableName()).Where("source_table in (?)", tableNames).Rows()
-
+	rows, err := db.Table(GetSynchronousTableName()).Where("source_db_id = ? and source_table in (?)", dbid, tableNames).Rows()
+	syncs = make(map[string]Synchronous)
 	for rows.Next() {
 		var sync Synchronous
 		err = db.ScanRows(rows, &sync)
 		if err != nil {
 			return syncs, err
 		}
+		beego.Debug("sourcetable", sync.SourceTable)
 		syncs[sync.SourceTable] = sync
 	}
 	return

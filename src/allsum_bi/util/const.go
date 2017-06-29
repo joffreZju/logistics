@@ -20,8 +20,8 @@ const JS_TEMPLATE = "var %s = postgres({\"uri\": \"postgres://%s:%d/%s?sslmode=d
 const JS_TRANSPORT = "t.Source( source, \"/^%s\\/\" ).%sSave( sink, \"/%s/\" )"
 const TRANSPORTFORM_GOJA = "Transform(%s)."
 
-const DEFAULT_TRANSPORT = "skip({\"field\": \"%s\", \"operator\": \"<=\", \"match\": %s})"
-const DEFAULT_PARAMS_SQL = "select max(?) as ? from ?"
+const DEFAULT_TRANSPORT = "skip({\"field\": \"%s\", \"operator\": \"<=\", \"match\": %v})"
+const DEFAULT_PARAMS_SQL = "select max(%v) as %v from %v"
 
 const SYNC_ENABLE = 1
 const SYNC_DISABLE = 0

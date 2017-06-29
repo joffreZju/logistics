@@ -2,7 +2,8 @@ package db
 
 import (
 	"allsum_bi/db/conn"
-	"fmt"
+
+	"github.com/astaxie/beego"
 )
 
 func Exec(dbid string, Sql string, params ...interface{}) (err error) {
@@ -15,40 +16,47 @@ func Exec(dbid string, Sql string, params ...interface{}) (err error) {
 
 }
 
-func QueryToFields(dbid string, sql string, fields []string, params ...interface{}) (res []string, err error) {
+func QueryDatas(dbid string, sql string, params ...interface{}) (datas [][]interface{}, err error) {
 	db, err := conn.GetConn(dbid)
 	if err != nil {
 		return
 	}
-	row := db.Raw(sql, params...)
-	for _, field := range fields {
-		v, ok := row.Get(field)
-		if !ok {
-			err = fmt.Errorf("miss data")
-			return res, err
-		}
-		res = append(res, v.(string))
-	}
-	return
-}
-
-func QueryDatas(dbid string, sql string, params ...interface{}) (datas []map[string]interface{}, err error) {
-	db, err := conn.GetConn(dbid)
+	beego.Debug("sql: ", sql, params)
+	rows, err := db.Raw(sql, params...).Rows()
 	if err != nil {
+		beego.Error("get rows err: ", err)
 		return
 	}
-	rows, err := db.Exec(sql).Rows()
-
+	defer rows.Close()
+	columns, err := rows.ColumnTypes()
+	collen := len(columns)
 	if err != nil {
+		beego.Error("get rows err ", err)
 		return
 	}
 	for rows.Next() {
-		var data map[string]interface{}
-		err = db.ScanRows(rows, &data)
-		if err != nil {
-			return
+		data := make([]interface{}, collen)
+		dataaddr := make([]interface{}, collen)
+		for i, _ := range dataaddr {
+			dataaddr[i] = &data[i]
 		}
+		rows.Scan(dataaddr...)
 		datas = append(datas, data)
 	}
+	beego.Debug("datas : ", datas)
 	return
+
+	//	for rows.Next() {
+	//		var data []interface{}
+	//		rows.Scan(&data)
+	//		beego.Debug("testdata:", rows)
+	//
+	//		err = db.ScanRows(rows, &data)
+	//		if err != nil {
+	//			beego.Error("err scan", err)
+	//			return
+	//		}
+	//		datas = append(datas, data)
+	//	}
+	//	return
 }

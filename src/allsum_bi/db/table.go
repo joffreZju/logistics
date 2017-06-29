@@ -13,7 +13,7 @@ func GetTableDesc(dbid string, schema string, table string, destschema string, d
 	if err != nil {
 		return
 	}
-	rows, err := db.Raw("SELECT column_name, data_type, character_maximum_length, is_nullable FROM information_schema.columns WHERE table_name='?' and table_schema='?'").Rows()
+	rows, err := db.Raw("SELECT column_name, data_type, character_maximum_length, is_nullable FROM information_schema.columns WHERE table_name=? and table_schema=?", table, schema).Rows()
 	if err != nil {
 		beego.Error("get create sql fail :", err)
 		return
@@ -23,14 +23,13 @@ func GetTableDesc(dbid string, schema string, table string, destschema string, d
 	fieldstr := ""
 	for rows.Next() {
 		var column_name, data_type, is_nullable string
-		var character_maximum_length int
+		var character_maximum_length interface{}
 		err = rows.Scan(&column_name, &data_type, &character_maximum_length, &is_nullable)
 		if err != nil {
 			return createsql, err
 		}
-		beego.Debug("character_maximum_length :", character_maximum_length)
-		if character_maximum_length != 0 {
-			data_type = data_type + fmt.Sprintf("(%d)", character_maximum_length)
+		if character_maximum_length != nil {
+			data_type = data_type + fmt.Sprintf("(%v)", character_maximum_length)
 		}
 		if is_nullable == "YES" {
 			is_nullable = "null"
@@ -111,7 +110,9 @@ func GetTablePk(dbid string, schema string, table string) (pks map[string]bool, 
 }
 
 func DeleteTable(dbid string, schema string, table string) (err error) {
-	err = Exec(dbid, "DROP TABLE ?.?", schema, table)
+	schema_table := schema + "." + table
+	sql := "DROP TABLE " + schema_table
+	err = Exec(dbid, sql)
 	return
 }
 
@@ -125,7 +126,7 @@ func GetTableFields(dbid string, schema string, table_name string) (fields []str
 	if err != nil {
 		return
 	}
-	rows, err := db.Raw("select column_name from information_schema.columns where table_name = '?' and table_schema = '?'", table_name, schema).Rows()
+	rows, err := db.Raw("select column_name from information_schema.columns where table_name = ? and table_schema = ?", table_name, schema).Rows()
 	if err != nil {
 		beego.Error("get table fields err : ", err)
 		return
@@ -145,10 +146,21 @@ func GetTableFields(dbid string, schema string, table_name string) (fields []str
 func CheckTableExist(dbid string, table_name string) (isexist bool) {
 	db, err := conn.GetConn(dbid)
 	if err != nil {
-		return
+		beego.Error("get conn err", err)
+		return false
 	}
-	isexist = db.HasTable(table_name)
-	return
+	schema_table := strings.Split(table_name, ".")
+	var count int
+	err = db.Raw("select count(*) from information_schema.tables where table_schema=? and table_type='BASE TABLE' and table_name=?", schema_table[0], schema_table[1]).Row().Scan(&count)
+	if err != nil {
+		beego.Error("CheckTableExist err", err)
+		return false
+	}
+	beego.Debug("table count", count, table_name)
+	if count == 0 {
+		return false
+	}
+	return true
 }
 
 func ListTableData(dbid string, table_name string, conditions []map[string]interface{}, limit int) (datas []map[string]interface{}, err error) {
