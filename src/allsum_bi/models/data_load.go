@@ -31,7 +31,7 @@ func InsertDataLoad(dataload DataLoad) (uuidstr string, err error) {
 	}
 	dataload.Uuid = uuid.NewV4().String()
 	exist := db.NewRecord(dataload)
-	if exist {
+	if !exist {
 		return uuidstr, fmt.Errorf("exist")
 	}
 	err = db.Table(GetDataLoadTableName()).Create(&dataload).Error

@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/astaxie/beego"
 )
 
 func AddDataLoad(dataload map[string]string) (err error) {
@@ -21,18 +23,25 @@ func AddDataLoad(dataload map[string]string) (err error) {
 	schema_table := schema + "." + table_name
 	create_script := dataload["create_script"]
 	isexsit := db.CheckTableExist(util.BASEDB_CONNID, schema_table)
+	beego.Debug("check table exist ", isexsit)
 	if !isexsit {
 		if create_script == "" {
 			return fmt.Errorf("miss create script!")
 		}
 		create_script_real := strings.Replace(create_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
+		if !db.SchemaExist(util.BASEDB_CONNID, schema) {
+			err = db.CreateSchema(schema)
+			if err != nil {
+				return err
+			}
+		}
 		err = db.Exec(util.BASEDB_CONNID, create_script_real)
 		if err != nil {
 			return
 		}
 	}
 	alter_script := dataload["alter_script"]
-	if alter_script != "" {
+	if alter_script != "" && alter_script != "null" {
 		alter_script_real := strings.Replace(alter_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
 		//TODO not sure is able exec multiple sql need check
 		err = db.Exec(util.BASEDB_CONNID, alter_script_real)
@@ -58,19 +67,21 @@ func AddDataLoad(dataload map[string]string) (err error) {
 		aggregationId = aggregate_ops.Id
 	}
 	dataload_db.CreateScript = create_script
-	dataload_db.AlterScript = ""
+	dataload_db.AlterScript = "null"
 	//	dataload_db.FlushScript = flush_script
 	//	dataload_db.Cron = cron
 	dataload_db.Basetable = schema_table
 	dataload_db.Documents = documents
 	dataload_db.Aggregateid = aggregationId
 	dataload_db.Status = util.DATALOAD_STARTED
-	columnmaps, err := db.GetTableColumes(util.BASEDB_CONNID, schema, table_name)
+	columnmaps, err := db.GetTableColumes(util.BASEDB_CONNID, table_name, schema)
 	if err != nil {
+		beego.Error("get table columes err:", err)
 		return
 	}
 	columns, err := json.Marshal(columnmaps)
 	if err != nil {
+		beego.Error("get columnmaps err", err)
 		return
 	}
 	dataload_db.Columns = string(columns)
@@ -95,6 +106,13 @@ func TestCreateScript(dataload_uuid string, table_name string, create_script str
 	}
 	table_name_test := schema + "." + table_name + "_test"
 	create_script_real := strings.Replace(create_script, util.SCRIPT_TABLE, table_name_test, util.SCRIPT_LIMIT)
+	if !db.SchemaExist(util.BASEDB_CONNID, schema) {
+		err = db.CreateSchema(schema)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = db.Exec(util.BASEDB_CONNID, create_script_real)
 	if err != nil {
 		return
@@ -113,10 +131,17 @@ func TestAlterScript(dataload_uuid string, table_name string, alter_script strin
 		return
 	}
 	schema := db.GetCompanySchema(strconv.Itoa(dataload.Owner))
-	isexsit := db.CheckTableExist(util.BASEDB_CONNID, schema+"."+table_name)
-	if !isexsit {
-		return fmt.Errorf("table is not exist ", schema+"."+table_name)
+	//	isexsit := db.CheckTableExist(util.BASEDB_CONNID, schema+"."+table_name)
+	//	if !isexsit {
+	//		return fmt.Errorf("table is not exist ", schema+"."+table_name)
+	//	}
+	if !db.SchemaExist(util.BASEDB_CONNID, schema) {
+		err = db.CreateSchema(schema)
+		if err != nil {
+			return err
+		}
 	}
+
 	table_name_test := schema + "." + table_name + "_test"
 	create_script_real := strings.Replace(dataload.CreateScript, util.SCRIPT_TABLE, table_name_test, util.SCRIPT_LIMIT)
 	err = db.Exec(util.BASEDB_CONNID, create_script_real)
@@ -132,12 +157,12 @@ func TestAlterScript(dataload_uuid string, table_name string, alter_script strin
 	if err != nil {
 		return
 	}
-	new_create_sql, err := db.GetTableDesc(util.BASEDB_CONNID, schema, table_name+"_test", schema, table_name+"_test")
-	if err != nil {
-		return
-	}
-	new_create_sql_format := strings.Replace(new_create_sql, table_name_test, util.SCRIPT_TABLE, 1)
-	dataload.CreateScript = new_create_sql_format
+	//	new_create_sql, err := db.GetTableDesc(util.BASEDB_CONNID, schema, table_name+"_test", schema, table_name+"_test")
+	//	if err != nil {
+	//		return
+	//	}
+	//	new_create_sql_format := strings.Replace(new_create_sql, table_name_test, util.SCRIPT_TABLE, 1)
+	//	dataload.CreateScript = new_create_sql_format
 	dataload.AlterScript = alter_script
 	err = models.UpdateDataLoad(dataload, "create_script", "alter_script")
 	return
@@ -149,11 +174,11 @@ func InsertNewData(uuid string, fields []string, data []map[string]interface{}) 
 		return
 	}
 	tablename := dataload.Basetable
-	insertSql, err := db.MakeInsetSql(tablename, fields, data)
+	insertSql, params, err := db.MakeInsetSql(tablename, fields, data)
 	if err != nil {
 		return
 	}
-	err = db.Exec(util.BASEDB_CONNID, insertSql)
+	err = db.Exec(util.BASEDB_CONNID, insertSql, params...)
 	return
 }
 
@@ -169,15 +194,16 @@ func UpdateData(uuid string, fields []string, datas []map[string]interface{}) (e
 		return
 	}
 	for _, data := range datas {
-		var condition map[string]interface{}
+		condition := map[string]interface{}{}
 		for key, _ := range pks {
 			condition[key] = data[key]
 		}
-		sql, err := db.MakeUpdateSql(tablename, condition, fields, data)
+		sql, params, err := db.MakeUpdateSql(tablename, condition, fields, data)
 		if err != nil {
 			return err
 		}
-		err = db.Exec(util.BASEDB_CONNID, sql)
+		beego.Debug("sql:", sql, params)
+		err = db.Exec(util.BASEDB_CONNID, sql, params...)
 		if err != nil {
 			return err
 		}

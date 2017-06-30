@@ -45,7 +45,7 @@ func (c *Controller) ListDataload() {
 	c.ReplySucc(dataloadres)
 }
 
-func (c *Controller) GetDataLoad() {
+func (c *Controller) GetDataload() {
 	uuid := c.GetString("uuid")
 	if uuid == "" {
 		beego.Error("get dataload miss uuid")
@@ -86,6 +86,7 @@ func (c *Controller) GetDataLoad() {
 		"webfile_name":  dataload.WebfileName,
 		"documents":     dataload.Documents,
 	}
+	c.ReplySucc(res)
 
 	return
 }
@@ -94,7 +95,7 @@ func (c *Controller) SaveDataload() {
 	dataloadName := c.GetString("name")
 	dataloadOwner, err := c.GetInt("owner")
 	if err != nil {
-		beego.Error("list dataloadOwner")
+		beego.Error("save dataloadOwner err", err)
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
@@ -137,8 +138,9 @@ func (c *Controller) SaveDataload() {
 	//have check
 	err = dataload.AddDataLoad(dataloadmap)
 	if err != nil {
-		beego.Error("list dataload err :", err)
+		beego.Error("save dataload err :", err)
 		c.ReplyErr(errcode.ErrServerError)
+		return
 	}
 	res := map[string]string{
 		"res": "success",
@@ -181,8 +183,8 @@ func (c *Controller) TestDataLoadAlterScript() {
 
 func (c *Controller) TestAggregate() {
 	flush_script := c.GetString("flush_script")
-	dataload_uuid := c.GetString("uuid")
-	table_name := c.GetString("table_name")
+	//	dataload_uuid := c.GetString("uuid")
+	//	table_name := c.GetString("table_name")
 	cron := c.GetString("cron")
 	err := aggregation.TestAddCronWithFlushScript(cron, flush_script)
 	if err != nil {
@@ -210,7 +212,7 @@ func (c *Controller) UploadDataLoadWeb() {
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	filename := h.Filename + uuid.NewV4().String()
+	filename := uuid.NewV4().String() + "-" + h.Filename
 	uri, err := ossfile.PutFile("dataload", filename, data)
 	if err != nil {
 		beego.Error("put file to oss err : ", err)
@@ -225,7 +227,7 @@ func (c *Controller) UploadDataLoadWeb() {
 		return
 	}
 	dataload.WebPath = uri
-	dataload.WebfileName = filename
+	dataload.WebfileName = h.Filename
 	err = models.UpdateDataLoad(dataload, "web_path", "webfile_name")
 	if err != nil {
 		beego.Error("update dataload err :", err)
@@ -235,5 +237,22 @@ func (c *Controller) UploadDataLoadWeb() {
 		"res": "success",
 	}
 	c.ReplySucc(res)
+}
 
+func (c *Controller) DownloadDataLoadWeb() {
+	uuid := c.GetString("uuid")
+	dataload, err := models.GetDataLoadByUuid(uuid)
+	if err != nil {
+		beego.Error("get dataload err:", err)
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	filedata, err := ossfile.GetFile(dataload.WebPath)
+	if err != nil {
+		beego.Error("get file err :", err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	c.ReplyFile("application/octet-stream", dataload.WebfileName, filedata)
+	return
 }

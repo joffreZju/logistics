@@ -2,6 +2,7 @@ package routers
 
 import (
 	"allsum_bi/controllers/base"
+	"allsum_bi/controllers/dataloadmgr"
 	"allsum_bi/controllers/demand"
 	"allsum_bi/controllers/etlmgr"
 	"common/filter"
@@ -10,8 +11,9 @@ import (
 )
 
 const (
-	DemandPrefix string = "/v1/demand"
-	ETLPrefix    string = "/v1/etl"
+	DemandPrefix   string = "/v1/demand"
+	ETLPrefix      string = "/v1/etl"
+	DataLoadPrefix string = "/v1/dataload"
 )
 
 func init() {
@@ -30,6 +32,19 @@ func init() {
 	beego.Router(ETLPrefix+"/data_calibration", &etlmgr.Controller{}, "post:DataCalibration")
 	beego.Router(ETLPrefix+"/set_etl", &etlmgr.Controller{}, "post:SetEtl")
 	beego.Router(ETLPrefix+"/stop_etl", &etlmgr.Controller{}, "post:StopEtl")
+
+	//DATALOAD
+	beego.Router(DataLoadPrefix+"/list", &dataloadmgr.Controller{}, "get:ListDataload")
+	beego.Router(DataLoadPrefix+"/get", &dataloadmgr.Controller{}, "get:GetDataload")
+	beego.Router(DataLoadPrefix+"/save", &dataloadmgr.Controller{}, "post:SaveDataload")
+	beego.Router(DataLoadPrefix+"/test_create_script", &dataloadmgr.Controller{}, "post:TestDataLoadCreateScript")
+	beego.Router(DataLoadPrefix+"/test_alter_script", &dataloadmgr.Controller{}, "post:TestDataLoadAlterScript")
+	beego.Router(DataLoadPrefix+"/test_aggregate", &dataloadmgr.Controller{}, "post:TestAggregate")
+	beego.Router(DataLoadPrefix+"/upload_web_file", &dataloadmgr.Controller{}, "post:UploadDataLoadWeb")
+	beego.Router(DataLoadPrefix+"/download_web_file", &dataloadmgr.Controller{}, "get:DownloadDataLoadWeb")
+	//DATALOAD_USER
+	beego.Router(DataLoadPrefix+"/list_data", &dataloadmgr.Controller{}, "post:ListData")
+	beego.Router(DataLoadPrefix+"/input_data", &dataloadmgr.Controller{}, "post:InputData")
 
 	//api auth white list
 

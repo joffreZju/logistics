@@ -46,7 +46,8 @@ func CreateSchema(schemaName string) (err error) {
 	if exist {
 		return
 	} else {
-		db.Exec("CREATE SCHEMA ?", schemaName)
+		sql := fmt.Sprintf("create schema %v", schemaName)
+		db.Exec(sql)
 	}
 	return
 }

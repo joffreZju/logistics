@@ -1,7 +1,6 @@
 package dataloadmgr
 
 import (
-	"allsum_bi/controllers/base"
 	"allsum_bi/services/dataload"
 	"allsum_bi/util"
 	"allsum_bi/util/errcode"
@@ -9,10 +8,6 @@ import (
 
 	"github.com/astaxie/beego"
 )
-
-type Controller struct {
-	base.Controller
-}
 
 func (c *Controller) ListData() {
 	var reqdata map[string]interface{}
@@ -28,20 +23,31 @@ func (c *Controller) ListData() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
+	var conditionMap []map[string]interface{}
 	condition, ok := reqdata["condition"]
 	if !ok {
-		condition = []map[string]interface{}{}
+		conditionMap = []map[string]interface{}{}
+	} else {
+		for _, v := range condition.([]interface{}) {
+			conditionMap = append(conditionMap, v.(map[string]interface{}))
+		}
 	}
 	limit, ok := reqdata["limit"]
 	if !ok {
 		limit = 10
 	}
-	columns, datas, err := dataload.GetData(uuid, condition, limit)
+
+	columns, datas, err := dataload.GetData(uuid.(string), conditionMap, int(limit.(float64)))
 	if err != nil {
 		beego.Error("get data err ", err)
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
+	res := map[string]interface{}{
+		"columns": columns,
+		"datas":   datas,
+	}
+	c.ReplySucc(res)
 	return
 }
 
@@ -65,27 +71,35 @@ func (c *Controller) InputData() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	fields, ok := reqdata["fields"]
+	fieldinterface, ok := reqdata["fields"]
 	if !ok {
 		beego.Error("miss fields")
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	data, ok := reqdata["data"]
+	var fields []string
+	for _, v := range fieldinterface.([]interface{}) {
+		fields = append(fields, v.(string))
+	}
+	datainterface, ok := reqdata["data"]
 	if !ok {
 		beego.Error("miss data")
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
+	var data []map[string]interface{}
+	for _, v := range datainterface.([]interface{}) {
+		data = append(data, v.(map[string]interface{}))
+	}
 	if inputType == util.IS_UPDATE {
-		err = dataload.UpdateData(uuid, fields, data)
+		err = dataload.UpdateData(uuid.(string), fields, data)
 		if err != nil {
 			beego.Error("update data fail err : ", err)
 			c.ReplyErr(errcode.ErrServerError)
 			return
 		}
 	} else if inputType == util.IS_INSERT {
-		err = dataload.InsertNewData(uuid, fields, data)
+		err = dataload.InsertNewData(uuid.(string), fields, data)
 		if err != nil {
 			beego.Error("insert data fail err : ", err)
 			c.ReplyErr(errcode.ErrServerError)

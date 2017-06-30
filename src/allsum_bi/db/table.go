@@ -56,7 +56,7 @@ func GetTableColumes(dbid string, table string, schema string) (columns []map[st
 	if err != nil {
 		return
 	}
-	rows, err := db.Raw("SELECT column_name, data_type from information_schema.columns where table_name='?' and table_schema='?'").Rows()
+	rows, err := db.Raw("SELECT column_name, data_type from information_schema.columns where table_name=? and table_schema=?", table, schema).Rows()
 	if err != nil {
 		return
 	}
@@ -91,13 +91,14 @@ func GetTablePk(dbid string, schema string, table string) (pks map[string]bool, 
 		"inner join pg_attribute on pg_attribute.attrelid = pg_class.oid and  pg_attribute.attnum = ANY(pg_constraint.conkey) "+
 		"inner join pg_type on pg_type.oid = pg_attribute.atttypid "+
 		"inner join pg_namespace on pg_constraint.connamespace = pg_namespace.oid "+
-		"where pg_class.relname = '?' "+
+		"where pg_class.relname = ? "+
 		"and pg_constraint.contype='p' "+
-		"and pg_namespace.nspname='?';", table, schema).Rows()
+		"and pg_namespace.nspname= ?;", table, schema).Rows()
 	if err != nil {
 		return
 	}
 	defer rows.Close()
+	pks = make(map[string]bool)
 	for rows.Next() {
 		var colname string
 		err = rows.Scan(&colname)
@@ -117,7 +118,8 @@ func DeleteTable(dbid string, schema string, table string) (err error) {
 }
 
 func DeleteSchemaTable(dbid string, table string) (err error) {
-	err = Exec(dbid, "DROP TABLE ?", table)
+	sql := "DROP TABLE " + table
+	err = Exec(dbid, sql)
 	return
 }
 
@@ -169,8 +171,8 @@ func ListTableData(dbid string, table_name string, conditions []map[string]inter
 		return
 	}
 	var condition_strs []string
-	for _, conditionmap := range conditions {
-		str := fmt.Sprintf("%s %s %v", conditionmap["key"], conditionmap["opt"], conditionmap["value"])
+	for _, condition := range conditions {
+		str := fmt.Sprintf("%s %s %v", condition["key"], condition["opt"], condition["value"])
 		condition_strs = append(condition_strs, str)
 	}
 	condition_str := strings.Join(condition_strs, " AND ")

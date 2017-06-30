@@ -318,7 +318,7 @@ func (c *Controller) UploadDemandDoc() {
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	filename := h.Filename + uuid.NewV4().String()
+	filename := uuid.NewV4().String() + "-" + h.Filename
 	uri, err := ossfile.PutFile("demand", filename, data)
 	if err != nil {
 		beego.Error("put file to oss err : ", err)

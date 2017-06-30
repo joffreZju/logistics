@@ -38,6 +38,8 @@ func InitDatabase() {
 	db.Table(models.GetReportTableName()).AutoMigrate(&models.Report{})
 	db.Table(models.GetSynchronousTableName()).AutoMigrate(&models.Synchronous{})
 	db.Table(models.GetSynchronousLogTableName()).AutoMigrate(&models.SynchronousLog{})
+	db.Table(models.GetDataLoadTableName()).AutoMigrate(&models.DataLoad{})
+	db.Table(models.GetAggregateOpsTableName()).AutoMigrate(&models.AggregateOps{})
 
 }
 
