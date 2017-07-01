@@ -120,6 +120,7 @@ func (c *Controller) AddGroup() {
 	prefix := c.UserComp
 	newGroupStr := c.GetString("newGroup")
 	sonsStr := c.GetString("sons")
+	desc := c.GetString("desc")
 	beginTime, e := c.getBeginTimeOfOperation()
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
@@ -147,9 +148,9 @@ func (c *Controller) AddGroup() {
 	ng.No = model.UniqueNo("G")
 	ng.Ctime = time.Now()
 	if ng.Pid == 0 && len(sons) == 0 {
-		e = service.AddRootGroup(prefix, beginTime, ng)
+		e = service.AddRootGroup(prefix, desc, beginTime, ng)
 	} else {
-		e = service.AddGroup(prefix, beginTime, ng, sons)
+		e = service.AddGroup(prefix, desc, beginTime, ng, sons)
 	}
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
@@ -171,6 +172,7 @@ func (c *Controller) MergeGroups() {
 	prefix := c.UserComp
 	oldIdsStr := c.GetString("oldGroups")
 	newGroupStr := c.GetString("newGroup")
+	desc := c.GetString("desc")
 	beginTime, e := c.getBeginTimeOfOperation()
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
@@ -200,7 +202,7 @@ func (c *Controller) MergeGroups() {
 	ng.CreatorId = uid
 	ng.No = model.UniqueNo("G")
 	ng.Ctime = time.Now()
-	e = service.MergeGroups(prefix, beginTime, ng, oldIds)
+	e = service.MergeGroups(prefix, desc, beginTime, ng, oldIds)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -220,6 +222,7 @@ func (c *Controller) MoveGroup() {
 	prefix := c.UserComp
 	gid, e := c.GetInt("id")
 	newPid, e2 := c.GetInt("newPid")
+	desc := c.GetString("desc")
 	if e != nil || e2 != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e, e2)
@@ -231,7 +234,7 @@ func (c *Controller) MoveGroup() {
 		beego.Error(e)
 		return
 	}
-	e = service.MoveGroup(prefix, beginTime, gid, newPid)
+	e = service.MoveGroup(prefix, desc, beginTime, gid, newPid)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -249,6 +252,7 @@ func (c *Controller) DelGroup() {
 		return
 	}
 	prefix := c.UserComp
+	desc := c.GetString("desc")
 	gid, e := c.GetInt("id")
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
@@ -261,7 +265,7 @@ func (c *Controller) DelGroup() {
 		beego.Error(e)
 		return
 	}
-	e = service.DelGroup(prefix, beginTime, gid)
+	e = service.DelGroup(prefix, desc, beginTime, gid)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -279,6 +283,7 @@ func (c *Controller) UpdateGroup() {
 		return
 	}
 	prefix := c.UserComp
+	desc := c.GetString("desc")
 	str := c.GetString("group")
 	g := new(model.Group)
 	e = json.Unmarshal([]byte(str), g)
@@ -294,13 +299,23 @@ func (c *Controller) UpdateGroup() {
 		return
 	}
 	//更新属性
-	e = service.UpdateGroup(prefix, beginTime, g)
+	e = service.UpdateGroup(prefix, desc, beginTime, g)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
 		c.ReplySucc(nil)
 	}
+}
+
+func (c *Controller) GetGroupOpList() {
+	prefix := c.UserComp
+	limit := c.GetString("limit")
+
+}
+
+func (c *Controller) CancelFutureGroupOperation() {
+
 }
 
 //获取所有组织节点

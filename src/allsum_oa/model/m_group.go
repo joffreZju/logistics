@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	GroupTreeIsFuture = 1
+	GroupOpStatHistory = iota + 1
+	GroupOpStatFuture
 )
 
 type UserGroup struct {
@@ -52,11 +53,11 @@ func (Attribute) TableName() string {
 }
 
 type GroupOperation struct {
-	Id        int    `gorm:"primary_key;AUTO_INCREMENT"`
+	Id        int `gorm:"primary_key;AUTO_INCREMENT"`
+	Desc      string
 	Groups    string `gorm:"type:jsonb;not null"`
-	EndTime   time.Time
 	BeginTime time.Time
-	IsFuture  int `gorm:"default:0"` // 0:历史组织树，1:还未生效的组织树
+	Status    int `gorm:"default:1"` // 1:历史组织树，2:还未生效的组织树
 }
 
 func (GroupOperation) TableName() string {

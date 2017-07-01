@@ -71,60 +71,27 @@ func handleApprovaltpl(prefix string, interval float64) {
 
 func handleGroupOperation(prefix string, interval float64) {
 	op := &model.GroupOperation{}
-	txx := model.NewOrm().Table(prefix + "." + op.TableName()).Begin()
-	e := txx.Find(op, "is_future=?", model.GroupTreeIsFuture).Error
+	db := model.NewOrm().Table(prefix + "." + op.TableName())
+	e := db.Find(op, "is_future=?", model.GroupOpStatFuture).Error
 	if e != nil {
 		if e != gorm.ErrRecordNotFound {
 			beego.Error(e)
 		}
-		txx.Rollback()
 		return
 	}
 	if math.Abs(op.BeginTime.Sub(time.Now()).Minutes()) > interval {
-		txx.Rollback()
 		return
 	}
-	//删掉任务
-	if txx.Delete(op).RowsAffected != 1 {
-		txx.Rollback()
-	} else {
-		txx.Commit()
-	}
-	tx := model.NewOrm().Begin()
-	newGroups, oldGroups := []*model.Group{}, []*model.Group{}
 	//从json解析新组织树
+	newGroups := []*model.Group{}
 	e = json.Unmarshal([]byte(op.Groups), &newGroups)
 	if e != nil {
-		beego.Error(e)
-		tx.Rollback()
-		return
-	}
-	//拿到旧组织树并转为json
-	e = tx.Table(prefix + "." + model.Group{}.TableName()).Find(&oldGroups).Error
-	if e != nil {
-		beego.Error(e)
-		tx.Rollback()
-		return
-	}
-	oldStr, e := json.Marshal(&oldGroups)
-	if e != nil {
-		beego.Error(e)
-		tx.Rollback()
-		return
-	}
-	//保存旧组织树
-	hisOp := &model.GroupOperation{
-		Groups:  string(oldStr),
-		EndTime: op.BeginTime,
-	}
-	e = tx.Table(prefix + "." + hisOp.TableName()).Create(hisOp).Error
-	if e != nil {
-		beego.Error(e)
-		tx.Rollback()
+		beego.Error("执行定时任务失败:", e)
 		return
 	}
 	//从group表中删除旧组织树
-	e = tx.Table(prefix + "." + model.Group{}.TableName()).Delete(&model.Group{}).Error
+	tx := model.NewOrm().Table(prefix + "." + model.Group{}.TableName()).Begin()
+	e = tx.Delete(&model.Group{}).Error
 	if e != nil {
 		beego.Error(e)
 		tx.Rollback()
@@ -132,12 +99,19 @@ func handleGroupOperation(prefix string, interval float64) {
 	}
 	//向group中插入新组织树
 	for _, v := range newGroups {
-		e = tx.Table(prefix + "." + model.Group{}.TableName()).Create(v).Error
+		e = tx.Create(v).Error
 		if e != nil {
 			beego.Error(e)
 			tx.Rollback()
 			return
 		}
+	}
+	op.Status = model.GroupOpStatHistory
+	e = tx.Table(prefix + "." + op.TableName()).Model(op).Updates(op)
+	if e != nil {
+		beego.Error(e)
+		tx.Rollback()
+		return
 	}
 	e = tx.Commit().Error
 	if e != nil {

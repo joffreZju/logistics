@@ -48,18 +48,20 @@ func GetGroup(prefix string, id int) (g *model.Group, e error) {
 func CheckFutureGroupOperation(prefix string) (e error) {
 	count := 0
 	e = model.NewOrm().Table(prefix+"."+model.GroupOperation{}.TableName()).
-		Where("is_future=?", model.GroupTreeIsFuture).Count(&count).Error
+		Where("status=? and begin_time>", model.GroupOpStatFuture, time.Now()).Count(&count).Error
 	if e != nil || count != 0 {
 		return errors.New("当前有未生效的修改")
 	}
 	return nil
 }
 
-func handleTX(prefix string, beginTime time.Time, tx *gorm.DB) (e error) {
+func handleTX(prefix, desc string, beginTime time.Time, tx *gorm.DB) (e error) {
+	//确定是立即生效还是未来定时生效
+	isFuture := true
 	if beginTime.Sub(time.Now()).Nanoseconds() <= 0 {
-		return tx.Commit().Error
+		isFuture = false
 	}
-	//需要定时更改组织树，创建定时任务
+	//创建组织树操作记录
 	groups := []*model.Group{}
 	e = tx.Table(prefix + "." + model.Group{}.TableName()).Find(&groups).Error
 	if e != nil {
@@ -72,20 +74,27 @@ func handleTX(prefix string, beginTime time.Time, tx *gorm.DB) (e error) {
 		return e
 	}
 	op := &model.GroupOperation{
+		Desc:      desc,
 		BeginTime: beginTime,
-		IsFuture:  model.GroupTreeIsFuture,
 		Groups:    string(b),
 	}
-	e = model.NewOrm().Table(prefix + "." + op.TableName()).Create(op).Error
+	if isFuture {
+		op.Status = model.GroupOpStatFuture
+	}
+	e = model.NewOrm().Table(prefix + "." + op.TableName()).Create(op).Error //这里不能用tx
 	if e != nil {
 		tx.Rollback()
 		return
 	}
-	//创建完定时任务之后回滚当前操作
-	return tx.Rollback().Error
+	//提交或回滚事务
+	if isFuture {
+		return tx.Rollback().Error
+	} else {
+		return tx.Commit().Error
+	}
 }
 
-func AddRootGroup(prefix string, beginTime time.Time, ng *model.Group) (e error) {
+func AddRootGroup(prefix, desc string, beginTime time.Time, ng *model.Group) (e error) {
 	tx := model.NewOrm().Table(prefix + "." + ng.TableName()).Begin()
 	e = tx.Create(ng).Error
 	if e != nil {
@@ -99,10 +108,10 @@ func AddRootGroup(prefix string, beginTime time.Time, ng *model.Group) (e error)
 		return
 	}
 	//return tx.Commit().Error
-	return handleTX(prefix, beginTime, tx)
+	return handleTX(prefix, desc, beginTime, tx)
 }
 
-func AddGroup(prefix string, beginTime time.Time, ng *model.Group, sonIds []int) (e error) {
+func AddGroup(prefix, desc string, beginTime time.Time, ng *model.Group, sonIds []int) (e error) {
 	tx := model.NewOrm().Table(prefix + "." + ng.TableName()).Begin()
 	father := &model.Group{}
 	e = tx.First(&father, ng.Pid).Error
@@ -162,10 +171,10 @@ func AddGroup(prefix string, beginTime time.Time, ng *model.Group, sonIds []int)
 		}
 	}
 	//return tx.Commit().Error
-	return handleTX(prefix, beginTime, tx)
+	return handleTX(prefix, desc, beginTime, tx)
 }
 
-func MergeGroups(prefix string, beginTime time.Time, ng *model.Group, oldIds []int) (e error) {
+func MergeGroups(prefix, desc string, beginTime time.Time, ng *model.Group, oldIds []int) (e error) {
 	groupTb := prefix + "." + ng.TableName()
 	userGroupTb := prefix + "." + model.UserGroup{}.TableName()
 	tx := model.NewOrm().Begin()
@@ -232,10 +241,10 @@ func MergeGroups(prefix string, beginTime time.Time, ng *model.Group, oldIds []i
 		return
 	}
 	//return tx.Commit().Error
-	return handleTX(prefix, beginTime, tx)
+	return handleTX(prefix, desc, beginTime, tx)
 }
 
-func MoveGroup(prefix string, beginTime time.Time, gid, newPid int) (e error) {
+func MoveGroup(prefix, desc string, beginTime time.Time, gid, newPid int) (e error) {
 	g, gNewFather := new(model.Group), new(model.Group)
 	tx := model.NewOrm().Table(prefix + "." + g.TableName()).Begin()
 	e = tx.First(g, gid).Error
@@ -272,10 +281,10 @@ func MoveGroup(prefix string, beginTime time.Time, gid, newPid int) (e error) {
 		return
 	}
 	//return tx.Commit().Error
-	return handleTX(prefix, beginTime, tx)
+	return handleTX(prefix, desc, beginTime, tx)
 }
 
-func DelGroup(prefix string, beginTime time.Time, gid int) (e error) {
+func DelGroup(prefix, desc string, beginTime time.Time, gid int) (e error) {
 	db := model.NewOrm()
 	count := 0
 	e = db.Table(prefix+"."+model.UserGroup{}.TableName()).
@@ -318,13 +327,17 @@ func DelGroup(prefix string, beginTime time.Time, gid int) (e error) {
 		return
 	}
 	//return tx.Commit().Error
-	return handleTX(prefix, beginTime, tx)
+	return handleTX(prefix, desc, beginTime, tx)
 }
 
-func UpdateGroup(prefix string, beginTime time.Time, g *model.Group) (e error) {
+func UpdateGroup(prefix, desc string, beginTime time.Time, g *model.Group) (e error) {
 	tx := model.NewOrm().Table(prefix + "." + model.Group{}.TableName())
 	e = tx.Where("id = ?", g.Id).Updates(g).Error
-	return handleTX(prefix, beginTime, tx)
+	return handleTX(prefix, desc, beginTime, tx)
+}
+
+func GetGroupOpList(prefix string, limit int) (ops []*model.GroupOperation, e error) {
+	model.NewOrm("")
 }
 
 func GetGroupList(prefix string) (gs []*model.Group, e error) {
