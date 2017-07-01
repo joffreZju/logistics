@@ -37,9 +37,9 @@ type User struct {
 	No        string `gorm:"unique;size:64"`
 	Tel       string `gorm:"unique;size:15;not null"`
 	Password  string `json:"-"` // 密码
-	UserName  string `gorm:"size:64"`
-	Icon      string `gorm:"size:64"`
-	Desc      string
+	UserName  string `gorm:""`
+	Icon      string `gorm:""`
+	Descrp    string
 	Gender    int       // 0:男 1：女
 	Address   string    `gorm:"size:64"`
 	Ctime     time.Time `gorm:"default:current_timestamp"`
@@ -54,7 +54,7 @@ type User struct {
 }
 
 func (User) TableName() string {
-	return "user"
+	return "allsum_user"
 }
 
 func CreateUser(prefix string, u *User) (err error) {
@@ -97,7 +97,7 @@ func Update___User(prefix string, u *User, fields ...string) (err error) {
 			values = append(values, u.UserName)
 		case "Descp":
 			params += " desc= ? ,"
-			values = append(values, u.Desc)
+			values = append(values, u.Descrp)
 		case "Gender":
 			params += " gender= ? ,"
 			values = append(values, u.Gender)
@@ -132,9 +132,11 @@ type Company struct {
 	Id          int    `gorm:"auto_increment;primary_key"`
 	No          string `gorm:"unique"`
 	Creator     int    `gorm:"not null"`
+	AdminId     int    `gorm:"not null"`
 	FirmName    string
 	FirmType    string
-	Desc        string
+	Descrp      string
+	Address     string
 	Phone       string
 	LicenseFile StrSlice  `gorm:"type:text[]"`
 	Status      int       //1:待审核;2:审核通过;3:审核不通过4:删除;
@@ -171,10 +173,13 @@ func CreateCompany(c *Company) (err error) {
 }
 
 func UpdateCompany(c *Company) (err error) {
-	count := NewOrm().Table(c.TableName()).Where("no=? and creator = ? and status <> ?", c.No, c.Creator, CompanyStatApproveAccessed).
-		Updates(&c).RowsAffected
+	cond := &Company{
+		No:      c.No,
+		AdminId: c.AdminId,
+	}
+	count := NewOrm().Table(c.TableName()).Where(cond).Updates(&c).RowsAffected
 	if count != 1 {
-		err = errors.New("update license file failed")
+		err = errors.New("update company info failed")
 	}
 	return
 }
@@ -199,12 +204,12 @@ func AddUserToCompany(cno string, uid int) (err error) {
 }
 
 type Function struct {
-	Id    int    `gorm:"primary_key;AUTO_INCREMENT"`
-	Name  string `gorm:"not null"`
-	Desc  string
-	Pid   int       `gorm:"not null"`
-	Ctime time.Time `gorm:"default:current_timestamp"`
-	Path  string    `gorm:""`
+	Id     int    `gorm:"primary_key;AUTO_INCREMENT"`
+	Name   string `gorm:"not null"`
+	Descrp string
+	Pid    int       `gorm:"not null"`
+	Ctime  time.Time `gorm:"default:current_timestamp"`
+	Path   string    `gorm:""`
 }
 
 func (Function) TableName() string {

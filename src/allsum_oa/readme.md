@@ -1,5 +1,29 @@
 ### 系统常量定义
 
+- 接口修改
+    - 系统所有desc（Desc）字段都更改为descrp，涉及修改的接口：
+        - 修改传入参数：增加组织属性，更新组织属性，组织树修改的五个接口，增加角色，更新角色
+        - 修改返回参数：接口返回数据涉及到以下数据结构的，Desc更改为Descrp
+        ```
+            user.Descrp
+            function.Descp 
+            company.Descrp 
+            form.descrp 
+            formtpl.descrp 
+            approval.descrp 
+            approvaltpl.descrp 
+            role.descrp 
+            attibute.descrp
+        ```
+    
+    - 组织树修改的五个接口全部加上descrp和beginTime(可选)，删除组织树：post方式，同样加字段。
+    
+    - 公司增加AdminId字段，是公司管理员（老板）的userId。
+    
+    - 上传公司资质文件改为 修改公司信息。url改为http://allsum.com:8094/v2/firm/update_firm_info
+    
+    - 增加用户修改个人信息接口
+
 ```
 User.Status{1:正常,2:锁定}
 
@@ -21,6 +45,9 @@ Approval.Status{1：存为草稿，2：正在审批，3：审批通过，4：审
 
 审批人的审批意见
 ApproveFlow.Opinion{1:同意,2:拒绝}
+ 
+组织树操作记录
+GroupOperation.Status{1:历史记录,2:未生效记录}
 
 涉及修改的接口:
 1. 管理员审核公司

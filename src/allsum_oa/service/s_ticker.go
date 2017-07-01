@@ -9,18 +9,23 @@ import (
 	"time"
 )
 
-//十分钟扫描一次，如果设置的开始时间小于
+const (
+	Interval    = 10
+	MaxDistance = 15
+)
+
+//十分钟Interval扫描一次，如果设置的开始时间小于MaxDistance就执行操作
 func Ticker() {
-	tick := time.Tick(time.Minute * 10)
+	tick := time.Tick(time.Minute * Interval)
 	for {
 		select {
 		case <-tick:
-			go ScanAllSchema(15)
+			go ScanAllSchema(MaxDistance)
 		}
 	}
 }
 
-func ScanAllSchema(interval float64) {
+func ScanAllSchema(MaxDistance float64) {
 	db := model.NewOrm()
 	comps := []model.Company{}
 	e := db.Find(&comps, model.Company{Status: model.CompanyStatApproveAccessed}).Error
@@ -28,13 +33,13 @@ func ScanAllSchema(interval float64) {
 		return
 	}
 	for _, v := range comps {
-		go handleGroupOperation(v.No, interval)
-		go handleFormtpl(v.No, interval)
-		go handleApprovaltpl(v.No, interval)
+		go handleGroupOperation(v.No, MaxDistance)
+		go handleFormtpl(v.No, MaxDistance)
+		go handleApprovaltpl(v.No, MaxDistance)
 	}
 }
 
-func handleFormtpl(prefix string, interval float64) {
+func handleFormtpl(prefix string, MaxDistance float64) {
 	ftpls := []*model.Formtpl{}
 	db := model.NewOrm().Table(prefix + "." + model.Formtpl{}.TableName())
 	e := db.Find(&ftpls, "status=?", model.TplInit).Error
@@ -43,7 +48,7 @@ func handleFormtpl(prefix string, interval float64) {
 		return
 	}
 	for _, v := range ftpls {
-		if math.Abs(v.BeginTime.Sub(time.Now()).Minutes()) < interval {
+		if math.Abs(v.BeginTime.Sub(time.Now()).Minutes()) <= MaxDistance {
 			e = db.Model(v).Update("status", model.TplAbled).Error
 			if e != nil {
 				beego.Error(e)
@@ -51,7 +56,7 @@ func handleFormtpl(prefix string, interval float64) {
 		}
 	}
 }
-func handleApprovaltpl(prefix string, interval float64) {
+func handleApprovaltpl(prefix string, MaxDistance float64) {
 	atpls := []*model.Approvaltpl{}
 	db := model.NewOrm().Table(prefix + "." + model.Approvaltpl{}.TableName())
 	e := db.Find(&atpls, "status=?", model.TplInit).Error
@@ -60,7 +65,7 @@ func handleApprovaltpl(prefix string, interval float64) {
 		return
 	}
 	for _, v := range atpls {
-		if math.Abs(v.BeginTime.Sub(time.Now()).Minutes()) < interval {
+		if math.Abs(v.BeginTime.Sub(time.Now()).Minutes()) <= MaxDistance {
 			e = db.Model(v).Update("status", model.TplAbled).Error
 			if e != nil {
 				beego.Error(e)
@@ -69,17 +74,17 @@ func handleApprovaltpl(prefix string, interval float64) {
 	}
 }
 
-func handleGroupOperation(prefix string, interval float64) {
+func handleGroupOperation(prefix string, MaxDistance float64) {
 	op := &model.GroupOperation{}
 	db := model.NewOrm().Table(prefix + "." + op.TableName())
-	e := db.Find(op, "is_future=?", model.GroupOpStatFuture).Error
+	e := db.Find(op, "status=?", model.GroupOpStatFuture).Error
 	if e != nil {
 		if e != gorm.ErrRecordNotFound {
 			beego.Error(e)
 		}
 		return
 	}
-	if math.Abs(op.BeginTime.Sub(time.Now()).Minutes()) > interval {
+	if math.Abs(op.BeginTime.Sub(time.Now()).Minutes()) > MaxDistance {
 		return
 	}
 	//从json解析新组织树
@@ -107,7 +112,7 @@ func handleGroupOperation(prefix string, interval float64) {
 		}
 	}
 	op.Status = model.GroupOpStatHistory
-	e = tx.Table(prefix + "." + op.TableName()).Model(op).Updates(op)
+	e = tx.Table(prefix + "." + op.TableName()).Model(op).Updates(op).Error
 	if e != nil {
 		beego.Error(e)
 		tx.Rollback()

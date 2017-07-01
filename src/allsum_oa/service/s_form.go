@@ -182,7 +182,7 @@ func GetApproverList(prefix, atplno string, currentGroup int) (rolemap []map[str
 		pids = append(pids, pid)
 	}
 	//找到同时在组织路径上，在审批角色流里面的所有用户
-	sql := fmt.Sprintf(`SELECT * from "%s".user WHERE id in
+	sql := fmt.Sprintf(`SELECT * from "%s".allsum_user WHERE id in
 		(SELECT t1.user_id FROM "%s".user_group as t1 INNER JOIN "%s".user_role as t2
 		on t1.user_id = t2.user_id
 		where t1.group_id in (?) and t2.role_id=? )`, prefix, prefix, prefix)

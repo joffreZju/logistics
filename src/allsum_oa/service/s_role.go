@@ -113,7 +113,7 @@ func DelRole(prefix string, rid int) (e error) {
 }
 
 func GetUsersOfRole(prefix string, rid int) (users []*model.User, e error) {
-	sql := fmt.Sprintf(`select * from "%s".user as t1 inner join "%s".user_role as t2
+	sql := fmt.Sprintf(`select * from "%s".allsum_user as t1 inner join "%s".user_role as t2
 		on t1.id = t2.user_id where t2.role_id=%d`, prefix, prefix, rid)
 	users = []*model.User{}
 	e = model.NewOrm().Raw(sql).Scan(&users).Error

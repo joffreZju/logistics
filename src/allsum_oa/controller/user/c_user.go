@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"time"
 
-	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/ysqi/tokenauth"
 	"github.com/ysqi/tokenauth2beego/o2o"
@@ -100,6 +99,7 @@ func (c *Controller) UserRegister() {
 		FirmName: firm_name,
 		FirmType: firm_type,
 		Creator:  u.Id,
+		AdminId:  u.Id,
 		Status:   model.CompanyStatApproveWait,
 	}
 	err = model.CreateCompany(&comp)
@@ -136,6 +136,42 @@ func (c *Controller) GetUserInfo() {
 	}
 	c.ReplySucc(user)
 	return
+}
+
+func (c *Controller) UpdateUserInfo() {
+	prefix := c.UserComp
+	uid := c.UserID
+	uname := c.GetString("username")
+	icon := c.GetString("icon")
+	if len(uname) == 0 && len(icon) == 0 {
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	user, e := service.GetUserById("public", uid)
+	if e != nil {
+		beego.Error(e)
+		c.ReplyErr(errcode.ErrGetUserInfoFailed)
+		return
+	}
+	if len(uname) != 0 {
+		user.UserName = uname
+	}
+	if len(icon) != 0 {
+		user.Icon = icon
+	}
+	e = model.UpdateUser("public", user)
+	if e != nil {
+		beego.Error(e)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	e = model.UpdateUser(prefix, user)
+	if e != nil {
+		beego.Error(e)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	c.ReplySucc(nil)
 }
 
 func (c *Controller) UserLogin() {
@@ -392,227 +428,6 @@ func (c *Controller) Resetpwd() {
 	}
 }
 
-//注册之后增加公司资质信息
-func (c *Controller) AddLicenseFile() {
-	urlstr := c.GetString("url")
-	urlslice := model.StrSlice{}
-	e := json.Unmarshal([]byte(urlstr), &urlslice)
-	if e != nil {
-		c.ReplyErr(errcode.ErrParams)
-		beego.Error(e)
-		return
-	}
-	compNo := c.UserComp
-	uid := c.UserID
-	comp := model.Company{
-		No:          compNo,
-		Creator:     uid,
-		LicenseFile: urlslice,
-	}
-	e = model.UpdateCompany(&comp)
-	if e != nil {
-		c.ReplyErr(errcode.ErrFirmUpdateFailed)
-		beego.Error(e)
-	}
-	c.ReplySucc(nil)
-}
-
-func (c *Controller) AdminGetFirmInfo() {
-	no := c.GetString("cno")
-	f, err := model.GetCompany(no)
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrFirmNotExisted)
-		return
-	}
-	c.ReplySucc(*f)
-}
-
-func (c *Controller) AdminGetFirmList() {
-	list, err := model.GetCompanyList()
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	c.ReplySucc(list)
-}
-
-func (c *Controller) AdminFirmAudit() {
-	uid := c.UserID
-	cno := c.GetString("cno")
-	status, err := c.GetInt("status")
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
-	msg := c.GetString("msg")
-	err = service.AuditCompany(cno, uid, status, msg)
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	c.ReplySucc(nil)
-}
-
-func (c *Controller) FirmGetUserList() {
-	prefix := c.UserComp
-	users, e := service.GetUserListOfCompany(prefix)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.New(commonErr, e.Error()))
-	} else {
-		c.ReplySucc(users)
-	}
-}
-
-func (c *Controller) FirmAddUser() {
-	cno := c.GetString("cno")
-	tel := c.GetString("tel")
-	name := c.GetString("name")
-	gender, e := c.GetInt("gender")
-	if e != nil {
-		gender = 0
-	}
-	groups, roles := []int{}, []int{}
-	gstr, rstr := c.GetString("groups"), c.GetString("roles")
-	e = json.Unmarshal([]byte(gstr), &groups)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
-	e = json.Unmarshal([]byte(rstr), &roles)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
-
-	user := &model.User{
-		Tel:      tel,
-		No:       model.UniqueNo("U"),
-		Password: keycrypt.Sha256Cal("123456"),
-		UserName: name,
-		Gender:   gender,
-		UserType: model.UserTypeNormal,
-		Status:   model.UserStatusOk,
-	}
-	e = model.FirstOrCreateUser("public", user)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	e = model.FirstOrCreateUser(cno, user)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	e = model.AddUserToCompany(cno, user.Id)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	e = service.AddUserToGroups(cno, groups, user.Id)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	e = service.AddUserToRoles(cno, roles, user.Id)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	c.ReplySucc(nil)
-}
-
-func (c *Controller) FirmControlUserStatus() {
-	prefix := c.UserComp
-	tel := c.GetString("tel")
-	status, e := c.GetInt("status")
-	if e != nil || (status != model.UserStatusOk && status != model.UserStatusLocked) {
-		c.ReplyErr(errcode.ErrParams)
-		beego.Error(e)
-		return
-	}
-	e = model.UpdateUser(prefix, &model.User{Tel: tel, Status: status})
-	e = model.UpdateUser(prefix, &model.User{Tel: tel, Status: status})
-	if e != nil {
-		c.ReplyErr(errcode.New(commonErr, e.Error()))
-		beego.Error(e)
-		return
-	}
-	c.ReplySucc(nil)
-}
-
-func (c *Controller) UpdateUserProfile() {
-	cno := c.GetString("cno")
-	tel := c.GetString("tel")
-	uname := c.GetString("username")
-	mail := c.GetString("mail")
-	rstr := c.GetString("roles")
-	gstr := c.GetString("groups")
-	beego.Info(rstr, gstr)
-	user, e := service.GetUserByTel("public", tel)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
-	user.UserName = uname
-	user.Mail = mail
-	e = model.UpdateUser("public", user)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	e = model.UpdateUser(cno, user)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	if len(rstr) != 0 {
-		rids := []int{}
-		e = json.Unmarshal([]byte(rstr), &rids)
-		if e != nil {
-			c.ReplyErr(errcode.ErrParams)
-			beego.Error(e)
-			return
-		}
-		e = service.UpdateRolesOfUser(cno, rids, user.Id)
-		if e != nil {
-			c.ReplyErr(errcode.ErrServerError)
-			beego.Error(e)
-			return
-		}
-	}
-	if len(gstr) != 0 {
-		gids := []int{}
-		e = json.Unmarshal([]byte(gstr), &gids)
-		if e != nil {
-			c.ReplyErr(errcode.ErrParams)
-			beego.Error(e)
-			return
-		}
-		e = service.UpdateGroupssOfUser(cno, gids, user.Id)
-		if e != nil {
-			c.ReplyErr(errcode.ErrServerError)
-			beego.Error(e)
-			return
-		}
-	}
-	c.ReplySucc(nil)
-}
-
 func (c *Controller) GetFunctionsTree() {
 	funcs, e := model.GetFunctions()
 	if e != nil {
@@ -621,109 +436,4 @@ func (c *Controller) GetFunctionsTree() {
 		return
 	}
 	c.ReplySucc(funcs)
-}
-
-//暂未开放的接口**********************************************************
-func (c *Controller) UserLoginAuth() {
-	tel := c.GetString("tel")
-	passwd := c.GetString("password")
-	user, err := service.GetUserByTel("public", tel)
-	if err != nil {
-		beego.Error(errcode.ErrUserNotExisted)
-		c.ReplyErr(errcode.ErrUserNotExisted)
-		return
-	}
-	if !keycrypt.CheckSha256(passwd, user.Password) {
-		c.ReplyErr(errcode.ErrUserPasswordError)
-		return
-	}
-	c.ReplySucc(user)
-	return
-}
-func (c *Controller) Retrievepwd() {
-	tel := c.GetString("tel")
-	user, err := service.GetUserByTel("public", tel)
-	if err != nil {
-		beego.Error(errcode.ErrUserNotExisted)
-		c.ReplyErr(errcode.ErrUserNotExisted)
-		return
-	}
-
-	var code int
-	if code, err = strconv.Atoi(c.GetString("code")); err != nil {
-		beego.Error("user.login error:", err)
-		c.ReplyErr(errcode.ErrAuthCodeError)
-		return
-	}
-	vcode := c.Cache.Get(tel)
-	if vcode == nil {
-		c.ReplyErr(errcode.ErrAuthCodeExpired)
-		return
-	} else if v, _ := strconv.Atoi(fmt.Sprintf("%s", vcode)); v != code {
-		c.ReplyErr(errcode.ErrAuthCodeError)
-		return
-	} else {
-		pwd := c.GetString("password")
-		pwdc := keycrypt.Sha256Cal(pwd)
-		user.Password = pwdc
-		err = model.UpdateUser("public", user)
-		if err != nil {
-			c.ReplyErr(err)
-			return
-		}
-		retstr := make(map[string]interface{})
-		retstr["tel"] = tel
-		retstr["password"] = pwd
-		c.ReplySucc(retstr)
-	}
-}
-func (c *Controller) FirmRegister() {
-	uid, _ := c.GetInt("uid")
-	name := c.GetString("firm_name")
-	desc := c.GetString("desc")
-	phone := c.GetString("phone")
-	//lf := c.GetString("license_file")
-	tp := c.GetString("firm_type")
-
-	firm := model.Company{
-		No:       model.UniqueNo("O"),
-		Creator:  uid,
-		FirmName: name,
-		Desc:     desc,
-		Phone:    phone,
-		//LicenseFile: lf,
-		FirmType: tp,
-		Status:   0,
-	}
-	err := model.CreateCompany(&firm)
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrFirmCreateFailed)
-		return
-	}
-	model.AddUserToCompany(firm.No, uid)
-	c.ReplySucc("ok")
-}
-func (c *Controller) FirmModify() {
-	no := c.GetString("no")
-	name := c.GetString("name")
-	desc := c.GetString("desc")
-	phone := c.GetString("phone")
-	//lf := c.GetString("license_file")
-	uid := c.UserID
-	firm := model.Company{
-		No:       no,
-		Creator:  uid,
-		FirmName: name,
-		Desc:     desc,
-		Phone:    phone,
-		//LicenseFile: lf,
-	}
-	err := model.UpdateCompany(&firm)
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrFirmUpdateFailed)
-		return
-	}
-	c.ReplySucc("ok")
 }

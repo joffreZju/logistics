@@ -25,14 +25,13 @@ type Group struct {
 	No        string `gorm:"unique;not null"`
 	AdminId   int    `gorm:"not null"`
 	CreatorId int    `gorm:"not null"`
-	Desc      string
+	Descrp    string
 	AttrId    int       `gorm:""` //属性id
 	Name      string    `gorm:"not null"`
 	Pid       int       `gorm:"not null"` //父节点id
 	Ctime     time.Time `gorm:"default:current_timestamp"`
 	Utime     time.Time
 	Path      string //`gorm:"not null"` 需要先插入记录再更新path
-	//Level     int    `gorm:"not null"`
 }
 
 func (Group) TableName() string {
@@ -40,12 +39,12 @@ func (Group) TableName() string {
 }
 
 type Attribute struct {
-	Id    int    `gorm:"primary_key;AUTO_INCREMENT"`
-	No    string `gorm:"unique;not null"`
-	Desc  string
-	Name  string    `gorm:"not null"`
-	Ctime time.Time `gorm:"default:current_timestamp"`
-	Utime time.Time
+	Id     int    `gorm:"primary_key;AUTO_INCREMENT"`
+	No     string `gorm:"unique;not null"`
+	Descrp string
+	Name   string    `gorm:"not null"`
+	Ctime  time.Time `gorm:"default:current_timestamp"`
+	Utime  time.Time
 }
 
 func (Attribute) TableName() string {
@@ -54,8 +53,8 @@ func (Attribute) TableName() string {
 
 type GroupOperation struct {
 	Id        int `gorm:"primary_key;AUTO_INCREMENT"`
-	Desc      string
-	Groups    string `gorm:"type:jsonb;not null"`
+	Descrp    string
+	Groups    string `gorm:"type:jsonb;not null" json:",omitempty"`
 	BeginTime time.Time
 	Status    int `gorm:"default:1"` // 1:历史组织树，2:还未生效的组织树
 }
@@ -63,23 +62,3 @@ type GroupOperation struct {
 func (GroupOperation) TableName() string {
 	return "group_operation"
 }
-
-//type HistoryGroup struct {
-//	Pk        int       `gorm:"primary_key;AUTO_INCREMENT"`
-//	EndTime   time.Time `gorm:"not null"`
-//	Id        int       `gorm:"not null"`
-//	No        string    `gorm:"unique;not null"`
-//	AdminId   int       `gorm:"not null"`
-//	CreatorId int       `gorm:"not null"`
-//	Desc      string
-//	AttrId    int       `gorm:"not null"` //属性id
-//	Name      string    `gorm:"not null"`
-//	Pid       int       `gorm:"not null"` //父节点id
-//	Ctime     time.Time `gorm:"default:current_timestamp"`
-//	Utime     time.Time
-//	Path      string //`gorm:"not null"`
-//}
-//
-//func (HistoryGroup) TableName() string {
-//	return "history_group"
-//}

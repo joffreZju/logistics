@@ -33,11 +33,17 @@ const (
 	TreeFlowUpYes
 )
 
+//审批单是否跳过没有用户的角色
+const (
+	SkipBlankRoleYes = iota + 1
+	SkipBlankRoleNo
+)
+
 type Formtpl struct {
 	No         string `gorm:"primary_key"`
 	Name       string `gorm:"not null"`
 	Type       string
-	Desc       string
+	Descrp     string
 	Ctime      time.Time `gorm:"default:current_timestamp"`
 	Content    string    `gorm:"type:jsonb;not null"`
 	Attachment StrSlice  `gorm:"type:text[]"`
@@ -53,7 +59,7 @@ type Form struct {
 	No         string `gorm:"primary_key"`
 	Name       string `gorm:""`
 	Type       string
-	Desc       string
+	Descrp     string
 	Ctime      time.Time `gorm:"default:current_timestamp"`
 	Content    string    `gorm:"type:jsonb;not null"`
 	Attachment StrSlice  `gorm:"type:text[]"`
@@ -66,7 +72,7 @@ func (Form) TableName() string {
 type Approvaltpl struct {
 	No         string `gorm:"primary_key"`
 	Name       string `gorm:"not null"`
-	Desc       string
+	Descrp     string
 	Ctime      time.Time `gorm:"default:current_timestamp"`
 	FormtplNo  string    `gorm:"not null"`
 	TreeFlowUp int       //是否按组织树向上流动 1:否，2:是
@@ -85,7 +91,7 @@ func (Approvaltpl) TableName() string {
 type Approval struct {
 	No          string `gorm:"primary_key"`
 	Name        string `gorm:"not null"`
-	Desc        string
+	Descrp      string
 	Ctime       time.Time `gorm:"default:current_timestamp"`
 	FormNo      string    `gorm:"not null"`
 	UserFlow    IntSlice  `gorm:"type:int[]"` //创建审批单时确定具体审批人

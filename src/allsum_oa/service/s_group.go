@@ -24,7 +24,7 @@ func AddAttr(prefix string, a *model.Attribute) (e error) {
 func UpdateAttr(prefix string, a *model.Attribute) (e error) {
 	e = model.NewOrm().Table(prefix+"."+a.TableName()).
 		Where("id=?", a.Id).
-		Updates(model.Attribute{Name: a.Name, Desc: a.Desc, Utime: a.Utime}).Error
+		Updates(model.Attribute{Name: a.Name, Descrp: a.Descrp, Utime: a.Utime}).Error
 	return
 }
 
@@ -48,7 +48,7 @@ func GetGroup(prefix string, id int) (g *model.Group, e error) {
 func CheckFutureGroupOperation(prefix string) (e error) {
 	count := 0
 	e = model.NewOrm().Table(prefix+"."+model.GroupOperation{}.TableName()).
-		Where("status=? and begin_time>", model.GroupOpStatFuture, time.Now()).Count(&count).Error
+		Where("status=? and begin_time>?", model.GroupOpStatFuture, time.Now()).Count(&count).Error
 	if e != nil || count != 0 {
 		return errors.New("当前有未生效的修改")
 	}
@@ -74,7 +74,7 @@ func handleTX(prefix, desc string, beginTime time.Time, tx *gorm.DB) (e error) {
 		return e
 	}
 	op := &model.GroupOperation{
-		Desc:      desc,
+		Descrp:    desc,
 		BeginTime: beginTime,
 		Groups:    string(b),
 	}
@@ -337,7 +337,41 @@ func UpdateGroup(prefix, desc string, beginTime time.Time, g *model.Group) (e er
 }
 
 func GetGroupOpList(prefix string, limit int) (ops []*model.GroupOperation, e error) {
-	model.NewOrm("")
+	//limit = -1 所有记录
+	ops = []*model.GroupOperation{}
+	e = model.NewOrm().Table(prefix + "." + model.GroupOperation{}.TableName()).
+		Select([]string{"id", "begin_time", "descrp", "status"}).Limit(limit).Find(&ops).Error
+	return
+}
+
+func SearchGroupOpsByTime(prefix string, begin, end time.Time) (ops []*model.GroupOperation, e error) {
+	ops = []*model.GroupOperation{}
+	e = model.NewOrm().Table(prefix+"."+model.GroupOperation{}.TableName()).
+		Select([]string{"id", "begin_time", "descrp", "status"}).
+		Where("begin_time between ? and ?", begin, end).Find(&ops).Error
+	return
+}
+
+func GetGroupOpDetail(prefix string, id int) (groups []*model.Group, e error) {
+	groups = []*model.Group{}
+	op := &model.GroupOperation{}
+	e = model.NewOrm().Table(prefix+"."+model.GroupOperation{}.TableName()).
+		Find(op, "id=?", id).Error
+	if e != nil {
+		return
+	}
+	e = json.Unmarshal([]byte(op.Groups), &groups)
+	return
+}
+
+func CancelGroupOp(prefix string, beginTime time.Time) (e error) {
+	op := &model.GroupOperation{
+		BeginTime: beginTime,
+		Status:    model.GroupOpStatFuture,
+	}
+	e = model.NewOrm().Table(prefix + "." + op.TableName()).
+		Where(op).Delete(op).Error
+	return
 }
 
 func GetGroupList(prefix string) (gs []*model.Group, e error) {
@@ -348,7 +382,7 @@ func GetGroupList(prefix string) (gs []*model.Group, e error) {
 
 func GetUsersOfGroup(prefix string, gid int) (users []*model.User, e error) {
 	users = []*model.User{}
-	sql := fmt.Sprintf(`select * from "%s".user as t1 inner join "%s".user_group as t2
+	sql := fmt.Sprintf(`select * from "%s"."allsum_user" as t1 inner join "%s".user_group as t2
 		on t1.id=t2.user_id where t2.group_id=%d`, prefix, prefix, gid)
 	e = model.NewOrm().Raw(sql).Scan(&users).Error
 	return

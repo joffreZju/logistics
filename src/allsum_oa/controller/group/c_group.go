@@ -31,16 +31,16 @@ func (c *Controller) GetAttrList() {
 func (c *Controller) AddAttr() {
 	prefix := c.UserComp
 	name := c.GetString("name")
-	desc := c.GetString("desc")
+	desc := c.GetString("descrp")
 	if len(name) == 0 || len(desc) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
 	a := &model.Attribute{
-		No:    model.UniqueNo("GA"),
-		Name:  name,
-		Desc:  desc,
-		Ctime: time.Now(),
+		No:     model.UniqueNo("GA"),
+		Name:   name,
+		Descrp: desc,
+		Ctime:  time.Now(),
 	}
 	e := service.AddAttr(prefix, a)
 	if e != nil {
@@ -55,16 +55,16 @@ func (c *Controller) UpdateAttr() {
 	prefix := c.UserComp
 	aid, e := c.GetInt("id")
 	name := c.GetString("name")
-	desc := c.GetString("desc")
+	desc := c.GetString("descrp")
 	if e != nil || len(name) == 0 || len(desc) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
 	a := &model.Attribute{
-		Id:    aid,
-		Name:  name,
-		Desc:  desc,
-		Utime: time.Now(),
+		Id:     aid,
+		Name:   name,
+		Descrp: desc,
+		Utime:  time.Now(),
 	}
 	e = service.UpdateAttr(prefix, a)
 	if e != nil {
@@ -120,7 +120,7 @@ func (c *Controller) AddGroup() {
 	prefix := c.UserComp
 	newGroupStr := c.GetString("newGroup")
 	sonsStr := c.GetString("sons")
-	desc := c.GetString("desc")
+	desc := c.GetString("descrp")
 	beginTime, e := c.getBeginTimeOfOperation()
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
@@ -172,7 +172,7 @@ func (c *Controller) MergeGroups() {
 	prefix := c.UserComp
 	oldIdsStr := c.GetString("oldGroups")
 	newGroupStr := c.GetString("newGroup")
-	desc := c.GetString("desc")
+	desc := c.GetString("descrp")
 	beginTime, e := c.getBeginTimeOfOperation()
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
@@ -222,7 +222,7 @@ func (c *Controller) MoveGroup() {
 	prefix := c.UserComp
 	gid, e := c.GetInt("id")
 	newPid, e2 := c.GetInt("newPid")
-	desc := c.GetString("desc")
+	desc := c.GetString("descrp")
 	if e != nil || e2 != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e, e2)
@@ -252,7 +252,7 @@ func (c *Controller) DelGroup() {
 		return
 	}
 	prefix := c.UserComp
-	desc := c.GetString("desc")
+	desc := c.GetString("descrp")
 	gid, e := c.GetInt("id")
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
@@ -283,7 +283,7 @@ func (c *Controller) UpdateGroup() {
 		return
 	}
 	prefix := c.UserComp
-	desc := c.GetString("desc")
+	desc := c.GetString("descrp")
 	str := c.GetString("group")
 	g := new(model.Group)
 	e = json.Unmarshal([]byte(str), g)
@@ -308,14 +308,89 @@ func (c *Controller) UpdateGroup() {
 	}
 }
 
+//获取历史组织操作记录
 func (c *Controller) GetGroupOpList() {
 	prefix := c.UserComp
-	limit := c.GetString("limit")
-
+	limit, e := c.GetInt("limit")
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	if limit == 0 || limit < -1 {
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	ops, e := service.GetGroupOpList(prefix, limit)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc(ops)
+	}
 }
 
-func (c *Controller) CancelFutureGroupOperation() {
+//搜索历史组织操作记录
+func (c *Controller) SearchGroupOpsByTime() {
+	prefix := c.UserComp
+	begin, e := time.ParseInLocation(model.TimeFormatWithLocal, c.GetString("begin"), time.Local)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	end, e := time.ParseInLocation(model.TimeFormatWithLocal, c.GetString("end"), time.Local)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	ops, e := service.SearchGroupOpsByTime(prefix, begin, end)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc(ops)
+	}
+}
 
+//获取历史组织树详情
+func (c *Controller) GetGroupOpDetail() {
+	prefix := c.UserComp
+	opId, e := c.GetInt("opId")
+	//t, e := time.ParseInLocation(model.TimeFormatWithLocal, c.GetString("beginTime"), time.Local)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	//t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	groups, e := service.GetGroupOpDetail(prefix, opId)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc(groups)
+	}
+}
+
+//取消未生效的组织树操作记录
+func (c *Controller) CancelGroupOp() {
+	prefix := c.UserComp
+	t, e := time.ParseInLocation(model.TimeFormatWithLocal, c.GetString("beginTime"), time.Local)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	e = service.CancelGroupOp(prefix, t)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc(nil)
+	}
 }
 
 //获取所有组织节点

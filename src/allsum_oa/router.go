@@ -33,6 +33,7 @@ func LoadRouter() {
 	beego.Router(ExemptPrefix+"/user/login_out", &user.Controller{}, "*:LoginOut")
 	beego.Router(ExemptPrefix+"/user/forgetpwd", &user.Controller{}, "*:Forgetpwd")
 	beego.Router(UserPrefix+"/info", &user.Controller{}, "*:GetUserInfo")
+	beego.Router(UserPrefix+"/update_info", &user.Controller{}, "*:UpdateUserInfo")
 	beego.Router(UserPrefix+"/resetpwd", &user.Controller{}, "*:Resetpwd")
 	beego.Router(UserPrefix+"/switch_company", &user.Controller{}, "*:SwitchCurrentFirm")
 
@@ -42,12 +43,11 @@ func LoadRouter() {
 	beego.Router(AdminPrefix+"/firm_audit", &user.Controller{}, "*:AdminFirmAudit")
 
 	//公司管理员相关
-	//beego.Router(FirmPrefix+"/register", &user.Controller{}, "Post:FirmRegister")
-	//beego.Router(FirmPrefix+"/modify", &user.Controller{}, "Post:FirmModify")
-	beego.Router(FirmPrefix+"/add_license", &user.Controller{}, "*:AddLicenseFile")
+	beego.Router(FirmPrefix+"/update_firm_info", &user.Controller{}, "*:UpdateFirmInfo")
 	beego.Router(FirmPrefix+"/getusers_ofcompany", &user.Controller{}, "*:FirmGetUserList")
+	beego.Router(FirmPrefix+"/search_users_byname", &user.Controller{}, "*:FirmSearchUsersByName")
 	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
-	beego.Router(FirmPrefix+"/update_user", &user.Controller{}, "Post:UpdateUserProfile")
+	beego.Router(FirmPrefix+"/update_user", &user.Controller{}, "Post:FirmUpdateUserProfile")
 	beego.Router(FirmPrefix+"/control_user", &user.Controller{}, "Post:FirmControlUserStatus")
 	//管理组织树
 	beego.Router(FirmPrefix+"/add_attr", &group.Controller{}, "*:AddAttr")
@@ -59,6 +59,10 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/move_group", &group.Controller{}, "*:MoveGroup")
 	beego.Router(FirmPrefix+"/del_group", &group.Controller{}, "*:DelGroup")
 	beego.Router(FirmPrefix+"/update_group", &group.Controller{}, "Post:UpdateGroup")
+	beego.Router(FirmPrefix+"/get_group_ops", &group.Controller{}, "*:GetGroupOpList")
+	beego.Router(FirmPrefix+"/search_group_ops_bytime", &group.Controller{}, "*:SearchGroupOpsByTime")
+	beego.Router(FirmPrefix+"/get_group_op_detail", &group.Controller{}, "*:GetGroupOpDetail")
+	beego.Router(FirmPrefix+"/cancel_group_op", &group.Controller{}, "*:CancelGroupOp")
 	beego.Router(FirmPrefix+"/get_groups", &group.Controller{}, "*:GetGroupList")
 	beego.Router(FirmPrefix+"/getusers_ofgroup", &group.Controller{}, "*:GetUsersOfGroup")
 	beego.Router(FirmPrefix+"/addusers_togroup", &group.Controller{}, "Post:AddUsersToGroup")

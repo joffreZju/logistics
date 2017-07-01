@@ -31,7 +31,7 @@ func (c *Controller) GetRoleList() {
 func (c *Controller) AddRole() {
 	prefix := c.UserComp
 	name := c.GetString("name")
-	desc := c.GetString("desc")
+	desc := c.GetString("descrp")
 	funcIdsStr := c.GetString("functions")
 	var funcIds []int
 	e := json.Unmarshal([]byte(funcIdsStr), &funcIds)
@@ -41,9 +41,9 @@ func (c *Controller) AddRole() {
 		return
 	}
 	r := model.Role{
-		Name:  name,
-		Desc:  desc,
-		Ctime: time.Now(),
+		Name:   name,
+		Descrp: desc,
+		Ctime:  time.Now(),
 	}
 	e = service.AddRole(prefix, &r, funcIds)
 	if e != nil {
@@ -63,7 +63,7 @@ func (c *Controller) UpdateRole() {
 		return
 	}
 	name := c.GetString("name")
-	desc := c.GetString("desc")
+	desc := c.GetString("descrp")
 	funcIdsStr := c.GetString("functions")
 	var funcIds []int
 	e = json.Unmarshal([]byte(funcIdsStr), &funcIds)
@@ -73,9 +73,9 @@ func (c *Controller) UpdateRole() {
 		return
 	}
 	r := model.Role{
-		Id:   id,
-		Name: name,
-		Desc: desc,
+		Id:     id,
+		Name:   name,
+		Descrp: desc,
 	}
 	e = service.UpdateRole(prefix, &r, funcIds)
 	if e != nil {

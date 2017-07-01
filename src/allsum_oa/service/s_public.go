@@ -156,6 +156,26 @@ func GetUserListOfCompany(prefix string) (users []*model.User, e error) {
 	return
 }
 
+func SearchUsersByName(prefix, uname string) (users []*model.User, e error) {
+	users = []*model.User{}
+	e = model.NewOrm().Table(prefix+"."+model.User{}.TableName()).
+		Where("user_name like ?", "%"+uname+"%").Find(&users).Error
+	if e != nil {
+		return
+	}
+	for _, v := range users {
+		v.Roles, e = GetRolesOfUser(prefix, v.Id)
+		if e != nil {
+			return
+		}
+		v.Groups, e = GetGroupsOfUser(prefix, v.Id)
+		if e != nil {
+			return
+		}
+	}
+	return
+}
+
 func GetUserListByUids(prefix string, uids []int) (users []*model.User, e error) {
 	users = []*model.User{}
 	e = model.NewOrm().Table(prefix+"."+model.User{}.TableName()).
@@ -166,8 +186,8 @@ func GetUserListByUids(prefix string, uids []int) (users []*model.User, e error)
 func createCreatorRole(prefix string) (e error) {
 	tx := model.NewOrm().Begin()
 	r := &model.Role{
-		Name: "创始人",
-		Desc: "公司初始注册者",
+		Name:   "创始人",
+		Descrp: "公司初始注册者",
 	}
 	e = tx.Table(prefix + "." + r.TableName()).Create(r).Error
 	if e != nil {
