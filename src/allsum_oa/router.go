@@ -84,22 +84,22 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/control_formtpl", &form.Controller{}, "*:ControlFormtpl")
 	beego.Router(FirmPrefix+"/del_formtpl", &form.Controller{}, "*:DelFormtpl")
 	//审批单模板操作
-	beego.Router(FirmPrefix+"/add_atpl", &form.Controller{}, "Post:AddApprovaltpl")
-	beego.Router(FirmPrefix+"/get_atpls", &form.Controller{}, "*:GetApprovaltplList")
-	beego.Router(FirmPrefix+"/get_atpldetail", &form.Controller{}, "*:GetApprovaltplDetail")
-	beego.Router(FirmPrefix+"/update_atpl", &form.Controller{}, "Post:UpdateApprovaltpl")
-	beego.Router(FirmPrefix+"/control_atpl", &form.Controller{}, "*:ControlApprovaltpl")
-	beego.Router(FirmPrefix+"/del_atpl", &form.Controller{}, "*:DelApprovaltpl")
-	//审批流相关
-	beego.Router(FirmPrefix+"/get_approver_list", &form.Controller{}, "*:GetApproverList")
-	beego.Router(FirmPrefix+"/add_approval", &form.Controller{}, "*:AddApproval")
-	beego.Router(FirmPrefix+"/update_approval", &form.Controller{}, "*:UpdateApproval")
-	beego.Router(FirmPrefix+"/cancel_approval", &form.Controller{}, "*:CancelApproval")
-	beego.Router(FirmPrefix+"/approve", &form.Controller{}, "*:Approve")
-	beego.Router(FirmPrefix+"/get_approvals_from_me", &form.Controller{}, "*:GetApprovalsFromMe")
-	beego.Router(FirmPrefix+"/get_todo_approvals_to_me", &form.Controller{}, "*:GetTodoApprovalsToMe")
-	beego.Router(FirmPrefix+"/get_finished_approvals_to_me", &form.Controller{}, "*:GetFinishedApprovalsToMe")
-	beego.Router(FirmPrefix+"/get_approval_detail", &form.Controller{}, "*:GetApprovalDetail")
+	//beego.Router(FirmPrefix+"/add_atpl", &form.Controller{}, "Post:AddApprovaltpl")
+	//beego.Router(FirmPrefix+"/get_atpls", &form.Controller{}, "*:GetApprovaltplList")
+	//beego.Router(FirmPrefix+"/get_atpldetail", &form.Controller{}, "*:GetApprovaltplDetail")
+	//beego.Router(FirmPrefix+"/update_atpl", &form.Controller{}, "Post:UpdateApprovaltpl")
+	//beego.Router(FirmPrefix+"/control_atpl", &form.Controller{}, "*:ControlApprovaltpl")
+	//beego.Router(FirmPrefix+"/del_atpl", &form.Controller{}, "*:DelApprovaltpl")
+	////审批流相关
+	//beego.Router(FirmPrefix+"/get_approver_list", &form.Controller{}, "*:GetApproverList")
+	//beego.Router(FirmPrefix+"/add_approval", &form.Controller{}, "*:AddApproval")
+	//beego.Router(FirmPrefix+"/update_approval", &form.Controller{}, "*:UpdateApproval")
+	//beego.Router(FirmPrefix+"/cancel_approval", &form.Controller{}, "*:CancelApproval")
+	//beego.Router(FirmPrefix+"/approve", &form.Controller{}, "*:Approve")
+	//beego.Router(FirmPrefix+"/get_approvals_from_me", &form.Controller{}, "*:GetApprovalsFromMe")
+	//beego.Router(FirmPrefix+"/get_todo_approvals_to_me", &form.Controller{}, "*:GetTodoApprovalsToMe")
+	//beego.Router(FirmPrefix+"/get_finished_approvals_to_me", &form.Controller{}, "*:GetFinishedApprovalsToMe")
+	//beego.Router(FirmPrefix+"/get_approval_detail", &form.Controller{}, "*:GetApprovalDetail")
 
 	// 非登录态列表
 	notNeedAuthList := []string{
