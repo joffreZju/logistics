@@ -121,7 +121,7 @@ func (c *Controller) UserRegister() {
 		beego.Error("o2o.Auth.NewSingleToken error:", err, u.Tel)
 	}
 	beego.Info("register and login ok,token:%+v", token)
-	key := fmt.Sprintf("%d_%s", u.Id, token.Value)
+	key := fmt.Sprintf("%d-%s", u.Id, token.Value)
 	err = c.saveUserInfoToRedis(key, comp.No, &u)
 
 	c.ReplySucc(u)
@@ -227,7 +227,7 @@ func (c *Controller) loginAction(user *model.User) {
 		if e != nil || userInSchema.Status != model.UserStatusOk {
 			continue
 		}
-		uKey := fmt.Sprintf("%d_%s", userInSchema.Id, token.Value)
+		uKey := fmt.Sprintf("%d-%s", userInSchema.Id, token.Value)
 		e = c.saveUserInfoToRedis(uKey, v.No, userInSchema)
 		if e != nil {
 			c.ReplyErr(errcode.New(commonErr, e.Error()))
@@ -246,10 +246,10 @@ func (c *Controller) loginAction(user *model.User) {
 func (c *Controller) saveUserInfoToRedis(key, cno string, u *model.User) (e error) {
 	roles, groups := "", ""
 	for _, v := range u.Roles {
-		roles += fmt.Sprintf("%d_", v.Id)
+		roles += fmt.Sprintf("%d-", v.Id)
 	}
 	for _, v := range u.Groups {
-		groups += fmt.Sprintf("%d_", v.Id)
+		groups += fmt.Sprintf("%d-", v.Id)
 	}
 	_, e = c.RedisClient.Hmset(key, map[string]interface{}{
 		"company": cno,
@@ -302,7 +302,7 @@ func (c *Controller) SwitchCurrentFirm() {
 	}
 	user.Companys = user.Companys[currentCompanyIndex : currentCompanyIndex+1]
 	//将用户的company,groups和roles放入缓存
-	key := fmt.Sprintf("%d_%s", user.Id, tokenStr)
+	key := fmt.Sprintf("%d-%s", user.Id, tokenStr)
 	e = c.saveUserInfoToRedis(key, cno, user)
 
 	if e != nil {
@@ -357,7 +357,7 @@ func (c *Controller) LoginOut() {
 	}
 	beego.Info("login_out success token:", token.Value)
 
-	key := fmt.Sprintf("%s_%s", token.SingleID, token.Value)
+	key := fmt.Sprintf("%s-%s", token.SingleID, token.Value)
 	_, err = c.RedisClient.Expire(key, 2)
 	if err != nil {
 		beego.Error(err)
