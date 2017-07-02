@@ -86,6 +86,13 @@ func GetApprocvaltplList(prefix string) (atpls []*model.Approvaltpl, e error) {
 	return
 }
 
+func GetApprovaltpl(prefix, atplno string) (atpl *model.Approvaltpl, e error) {
+	atpl = &model.Approvaltpl{}
+	e = model.NewOrm().Table(prefix+"."+model.Approvaltpl{}.TableName()).
+		First(atpl, "no=?", atplno).Error
+	return
+}
+
 func GetApprovaltplDetail(prefix, atplno string) (atpl *model.Approvaltpl, e error) {
 	db := model.NewOrm()
 	atpl = &model.Approvaltpl{}
@@ -202,12 +209,30 @@ func GetApproverList(prefix, atplno string, currentGroup int) (rolemap []map[str
 
 func AddApproval(prefix string, a *model.Approval) (e error) {
 	tx := model.NewOrm().Begin()
-	e = tx.Table(prefix + "." + a.FormContent.TableName()).Create(a.FormContent).Error
+	r := &model.Role{}
+	e = tx.Table(prefix+"."+r.TableName()).First(r, "id=?", a.RoleFlow[0]).Error
 	if e != nil {
 		tx.Rollback()
 		return
 	}
+	af := &model.ApproveFlow{
+		ApprovalNo: a.No,
+		RoleId:     r.Id,
+		RoleName:   r.Name,
+		Status:     model.AFlowStatWait,
+	}
+	e = tx.Table(prefix + "." + af.TableName()).Create(af).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	a.CurrentFlow = af.Id
 	e = tx.Table(prefix + "." + a.TableName()).Create(a).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	e = tx.Table(prefix + "." + a.FormContent.TableName()).Create(a.FormContent).Error
 	if e != nil {
 		tx.Rollback()
 		return
@@ -221,7 +246,7 @@ func UpdateApproval(prefix string, a *model.Approval) (e error) {
 	if e != nil {
 		return
 	}
-	if aprvl.Status != model.ApproveDraft {
+	if aprvl.Status != model.ApprovalStatDraft {
 		e = errors.New("approval is already commited")
 		return
 	}
@@ -243,22 +268,21 @@ func UpdateApproval(prefix string, a *model.Approval) (e error) {
 }
 
 func CancelApproval(prefix, no string) (e error) {
-	tx := model.NewOrm().Table(prefix + "." + model.Approval{}.TableName()).Begin()
+	db := model.NewOrm().Table(prefix + "." + model.Approval{}.TableName())
 	a := model.Approval{}
-	e = tx.First(&a, "no=?", no).Error
+	e = db.First(&a, "no=?", no).Error
 	if e != nil {
-		tx.Rollback()
 		return
 	}
-	if a.Status == model.ApproveAccessed || a.Status == model.ApproveNotAccessed {
-		e = errors.New("approval has been finished")
-		tx.Rollback()
+	if a.Status == model.ApprovalStatAccessed || a.Status == model.ApprovalStatNotAccessed {
+		e = errors.New("审批单已经完成")
 		return
 	}
-	c := tx.Model(&a).Update("status", model.ApproveCanceled).RowsAffected
+	tx := db.Begin()
+	c := tx.Model(&a).Update("status", model.ApprovalStatCanceled).RowsAffected
 	if c != 1 {
 		tx.Rollback()
-		e = errors.New("approval no is wrong")
+		e = errors.New("审批单编号错误")
 		return
 	}
 	return tx.Commit().Error
@@ -271,7 +295,7 @@ func Approve(prefix string, aflow *model.ApproveFlow) (e error) {
 	if e != nil {
 		return
 	}
-	if a.Status != model.Approving {
+	if a.Status != model.ApprovalStatWaiting {
 		return errors.New("approval has been finished")
 	}
 	if a.Currentuser != aflow.UserId {
@@ -285,13 +309,13 @@ func Approve(prefix string, aflow *model.ApproveFlow) (e error) {
 		return
 	}
 	newStatus := -1
-	if aflow.Opinion == model.ApproveOpinionRefuse {
+	if aflow.Opinion == model.AFlowStatRefuse {
 		//不同意
-		newStatus = model.ApproveNotAccessed
-	} else if aflow.Opinion == model.ApproveOpinionAgree &&
+		newStatus = model.ApprovalStatNotAccessed
+	} else if aflow.Opinion == model.AFlowStatAgree &&
 		a.Currentuser == a.UserFlow[len(a.UserFlow)-1] {
 		//最后一位审批人同意
-		newStatus = model.ApproveAccessed
+		newStatus = model.ApprovalStatAccessed
 	} else {
 		//中间审批人同意
 		for k, v := range a.UserFlow {
@@ -335,7 +359,7 @@ func GetApprovalDetail(prefix, no string) (a *model.Approval, e error) {
 		return
 	}
 	e = db.Table(prefix+"."+model.ApproveFlow{}.TableName()).Order("ctime").
-		Find(&a.ApproveSteps, model.ApproveFlow{ApprovalNo: a.No}).Error
+		Find(&a.ApproveFLows, model.ApproveFlow{ApprovalNo: a.No}).Error
 	if e != nil {
 		return
 	}
@@ -357,7 +381,7 @@ func GetTodoApprovalsToMe(prefix string, uid int) (alist []*model.Approval, e er
 	db := model.NewOrm()
 	alist = []*model.Approval{}
 	e = db.Table(prefix+"."+model.Approval{}.TableName()).
-		Where("status=? and currentuser=?", model.Approving, uid).Find(&alist).Error
+		Where("status=? and currentuser=?", model.ApprovalStatWaiting, uid).Find(&alist).Error
 	if e != nil {
 		return
 	}

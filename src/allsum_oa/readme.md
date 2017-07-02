@@ -23,6 +23,8 @@
     - 上传公司资质文件改为 修改公司信息。url改为http://allsum.com:8094/v2/firm/update_firm_info
     
     - 增加用户修改个人信息接口
+    
+    - 审批单不能保存草稿，直接提交
 
 ```
 User.Status{1:正常,2:锁定}
@@ -39,9 +41,14 @@ Approvaltpl.Status{1:初始化,2:启用,3:禁用}
 
 审批单是否向组织树向上流动
 Approvaltpl.TreeFlowUp{1:No,2:Yes}
+审批单是否跳过没有用户的角色
+Approvaltpl.SkipBlankRole{1:No, 2:Yes}
 
 审批单状态
-Approval.Status{1：存为草稿，2：正在审批，3：审批通过，4：审批不通过，5：审批取消}
+Approval.Status{2：正在审批，3：审批通过，4：审批不通过，5：审批取消}
+Approval.TreeFlowUp{1:No,2:Yes}
+Approval.SkipBlankRole{1:No, 2:Yes}
+
 
 审批人的审批意见
 ApproveFlow.Opinion{1:同意,2:拒绝}
