@@ -11,10 +11,6 @@ import (
 
 //注册之后修改公司信息
 func (c *Controller) UpdateFirmInfo() {
-	h := c.GetString("haha")
-	h2 := c.GetString("haha1")
-	beego.Error(len(h), len(h2))
-	return
 	compNo := c.UserComp
 	uid := c.UserID
 	comp := &model.Company{
