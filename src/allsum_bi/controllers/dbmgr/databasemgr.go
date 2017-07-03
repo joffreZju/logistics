@@ -2,7 +2,7 @@ package dbmgr
 
 import (
 	"allsum_bi/controllers/base"
-	"allsum_bi/db/models"
+	"allsum_bi/models"
 	"allsum_bi/util/errcode"
 	"fmt"
 
@@ -84,6 +84,44 @@ func (c *Controller) AddDb() {
 		Name:     Name,
 	}
 	err = models.InsertDatabaseManager(databasemgr)
+	if err != nil {
+		beego.Error("listdb err :", err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	res := map[string]string{
+		"res": "ok",
+	}
+	c.ReplySucc(res)
+	return
+}
+
+func (c *Controller) UpdateDb() {
+	Name := c.GetString("name")
+	Host := c.GetString("host")
+	dbid := c.GetString("dbid")
+	Port, err := c.GetInt("port")
+	if err != nil {
+		beego.Error("beego err ", err)
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	DbType := c.GetString("dbtype")
+	DbName := c.GetString("dbname")
+	DbUser := c.GetString("dbuser")
+	DbPasswd := c.GetString("dbpasswd")
+
+	databasemgr := models.DatabaseManager{
+		Dbid:     dbid,
+		Dbname:   DbName,
+		Dbtype:   DbType,
+		Host:     Host,
+		Port:     Port,
+		Dbuser:   DbUser,
+		Password: DbPasswd,
+		Name:     Name,
+	}
+	err = models.UpdateDatabaseManager(databasemgr, "dbname", "dbtype", "host", "port", "dbuser", "db_passwd", "name")
 	if err != nil {
 		beego.Error("listdb err :", err)
 		c.ReplyErr(errcode.ErrServerError)

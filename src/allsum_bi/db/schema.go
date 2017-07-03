@@ -85,7 +85,7 @@ func ListSchemaTable(dbid string, schema string) (tablenames []string, err error
 	return
 }
 
-func ListScheme(dbid string) (schemalist []string, err error) {
+func ListSchema(dbid string) (schemalist []string, err error) {
 	db, err := conn.GetConn(dbid)
 	if err != nil {
 		return

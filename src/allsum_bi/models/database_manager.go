@@ -23,7 +23,7 @@ func InsertDatabaseManager(conninfo DatabaseManager) (err error) {
 		return
 	}
 	exist := db.NewRecord(conninfo)
-	if exist {
+	if !exist {
 		return fmt.Errorf("exist")
 	}
 	err = db.Table(GetDatabaseManagerTableName()).Create(&conninfo).Error
@@ -65,6 +65,6 @@ func UpdateDatabaseManager(conninfo DatabaseManager, fields ...string) (err erro
 	if err != nil {
 		return
 	}
-	err = db.Table(GetDatabaseManagerTableName()).Where("id=?", conninfo.Dbid).Updates(conninfo).Update(fields).Error
+	err = db.Table(GetDatabaseManagerTableName()).Where("dbid=?", conninfo.Dbid).Updates(conninfo).Update(fields).Error
 	return
 }

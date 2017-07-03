@@ -1,16 +1,11 @@
 package dbmgr
 
 import (
-	"allsum_bi/controllers/base"
 	"allsum_bi/db"
-	"stowage/common/lib/errcode"
+	"allsum_bi/util/errcode"
 
 	"github.com/astaxie/beego"
 )
-
-type Controller struct {
-	base.Controller
-}
 
 func (c *Controller) ListSchema() {
 	dbid := c.GetString("dbid")

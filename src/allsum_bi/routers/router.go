@@ -4,6 +4,7 @@ import (
 	"allsum_bi/controllers/aggregatemgr"
 	"allsum_bi/controllers/base"
 	"allsum_bi/controllers/dataloadmgr"
+	"allsum_bi/controllers/dbmgr"
 	"allsum_bi/controllers/demand"
 	"allsum_bi/controllers/etlmgr"
 	"allsum_bi/controllers/reportsetmgr"
@@ -18,6 +19,7 @@ const (
 	DataLoadPrefix  string = "/v1/dataload"
 	AggregatePrefix string = "/v1/aggregate"
 	ReportSetPrefix string = "/v1/reportset"
+	DbPrefix        string = "/v1/dbmgr"
 )
 
 func init() {
@@ -67,6 +69,12 @@ func init() {
 	beego.Router(ReportSetPrefix+"/get_data", &reportsetmgr.Controller{}, "post:GetReportData")
 	beego.Router(ReportSetPrefix+"/save", &reportsetmgr.Controller{}, "post:SaveReportSet")
 
+	//DBMGR
+	beego.Router(DbPrefix+"/add", &dbmgr.Controller{}, "post:AddDb")
+	beego.Router(DbPrefix+"/list", &dbmgr.Controller{}, "get:ListDbDetail")
+	beego.Router(DbPrefix+"/update", &dbmgr.Controller{}, "post:UpdateDb")
+	beego.Router(DbPrefix+"/list_schema", &dbmgr.Controller{}, "get:ListSchema")
+	beego.Router(DbPrefix+"/list_schema_table", &dbmgr.Controller{}, "get:ListSchemaTable")
 	//api auth white list
 
 	//	notNeedAuthList := []string{}
