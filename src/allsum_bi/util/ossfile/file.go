@@ -2,7 +2,6 @@ package ossfile
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -45,8 +44,8 @@ func PutFile(prefix string, filename string, data []byte) (url string, err error
 	if err != nil {
 		return "", err
 	}
-	url = fmt.Sprintf("http://%s.%s/%s", bucket.BucketName, client.Config.Endpoint, filepath)
-	return url, nil
+	//url = fmt.Sprintf("http://%s.%s/%s", bucket.BucketName, client.Config.Endpoint, filepath)
+	return filepath, nil
 }
 
 func GetFile(url string) ([]byte, error) {
