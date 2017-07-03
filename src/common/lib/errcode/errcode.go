@@ -39,6 +39,8 @@ var (
 	ErrGroupOfUser                  = &CodeError{20014, "用户组织错误"}
 	ErrGetLoginInfo                 = &CodeError{20015, "获取登录信息失败,请重新登录"}
 	ErrUpdateGroupTree              = &CodeError{20016, "当前组织树有未生效的修改"}
+	ErrRoleOfUser                   = &CodeError{20017, "用户角色错误"}
+	ErrStatOfApproval               = &CodeError{20018, "审批单状态错误"}
 
 	ErrAuthCreateFailed         = &CodeError{20101, "出问题了，稍后再试吧~"}
 	ErrAuthCheckFailed          = &CodeError{20102, "出问题了，稍后再试吧~"}

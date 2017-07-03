@@ -308,9 +308,6 @@ func (c *Controller) AddApproval() {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 	} else {
-		if a.Status == model.ApprovalStatWaiting {
-			//todo 向第一个角色的审批人推送消息,修改状态为approving
-		}
 		c.ReplySucc(nil)
 	}
 }
@@ -342,7 +339,6 @@ func (c *Controller) AddApproval() {
 //		beego.Error(e)
 //	} else {
 //		if a.Status == model.ApprovalStatWaiting {
-//			//todo 向第一个审批人推送消息,修改状态为approving
 //		}
 //		c.ReplySucc(nil)
 //	}
@@ -362,27 +358,47 @@ func (c *Controller) CancelApproval() {
 
 func (c *Controller) Approve() {
 	prefix := c.UserComp
-	str := c.GetString("approve")
-	aflow := model.ApproveFlow{}
-	e := json.Unmarshal([]byte(str), &aflow)
-	if e != nil {
+	uid := c.UserID
+	ano := c.GetString("approvalNo")
+	comment := c.GetString("comment")
+	status, e := c.GetInt("status")
+	if e != nil || (status != model.ApprovalStatAccessed && status != model.ApprovalStatNotAccessed) {
+		beego.Error(e)
 		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	a, e := service.GetApproval(prefix, ano)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 		return
 	}
-	aflow.Ctime = time.Now()
-	aflow.UserId = c.UserID
-	if aflow.UserId <= 0 || aflow.UserId != c.UserID {
-		c.ReplyErr(errcode.New(CommonErr, "user id is wrong"))
-		return
-	}
-	if aflow.Opinion != model.AFlowStatAgree && aflow.Opinion != model.AFlowStatRefuse {
-		c.ReplyErr(errcode.New(CommonErr, "opinion is wrong"))
-		return
-	}
-	e = service.Approve(prefix, &aflow)
+	af, e := service.GetLatestFlowOfApproval(prefix, a.No)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+		return
+	}
+	if a.Status != model.ApprovalStatWaiting || af.Status != model.ApprovalStatWaiting {
+		c.ReplyErr(errcode.ErrStatOfApproval)
+		return
+	}
+	if !strings.Contains(af.MatchUsers, fmt.Sprintf("%d-", uid)) {
+		c.ReplyErr(errcode.ErrRoleOfUser)
+		return
+	}
+	user, e := service.GetUserById("public", uid)
+	if e != nil {
+		c.ReplyErr(errcode.ErrGetUserInfoFailed)
+		return
+	}
+	af.Status = status
+	af.Comment = comment
+	af.UserId = uid
+	af.UserName = user.UserName
+	e = service.Approve(prefix, a, af)
+	if e != nil {
+		c.ReplyErr(errcode.ErrStatOfApproval)
 		beego.Error(e)
 	} else {
 		c.ReplySucc(nil)
@@ -402,18 +418,20 @@ func (c *Controller) GetApprovalsFromMe() {
 	c.ReplySucc(alist)
 }
 
+//todo 审批单绑定到role，而每个用户又有多个role，还要关注审批单是否沿树向上走，和用户的多个组织是否重合，逻辑复杂，审批过的才和用户绑定。
+//根据matchusers 做like匹配
 //获取需要我审批的审批单
-func (c *Controller) GetTodoApprovalsToMe() {
-	prefix := c.UserComp
-	uid := c.UserID
-	alist, e := service.GetTodoApprovalsToMe(prefix, uid)
-	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-		beego.Error(e)
-		return
-	}
-	c.ReplySucc(alist)
-}
+//func (c *Controller) GetTodoApprovalsToMe() {
+//	prefix := c.UserComp
+//	uid := c.UserID
+//	alist, e := service.GetTodoApprovalsToMe(prefix, uid)
+//	if e != nil {
+//		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+//		beego.Error(e)
+//		return
+//	}
+//	c.ReplySucc(alist)
+//
 
 //获取我审批过的审批单
 func (c *Controller) GetFinishedApprovalsToMe() {
@@ -428,15 +446,15 @@ func (c *Controller) GetFinishedApprovalsToMe() {
 	c.ReplySucc(alist)
 }
 
-//获取我审批过的审批单
+//获取审批单详情
 func (c *Controller) GetApprovalDetail() {
 	prefix := c.UserComp
 	no := c.GetString("no")
-	alist, e := service.GetApprovalDetail(prefix, no)
+	a, e := service.GetApprovalDetail(prefix, no)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
 		return
 	}
-	c.ReplySucc(alist)
+	c.ReplySucc(a)
 }

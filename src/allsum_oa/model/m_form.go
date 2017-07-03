@@ -13,12 +13,12 @@ const (
 
 //审批单生命周期状态
 const (
-	ApprovalStatDraft = iota + 1
-	ApprovalStatWaiting
+	ApprovalStatWaiting = iota + 1
 	ApprovalStatAccessed
 	ApprovalStatNotAccessed
 	ApprovalStatCanceled
-	//草稿->提交->审批中->审批通过（或不通过）->取消审批(除了审批通过或不通过，其他都可以取消)
+	ApprovalStatStop
+	//草稿->提交->审批中->审批通过（或不通过）->取消审批->停止，无法进行下午(除了审批通过或不通过，其他都可以取消)
 )
 
 //审批单是否沿组织树流动
@@ -31,13 +31,6 @@ const (
 const (
 	SkipBlankRoleNo = iota + 1
 	SkipBlankRoleYes
-)
-
-//一步审批流程的状态
-const (
-	AFlowStatWait = iota + 1
-	AFlowStatAgree
-	AFlowStatRefuse
 )
 
 type Formtpl struct {
@@ -100,8 +93,8 @@ type Approval struct {
 	//Currentuser int       //当前正在审批的用户id,current_user是pg的关键字
 	TreeFlowUp    int      //是否按组织树向上流动 1:否，2:是
 	SkipBlankRole int      //是否跳过空角色 1:否，2:是
-	RoleFlow      IntSlice `gorm:"type:int[]"` //role_id 的组成的数组
-	CurrentFlow   int      //当前正在进行的一步审批
+	RoleFlow      IntSlice `gorm:"type:int[]"`
+	CurrentRole   int      //当前正在审批的角色id
 	UserId        int      `gorm:"not null"`
 	RoleId        int      `gorm:""`
 	GroupId       int      `gorm:""`
@@ -115,17 +108,18 @@ func (Approval) TableName() string {
 	return "approval"
 }
 
+//流转时创建flow（roleId，RoleName赋值），用户审批时更新userId，userName，status，comment字段
 type ApproveFlow struct {
 	Id         int    `gorm:"AUTO_INCREMENT,primary_key"`
 	ApprovalNo string `gorm:"not null"`
+	MatchUsers string // 满足条件的用户id拼接1-2-3-
 	UserId     int
 	UserName   string
 	RoleId     int
 	RoleName   string
 	Status     int
-	//Opinion    int
-	Comment string
-	Ctime   time.Time `gorm:"default:current_timestamp"`
+	Comment    string
+	Ctime      time.Time `gorm:"default:current_timestamp"`
 }
 
 func (ApproveFlow) TableName() string {

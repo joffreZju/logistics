@@ -45,14 +45,11 @@ Approvaltpl.TreeFlowUp{1:No,2:Yes}
 Approvaltpl.SkipBlankRole{1:No, 2:Yes}
 
 审批单状态
-Approval.Status{2：正在审批，3：审批通过，4：审批不通过，5：审批取消}
+Approval.Status{1：正在审批，2：审批通过，3：审批不通过，4：审批取消，5：审批停止，无法进行下去（没有审批人）}
 Approval.TreeFlowUp{1:No,2:Yes}
 Approval.SkipBlankRole{1:No, 2:Yes}
 
 
-审批人的审批意见
-ApproveFlow.Opinion{1:同意,2:拒绝}
- 
 组织树操作记录
 GroupOperation.Status{1:历史记录,2:未生效记录}
 
