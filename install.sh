@@ -24,19 +24,30 @@ GoInstall() {
 	
 }
 
-((pos+=1)) ; bins[$pos]="allsum_account"
-((pos+=1)) ; bins[$pos]="allsum_oa"
+BuildAll(){
+    ((pos+=1)) ; bins[$pos]="allsum_account"
+    ((pos+=1)) ; bins[$pos]="allsum_oa"
+    ((pos+=1)) ; bins[$pos]="allsum_bi"
 
-for ((i=1; i<=${#bins[*]}; i++)) 
-do
-	bin=${bins[$i]}
-	if [ "$1" = "" ]; then
-		GoInstall $bin
-	elif [[ $bin == *$1* ]]; then 
-		GoInstall $bin
-	fi
-	#killall -9 $bin
-	#./bin/$bin -c conf/$bin.conf
-done
+    for ((i=1; i<=${#bins[*]}; i++)) 
+    do
+        bin=${bins[$i]}
+        if [ "$1" = "" ]; then
+            GoInstall $bin
+        elif [[ $bin == *$1* ]]; then 
+            GoInstall $bin
+        fi
+        #killall -9 $bin
+        #./bin/$bin -c conf/$bin.conf
+    done
+}
 
+
+if [ $# == 0 ]
+then
+    BuildAll
+else 
+    GoInstall $1
+fi
 export GOPATH=$oldGOPATH
+
