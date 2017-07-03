@@ -435,7 +435,7 @@ func (c *Controller) AddUsersToGroup() {
 	usersStr := c.GetString("users")
 	uids := []int{}
 	e = json.Unmarshal([]byte(usersStr), &uids)
-	if e != nil {
+	if e != nil || len(uids) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
@@ -461,7 +461,7 @@ func (c *Controller) DelUsersFromGroup() {
 	usersStr := c.GetString("users")
 	uids := make([]int, 0)
 	e = json.Unmarshal([]byte(usersStr), &uids)
-	if e != nil {
+	if e != nil || len(uids) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return

@@ -84,21 +84,19 @@ func (Approvaltpl) TableName() string {
 }
 
 type Approval struct {
-	No     string `gorm:"primary_key"`
-	Name   string `gorm:"not null"`
-	Descrp string
-	Ctime  time.Time `gorm:"default:current_timestamp"`
-	FormNo string    `gorm:"not null"`
-	//UserFlow    IntSlice  `gorm:"type:int[]"` //创建审批单时确定具体审批人
-	//Currentuser int       //当前正在审批的用户id,current_user是pg的关键字
-	TreeFlowUp    int      //是否按组织树向上流动 1:否，2:是
-	SkipBlankRole int      //是否跳过空角色 1:否，2:是
-	RoleFlow      IntSlice `gorm:"type:int[]"`
-	CurrentRole   int      //当前正在审批的角色id
-	UserId        int      `gorm:"not null"`
-	RoleId        int      `gorm:""`
-	GroupId       int      `gorm:""`
-	Status        int      `gorm:"not null"`
+	No            string `gorm:"primary_key"`
+	Name          string `gorm:"not null"`
+	Descrp        string
+	Ctime         time.Time `gorm:"default:current_timestamp"`
+	FormNo        string    `gorm:"not null"`
+	TreeFlowUp    int       //1:否，2:是
+	SkipBlankRole int       //1:否，2:是
+	RoleFlow      IntSlice  `gorm:"type:int[]"`
+	CurrentRole   int       //当前正在审批的角色id(current_user是pg的关键字)
+	UserId        int       `gorm:"not null"`
+	RoleId        int       `gorm:""`
+	GroupId       int       `gorm:""`
+	Status        int       `gorm:"not null"`
 
 	FormContent  *Form          `gorm:"-"`
 	ApproveFLows []*ApproveFlow `gorm:"-"`

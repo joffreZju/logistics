@@ -29,7 +29,9 @@ func (c *Controller) UpdateFirmInfo() {
 			beego.Error(e)
 			return
 		}
-		comp.LicenseFile = urllist
+		if len(urllist) != 0 {
+			comp.LicenseFile = urllist
+		}
 	}
 	if len(addrStr) != 0 {
 		comp.Address = addrStr
@@ -186,7 +188,6 @@ func (c *Controller) FirmControlUserStatus() {
 		return
 	}
 	e = model.UpdateUser(prefix, &model.User{Tel: tel, Status: status})
-	e = model.UpdateUser(prefix, &model.User{Tel: tel, Status: status})
 	if e != nil {
 		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
@@ -235,11 +236,13 @@ func (c *Controller) FirmUpdateUserProfile() {
 			beego.Error(e)
 			return
 		}
-		e = service.UpdateRolesOfUser(cno, rids, user.Id)
-		if e != nil {
-			c.ReplyErr(errcode.ErrServerError)
-			beego.Error(e)
-			return
+		if len(rids) != 0 {
+			e = service.UpdateRolesOfUser(cno, rids, user.Id)
+			if e != nil {
+				c.ReplyErr(errcode.ErrServerError)
+				beego.Error(e)
+				return
+			}
 		}
 	}
 	if len(gstr) != 0 {
@@ -250,11 +253,13 @@ func (c *Controller) FirmUpdateUserProfile() {
 			beego.Error(e)
 			return
 		}
-		e = service.UpdateGroupssOfUser(cno, gids, user.Id)
-		if e != nil {
-			c.ReplyErr(errcode.ErrServerError)
-			beego.Error(e)
-			return
+		if len(gids) != 0 {
+			e = service.UpdateGroupssOfUser(cno, gids, user.Id)
+			if e != nil {
+				c.ReplyErr(errcode.ErrServerError)
+				beego.Error(e)
+				return
+			}
 		}
 	}
 	c.ReplySucc(nil)

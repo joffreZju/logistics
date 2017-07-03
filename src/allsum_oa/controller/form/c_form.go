@@ -35,8 +35,8 @@ func (c *Controller) GetFormtplList() {
 func (c *Controller) AddFormtpl() {
 	prefix := c.UserComp
 	str := c.GetString("formtpl")
-	ftpl := model.Formtpl{}
-	e := json.Unmarshal([]byte(str), &ftpl)
+	ftpl := &model.Formtpl{}
+	e := json.Unmarshal([]byte(str), ftpl)
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
@@ -51,7 +51,7 @@ func (c *Controller) AddFormtpl() {
 	} else {
 		ftpl.Status = model.TplInit
 	}
-	e = service.AddFormtpl(prefix, &ftpl)
+	e = service.AddFormtpl(prefix, ftpl)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -63,8 +63,8 @@ func (c *Controller) AddFormtpl() {
 func (c *Controller) UpdateFormtpl() {
 	prefix := c.UserComp
 	str := c.GetString("formtpl")
-	ftpl := model.Formtpl{}
-	e := json.Unmarshal([]byte(str), &ftpl)
+	ftpl := &model.Formtpl{}
+	e := json.Unmarshal([]byte(str), ftpl)
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
@@ -77,7 +77,7 @@ func (c *Controller) UpdateFormtpl() {
 	} else {
 		ftpl.Status = model.TplInit
 	}
-	e = service.UpdateFormtpl(prefix, &ftpl)
+	e = service.UpdateFormtpl(prefix, ftpl)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -182,8 +182,8 @@ func (c *Controller) AddApprovaltpl() {
 func (c *Controller) UpdateApprovaltpl() {
 	prefix := c.UserComp
 	str := c.GetString("approvaltpl")
-	atpl := model.Approvaltpl{}
-	e := json.Unmarshal([]byte(str), &atpl)
+	atpl := &model.Approvaltpl{}
+	e := json.Unmarshal([]byte(str), atpl)
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
@@ -203,7 +203,7 @@ func (c *Controller) UpdateApprovaltpl() {
 	} else {
 		atpl.Status = model.TplInit
 	}
-	e = service.UpdateApprovaltpl(prefix, &atpl)
+	e = service.UpdateApprovaltpl(prefix, atpl)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -418,20 +418,18 @@ func (c *Controller) GetApprovalsFromMe() {
 	c.ReplySucc(alist)
 }
 
-//todo 审批单绑定到role，而每个用户又有多个role，还要关注审批单是否沿树向上走，和用户的多个组织是否重合，逻辑复杂，审批过的才和用户绑定。
-//根据matchusers 做like匹配
 //获取需要我审批的审批单
-//func (c *Controller) GetTodoApprovalsToMe() {
-//	prefix := c.UserComp
-//	uid := c.UserID
-//	alist, e := service.GetTodoApprovalsToMe(prefix, uid)
-//	if e != nil {
-//		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-//		beego.Error(e)
-//		return
-//	}
-//	c.ReplySucc(alist)
-//
+func (c *Controller) GetTodoApprovalsToMe() {
+	prefix := c.UserComp
+	uid := c.UserID
+	alist, e := service.GetTodoApprovalsToMe(prefix, uid)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+		return
+	}
+	c.ReplySucc(alist)
+}
 
 //获取我审批过的审批单
 func (c *Controller) GetFinishedApprovalsToMe() {
