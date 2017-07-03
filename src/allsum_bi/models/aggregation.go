@@ -29,7 +29,7 @@ func InsertAggregateOps(aggregate_ops AggregateOps) (uuidstr string, err error) 
 	}
 	aggregate_ops.Uuid = uuid.NewV4().String()
 	exsit := db.NewRecord(aggregate_ops)
-	if exsit {
+	if !exsit {
 		return uuidstr, fmt.Errorf("exsit")
 	}
 	err = db.Table(GetAggregateOpsTableName()).Create(&aggregate_ops).Error

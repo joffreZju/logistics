@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func GetData(uuid string, conditions []map[string]interface{}) (datas []map[string]interface{}, err error) {
+func GetData(uuid string, conditions []map[string]interface{}) (datas [][]interface{}, err error) {
 	reportset, err := models.GetReportSetByReportUuid(uuid)
 	if err != nil {
 		return
@@ -29,6 +29,11 @@ func GetData(uuid string, conditions []map[string]interface{}) (datas []map[stri
 }
 
 func checkCondition(conditionDbFormat string, Conditions []map[string]interface{}) (checkres bool) {
+	//TODO
+	return true
+}
+
+func CheckConditionFormat(format string) (checkres bool) {
 	//TODO
 	return true
 }

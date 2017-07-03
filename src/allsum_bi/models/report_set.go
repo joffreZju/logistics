@@ -3,6 +3,7 @@ package models
 import (
 	"allsum_bi/db/conn"
 	"fmt"
+	"strings"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -12,7 +13,7 @@ type ReportSet struct {
 	Uuid             string
 	Reportid         int
 	Script           string
-	Resttype         string
+	Resttype         int
 	Conditions       string
 	EnableEventTypes string
 	WebPath          string
@@ -26,12 +27,25 @@ func InsertReportSet(reportset ReportSet) (uuidstr string, err error) {
 		return
 	}
 	reportset.Uuid = uuid.NewV4().String()
-	exsit := db.NewRecord(reportset)
-	if exsit {
+	_, err = GetReportSetByReportid(reportset.Reportid)
+	if !strings.Contains(err.Error(), "not found") {
 		return uuidstr, fmt.Errorf("exsit")
 	}
+
 	err = db.Table(GetReportSetTableName()).Create(&reportset).Error
 	uuidstr = reportset.Uuid
+	return
+}
+
+func GetReportSetByReportid(reportid int) (reportset ReportSet, err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	err = db.Table(GetReportSetTableName()).Where("reportid=?", reportid).First(&reportset).Error
+	if err != nil {
+		return
+	}
 	return
 }
 
@@ -63,7 +77,7 @@ func GetReportSetByReportUuid(uuid string) (reportset ReportSet, err error) {
 	if err != nil {
 		return
 	}
-	err = db.Table(GetReportSetTableName()).Where("id=?", report.Id).First(&reportset).Error
+	err = db.Table(GetReportSetTableName()).Where("reportid=?", report.Id).First(&reportset).Error
 	if err != nil {
 		return
 	}

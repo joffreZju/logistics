@@ -40,7 +40,7 @@ func InitDatabase() {
 	db.Table(models.GetSynchronousLogTableName()).AutoMigrate(&models.SynchronousLog{})
 	db.Table(models.GetDataLoadTableName()).AutoMigrate(&models.DataLoad{})
 	db.Table(models.GetAggregateOpsTableName()).AutoMigrate(&models.AggregateOps{})
-
+	//	db.Table(models.GetAggregateOpsLogTableName()).AutoMigrate(&models.AggregateOps{})
 }
 
 func InitBIConn() (err error) {

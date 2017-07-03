@@ -63,7 +63,7 @@ func AddAggregate(uuid string, table_name string, create_script string, alter_sc
 	new_create_sql_format := strings.Replace(new_create_sql, table_name, util.SCRIPT_TABLE, util.SCRIPT_LIMIT)
 
 	flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
-	flush_script_real = strings.Replace(flush_script_real, schema, util.SCRIPT_SCHEMA, util.SCRIPT_LIMIT)
+	flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, util.SCRIPT_LIMIT)
 
 	err = AddCronWithFlushScript(aggregate.Id, cron, flush_script_real)
 
@@ -88,7 +88,15 @@ func TestCreateScript(uuid string, table_name string, create_script string) (err
 		return
 	}
 	schema := db.GetCompanySchema(demand.Owner)
+	if !db.SchemaExist(util.BASEDB_CONNID, schema) {
+		err = db.CreateSchema(schema)
+		if err != nil {
+			return err
+		}
+	}
+
 	schema_table := schema + "." + table_name
+
 	isexsit := db.CheckTableExist(util.BASEDB_CONNID, schema_table)
 	if isexsit {
 		return fmt.Errorf("table is exsit ", schema_table)
@@ -123,6 +131,13 @@ func TestAlterScript(uuid string, table_name string, alter_script string) (err e
 		return fmt.Errorf("table is not exist ", schema+"."+table_name)
 	}
 	table_name_test := schema_table + "_test"
+	if !db.SchemaExist(util.BASEDB_CONNID, schema) {
+		err = db.CreateSchema(schema)
+		if err != nil {
+			return err
+		}
+	}
+
 	create_script_real := strings.Replace(aggregate.CreateScript, util.SCRIPT_TABLE, table_name_test, util.SCRIPT_LIMIT)
 	err = db.Exec(util.BASEDB_CONNID, create_script_real)
 	if err != nil {
@@ -158,6 +173,13 @@ func TestFlushScript(uuid string, table_name string, flush_script string, cron s
 		return
 	}
 	schema := db.GetCompanySchema(demand.Owner)
+	if !db.SchemaExist(util.BASEDB_CONNID, schema) {
+		err = db.CreateSchema(schema)
+		if err != nil {
+			return err
+		}
+	}
+
 	schema_table := schema + "." + table_name
 	table_name_test := schema_table + "_test"
 	create_script_real := strings.Replace(aggregate.CreateScript, util.SCRIPT_TABLE, table_name_test, util.SCRIPT_LIMIT)
@@ -169,7 +191,7 @@ func TestFlushScript(uuid string, table_name string, flush_script string, cron s
 		db.DeleteSchemaTable(util.BASEDB_CONNID, table_name_test)
 	}()
 	flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, table_name_test, util.SCRIPT_LIMIT)
-	flush_script_real = strings.Replace(flush_script_real, schema, util.SCRIPT_SCHEMA, util.SCRIPT_LIMIT)
+	flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, util.SCRIPT_LIMIT)
 	err = db.Exec(util.BASEDB_CONNID, flush_script_real)
 	if err != nil {
 		return

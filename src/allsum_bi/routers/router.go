@@ -1,19 +1,23 @@
 package routers
 
 import (
+	"allsum_bi/controllers/aggregatemgr"
 	"allsum_bi/controllers/base"
 	"allsum_bi/controllers/dataloadmgr"
 	"allsum_bi/controllers/demand"
 	"allsum_bi/controllers/etlmgr"
+	"allsum_bi/controllers/reportsetmgr"
 	"common/filter"
 
 	"github.com/astaxie/beego"
 )
 
 const (
-	DemandPrefix   string = "/v1/demand"
-	ETLPrefix      string = "/v1/etl"
-	DataLoadPrefix string = "/v1/dataload"
+	DemandPrefix    string = "/v1/demand"
+	ETLPrefix       string = "/v1/etl"
+	DataLoadPrefix  string = "/v1/dataload"
+	AggregatePrefix string = "/v1/aggregate"
+	ReportSetPrefix string = "/v1/reportset"
 )
 
 func init() {
@@ -45,6 +49,23 @@ func init() {
 	//DATALOAD_USER
 	beego.Router(DataLoadPrefix+"/list_data", &dataloadmgr.Controller{}, "post:ListData")
 	beego.Router(DataLoadPrefix+"/input_data", &dataloadmgr.Controller{}, "post:InputData")
+
+	//AGGREAGATE
+
+	beego.Router(AggregatePrefix+"/list", &aggregatemgr.Controller{}, "get:ListAggregate")
+	beego.Router(AggregatePrefix+"/get", &aggregatemgr.Controller{}, "get:GetAggregate")
+	beego.Router(AggregatePrefix+"/save", &aggregatemgr.Controller{}, "post:SaveAggregate")
+	beego.Router(AggregatePrefix+"/test_create_script", &aggregatemgr.Controller{}, "post:TestAggregateCreateScript")
+	beego.Router(AggregatePrefix+"/test_alter_script", &aggregatemgr.Controller{}, "post:TestAggregateAlterScript")
+	beego.Router(AggregatePrefix+"/test_flush_script", &aggregatemgr.Controller{}, "post:TestAggregateFlushScript")
+
+	//ReportSet
+	beego.Router(ReportSetPrefix+"/list", &reportsetmgr.Controller{}, "get:ListReportSet")
+	beego.Router(ReportSetPrefix+"/get", &reportsetmgr.Controller{}, "get:GetReportSet")
+	beego.Router(ReportSetPrefix+"/get_reportset_web_file", &reportsetmgr.Controller{}, "get:GetReportSetWebFile")
+	beego.Router(ReportSetPrefix+"/upload_reportset_web_file", &reportsetmgr.Controller{}, "post:UploadReportSetWeb")
+	beego.Router(ReportSetPrefix+"/get_data", &reportsetmgr.Controller{}, "post:GetReportData")
+	beego.Router(ReportSetPrefix+"/save", &reportsetmgr.Controller{}, "post:SaveReportSet")
 
 	//api auth white list
 

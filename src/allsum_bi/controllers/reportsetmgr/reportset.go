@@ -1,16 +1,18 @@
-package reportset
+package reportsetmgr
 
 import (
+	"allsum_bi/controllers/base"
 	"allsum_bi/models"
 	"allsum_bi/services/reportset"
 	"allsum_bi/util"
 	"allsum_bi/util/errcode"
 	"allsum_bi/util/ossfile"
 	"encoding/json"
-	"stowage/common/controller/base"
+	"io/ioutil"
 	"strconv"
 
 	"github.com/astaxie/beego"
+	uuid "github.com/satori/go.uuid"
 )
 
 type Controller struct {
@@ -26,7 +28,19 @@ func (c *Controller) ListReportSet() {
 	if err != nil {
 		index = 0
 	}
-	reportsets, err := models.ListReportSetByField([]string{}, []interface{}{}, limit, index)
+	reportuuid := c.GetString("reportuuid")
+	if reportuuid == "" {
+		beego.Error("miss reportuuid")
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	report, err := models.GetReportByUuid(reportuuid)
+	if err != nil {
+		beego.Error("error reportuuid")
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	reportsets, err := models.ListReportSetByField([]string{"reportid"}, []interface{}{report.Id}, limit, index)
 	if err != nil {
 		beego.Error("list dataload err: ", err)
 		c.ReplyErr(errcode.ErrServerError)
@@ -44,13 +58,13 @@ func (c *Controller) ListReportSet() {
 	c.ReplySucc(reportsetres)
 }
 
-type condition struct {
-	field   string      `json:"field"`
-	Type    string      `json:"type"`
-	Greater interface{} `json:"omitempty"`
-	Smaller interface{} `json:"omitempty"`
-	Enum    []string    `json:"omitempty"`
-}
+//type condition struct {
+//	field   string      `json:"field"`
+//	Type    string      `json:"type"`
+//	Greater interface{} `json:"omitempty"`
+//	Smaller interface{} `json:"omitempty"`
+//	Enum    []string    `json:"omitempty"`
+//}
 
 func (c *Controller) GetReportSet() {
 	uuid := c.GetString("uuid")
@@ -65,7 +79,7 @@ func (c *Controller) GetReportSet() {
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	var conditions []condition
+	var conditions []map[string]interface{}
 	err = json.Unmarshal([]byte(reportset.Conditions), &conditions)
 
 	if err != nil {
@@ -96,17 +110,24 @@ func (c *Controller) SaveReportSet() {
 	}
 	uuid, ok := reqbody["uuid"]
 	if !ok {
-		reportid, ok := reqbody["reportid"]
+		reportuuid, ok := reqbody["reportuuid"]
 		if !ok {
 			beego.Error("miss Reportid")
 			c.ReplyErr(errcode.ErrParams)
 			return
 		}
-		reportset := models.ReportSet{
-			Reportid: reportid.(int),
+		report, err := models.GetReportByUuid(reportuuid.(string))
+		if err != nil {
+			beego.Error("get Report by uuid err", err)
+			c.ReplyErr(errcode.ErrServerError)
+			return
+
+		}
+		reportsetdb := models.ReportSet{
+			Reportid: report.Id,
 			Status:   util.REPORTSET_BUILDING,
 		}
-		uuidstr, err := models.InsertReportSet(reportset)
+		uuidstr, err := models.InsertReportSet(reportsetdb)
 		if err != nil {
 			beego.Error("insert report set err: ", err)
 			c.ReplyErr(errcode.ErrServerError)
@@ -118,7 +139,7 @@ func (c *Controller) SaveReportSet() {
 		c.ReplySucc(res)
 		return
 	}
-	reportset, err := models.GetReportSetByUuid(uuid.(string))
+	reportsetdb, err := models.GetReportSetByUuid(uuid.(string))
 	if err != nil {
 		beego.Error("get report set err:", err)
 		c.ReplyErr(errcode.ErrParams)
@@ -130,16 +151,24 @@ func (c *Controller) SaveReportSet() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	reportset.Script = getsql.(string)
-	conditionbytes := reqbody["conditions"].([]byte)
-	var conditions condition
-	err = json.Unmarshal(conditionbytes, &conditions)
+	reportsetdb.Script = getsql.(string)
+	conditioninterface := reqbody["conditions"]
+	//	var conditions []map[string]interface{}
+	jsoncondition, err := json.Marshal(conditioninterface)
 	if err != nil {
-		beego.Error("unmarshal json err", err)
+		beego.Error("marshal condition json err", err)
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	err = models.UpdateReportSet(reportset, "script", "conditions")
+	reportsetdb.Conditions = string(jsoncondition)
+	checkres := reportset.CheckConditionFormat(reportsetdb.Conditions)
+	if !checkres {
+		beego.Error("check report condition format ")
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	reportsetdb.Status = util.REPORTSET_STARTED
+	err = models.UpdateReportSet(reportsetdb, "script", "conditions", "status")
 	if err != nil {
 		beego.Error("update report set ")
 		c.ReplyErr(errcode.ErrParams)
@@ -150,6 +179,48 @@ func (c *Controller) SaveReportSet() {
 	}
 	c.ReplySucc(res)
 	return
+}
+
+func (c *Controller) UploadReportSetWeb() {
+	reportsetuuid := c.GetString("uuid")
+	f, h, err := c.GetFile("uploadfile")
+	if err != nil {
+		beego.Error("get file err : ", err)
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	f.Close()
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		beego.Error("read filehandle err : ", err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	filename := uuid.NewV4().String() + "-" + h.Filename
+	uri, err := ossfile.PutFile("reportset", filename, data)
+	if err != nil {
+		beego.Error("put file to oss err : ", err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+
+	reportset, err := models.GetReportSetByUuid(reportsetuuid)
+	if err != nil {
+		beego.Error("get reportset err : ", err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	reportset.WebPath = uri
+	reportset.WebfileName = h.Filename
+	err = models.UpdateReportSet(reportset, "web_path", "webfile_name")
+	if err != nil {
+		beego.Error("update reportset err :", err)
+		c.ReplyErr(errcode.ErrServerError)
+	}
+	res := map[string]string{
+		"res": "success",
+	}
+	c.ReplySucc(res)
 }
 
 func (c *Controller) GetReportSetWebFile() {
@@ -179,14 +250,19 @@ func (c *Controller) GetReportData() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	reportuuid, ok := reqbody["reportUuid"]
+	reportuuid, ok := reqbody["report_uuid"]
 	if !ok {
 		beego.Error("miss uuid")
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
 	conditions := reqbody["conditions"]
-	conditionList := conditions.([]map[string]interface{})
+	condition_interfaces := conditions.([]interface{})
+	var conditionList []map[string]interface{}
+	for _, v := range condition_interfaces {
+		conditionList = append(conditionList, v.(map[string]interface{}))
+	}
+	//	conditionList := conditions.([]map[string]interface{})
 	datas, err := reportset.GetData(reportuuid.(string), conditionList)
 	if err != nil {
 		beego.Error("get Data err", err)

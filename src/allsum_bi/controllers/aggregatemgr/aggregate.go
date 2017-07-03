@@ -1,11 +1,11 @@
 package aggregatemgr
 
 import (
+	"allsum_bi/controllers/base"
 	"allsum_bi/models"
 	"allsum_bi/services/aggregation"
 	"allsum_bi/util/errcode"
 	"encoding/json"
-	"stowage/common/controller/base"
 
 	"github.com/astaxie/beego"
 )
@@ -14,12 +14,66 @@ type Controller struct {
 	base.Controller
 }
 
+func (c *Controller) ListAggregate() {
+	reportuuid := c.GetString("reportuuid")
+	report, err := models.GetReportByUuid(reportuuid)
+	if err != nil {
+		beego.Error("get reportid err", err)
+		c.ReplyErr(errcode.ErrServerError)
+	}
+	limit, _ := c.GetInt("limit", 10)
+
+	index, _ := c.GetInt("index", 0)
+	aggregates, err := models.ListAggregateOpsByField([]string{"reportid"}, []interface{}{report.Id}, limit, index)
+	if err != nil {
+		beego.Error("list aggregate err", err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	var res []map[string]interface{}
+	for _, v := range aggregates {
+		resmap := map[string]interface{}{
+			"index": v.Id,
+			"uuid":  v.Uuid,
+			"name":  v.Name,
+		}
+		res = append(res, resmap)
+	}
+	c.ReplySucc(res)
+	return
+}
+
+func (c *Controller) GetAggregate() {
+	uuid := c.GetString("uuid")
+	aggregateops, err := models.GetAggregateOpsByUuid(uuid)
+	if err != nil {
+		beego.Error("get aggregate err", err)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	res := map[string]interface{}{
+		"uuid":          aggregateops.Uuid,
+		"reportid":      aggregateops.Reportid,
+		"name":          aggregateops.Name,
+		"create_script": aggregateops.CreateScript,
+		"alter_script":  aggregateops.AlterScript,
+		"script":        aggregateops.Script,
+		"dest_table":    aggregateops.DestTable,
+		"cron":          aggregateops.Cron,
+		"documents":     aggregateops.Documents,
+		"status":        aggregateops.Status,
+	}
+	c.ReplySucc(res)
+
+}
+
 func (c *Controller) SaveAggregate() {
 	uuid := c.GetString("uuid")
 	name := c.GetString("name")
 	reportuuid := c.GetString("reportuuid")
+	beego.Debug("uuid :", reportuuid, name)
 	if reportuuid == "" {
-		beego.Error("aggregate reprotuuid err ", err)
+		beego.Error("aggregate reprotuuid miss ")
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
