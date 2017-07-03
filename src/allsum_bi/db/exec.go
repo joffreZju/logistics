@@ -28,7 +28,7 @@ func QueryDatas(dbid string, sql string, params ...interface{}) (datas [][]inter
 		return
 	}
 	defer rows.Close()
-	columns, err := rows.ColumnTypes()
+	columns, err := rows.Columns()
 	collen := len(columns)
 	if err != nil {
 		beego.Error("get rows err ", err)
