@@ -200,6 +200,10 @@ func (c *Controller) FirmUpdateUserProfile() {
 	tel := c.GetString("tel")
 	uname := c.GetString("username")
 	mail := c.GetString("mail")
+	gender, e := c.GetInt("gender")
+	if e != nil {
+		gender = 0
+	}
 	rstr := c.GetString("roles")
 	gstr := c.GetString("groups")
 	user, e := service.GetUserByTel("public", tel)
@@ -210,6 +214,7 @@ func (c *Controller) FirmUpdateUserProfile() {
 	}
 	user.UserName = uname
 	user.Mail = mail
+	user.Gender = gender
 	e = model.UpdateUser("public", user)
 	if e != nil {
 		beego.Error(e)

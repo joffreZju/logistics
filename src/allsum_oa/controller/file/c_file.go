@@ -5,6 +5,7 @@ import (
 	"common/lib/errcode"
 	"common/lib/ossfile"
 	"github.com/astaxie/beego"
+	"github.com/tobyzxj/uuid"
 	"io/ioutil"
 )
 
@@ -31,7 +32,8 @@ func (c *Controller) UploadFile() {
 		c.ReplyErr(errcode.ErrUploadFileFailed)
 		return
 	}
-	url, e := ossfile.PutFile(prefix, h.Filename, data)
+	uuidstr := uuid.New()
+	url, e := ossfile.PutFile(prefix, uuidstr+h.Filename, data)
 	if e != nil {
 		c.ReplyErr(errcode.ErrUploadFileFailed)
 		return
