@@ -35,7 +35,7 @@ func (c *Controller) AddRole() {
 	funcIdsStr := c.GetString("functions")
 	var funcIds []int
 	e := json.Unmarshal([]byte(funcIdsStr), &funcIds)
-	if e != nil {
+	if e != nil || len(funcIds) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
@@ -67,7 +67,7 @@ func (c *Controller) UpdateRole() {
 	funcIdsStr := c.GetString("functions")
 	var funcIds []int
 	e = json.Unmarshal([]byte(funcIdsStr), &funcIds)
-	if e != nil {
+	if e != nil || len(funcIds) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
@@ -128,7 +128,7 @@ func (c *Controller) AddUsersToRole() {
 	usersStr := c.GetString("users")
 	uids := make([]int, 0)
 	e = json.Unmarshal([]byte(usersStr), &uids)
-	if e != nil {
+	if e != nil || len(uids) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
@@ -154,7 +154,7 @@ func (c *Controller) DelUsersFromRole() {
 	usersStr := c.GetString("users")
 	uids := make([]int, 0)
 	e = json.Unmarshal([]byte(usersStr), &uids)
-	if e != nil {
+	if e != nil || len(uids) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return

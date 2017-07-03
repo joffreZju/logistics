@@ -399,13 +399,14 @@ func GetApprovalsFromMe(prefix string, uid int) (alist []*model.Approval, e erro
 	return
 }
 
-//func GetTodoApprovalsToMe(prefix string, uid int) (alist []*model.Approval, e error) {
-//	db := model.NewOrm()
-//	alist = []*model.Approval{}
-//	e = db.Table(prefix + "." + model.Approval{}.TableName()).
-//		Where("status=? and currentuser=?", model.ApprovalStatWaiting, uid).Find(&alist).Error
-//	return
-//}
+func GetTodoApprovalsToMe(prefix string, uid int) (alist []*model.Approval, e error) {
+	db := model.NewOrm()
+	alist = []*model.Approval{}
+	sql := fmt.Sprintf(`select * from "%s".approval as t1 inner join "%s".approve_flow as t2
+		on t1.no = t2.approval_no where t2.status=%d and t2.match_users like '%%%d-%%'`, prefix, prefix, model.ApprovalStatWaiting, uid)
+	e = db.Raw(sql).Scan(&alist).Error
+	return
+}
 
 func GetFinishedApprovalsToMe(prefix string, uid int) (alist []*model.Approval, e error) {
 	db := model.NewOrm()
