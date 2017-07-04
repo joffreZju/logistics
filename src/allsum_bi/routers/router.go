@@ -78,9 +78,9 @@ func init() {
 	beego.Router(DbPrefix+"/delete", &dbmgr.Controller{}, "delete:DelDb")
 	//api auth white list
 
-	//	notNeedAuthList := []string{}
+	notNeedAuthList := []string{}
 
 	//filter
-	//	beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckAuthFilter("stowage_user", notNeedAuthList))
+	beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckAuthFilter("stowage_user", notNeedAuthList))
 	beego.InsertFilter("/*", beego.BeforeRouter, filter.RequestFilter())
 }
