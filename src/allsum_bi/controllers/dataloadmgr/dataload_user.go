@@ -3,7 +3,7 @@ package dataloadmgr
 import (
 	"allsum_bi/services/dataload"
 	"allsum_bi/util"
-	"allsum_bi/util/errcode"
+	"common/lib/errcode"
 	"encoding/json"
 
 	"github.com/astaxie/beego"
@@ -40,7 +40,7 @@ func (c *Controller) ListData() {
 	columns, datas, err := dataload.GetData(uuid.(string), conditionMap, int(limit.(float64)))
 	if err != nil {
 		beego.Error("get data err ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetDataload)
 		return
 	}
 	res := map[string]interface{}{
@@ -95,14 +95,14 @@ func (c *Controller) InputData() {
 		err = dataload.UpdateData(uuid.(string), fields, data)
 		if err != nil {
 			beego.Error("update data fail err : ", err)
-			c.ReplyErr(errcode.ErrServerError)
+			c.ReplyErr(errcode.ErrActionInputData)
 			return
 		}
 	} else if inputType == util.IS_INSERT {
 		err = dataload.InsertNewData(uuid.(string), fields, data)
 		if err != nil {
 			beego.Error("insert data fail err : ", err)
-			c.ReplyErr(errcode.ErrServerError)
+			c.ReplyErr(errcode.ErrActionInputData)
 			return
 		}
 	}

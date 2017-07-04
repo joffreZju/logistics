@@ -6,8 +6,8 @@ import (
 	"allsum_bi/services/aggregation"
 	"allsum_bi/services/dataload"
 	"allsum_bi/util"
-	"allsum_bi/util/errcode"
 	"allsum_bi/util/ossfile"
+	"common/lib/errcode"
 	"io/ioutil"
 
 	"github.com/astaxie/beego"
@@ -30,7 +30,7 @@ func (c *Controller) ListDataload() {
 	dataloads, err := models.ListDataLoadByField([]string{}, []interface{}{}, limit, index)
 	if err != nil {
 		beego.Error("list dataload err: ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetDataload)
 		return
 	}
 	var dataloadres []map[string]interface{}
@@ -55,7 +55,7 @@ func (c *Controller) GetDataload() {
 	dataload, err := models.GetDataLoadByUuid(uuid)
 	if err != nil {
 		beego.Error("get dataload db err ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetDataload)
 		return
 	}
 	//TODO get Aggregateid
@@ -68,7 +68,7 @@ func (c *Controller) GetDataload() {
 		Aggregate, err := models.GetAggregateOps(aggregateid)
 		if err != nil {
 			beego.Error("get Aggregate ops err", err)
-			c.ReplyErr(errcode.ErrServerError)
+			c.ReplyErr(errcode.ErrActionGetAggregate)
 		}
 		flush_script = Aggregate.Script
 		cron = Aggregate.Cron
@@ -110,7 +110,7 @@ func (c *Controller) SaveDataload() {
 		uuid, err := models.InsertDataLoad(dataloadstruct)
 		if err != nil {
 			beego.Error("insert dataload err :", err)
-			c.ReplyErr(errcode.ErrServerError)
+			c.ReplyErr(errcode.ErrActionPutDataload)
 			return
 		}
 		res := map[string]string{
@@ -156,7 +156,7 @@ func (c *Controller) TestDataLoadCreateScript() {
 	err := dataload.TestCreateScript(dataload_uuid, table_name, create_script)
 	if err != nil {
 		beego.Error("test create script : ", err)
-		c.ReplyErr(err)
+		c.ReplyErr(&errcode.CodeError{500, err.Error()})
 	}
 	res := map[string]string{
 		"res": "success",
@@ -172,7 +172,7 @@ func (c *Controller) TestDataLoadAlterScript() {
 	err := dataload.TestAlterScript(dataload_uuid, table_name, alter_script)
 	if err != nil {
 		beego.Error("test alter script : ", err)
-		c.ReplyErr(err)
+		c.ReplyErr(&errcode.CodeError{500, err.Error()})
 	}
 	res := map[string]string{
 		"res": "success",
@@ -189,7 +189,7 @@ func (c *Controller) TestAggregate() {
 	err := aggregation.TestAddCronWithFlushScript(cron, flush_script)
 	if err != nil {
 		beego.Error("test flush script err :", err)
-		c.ReplyErr(err)
+		c.ReplyErr(&errcode.CodeError{500, err.Error()})
 	}
 	res := map[string]string{
 		"res": "success",
@@ -209,21 +209,21 @@ func (c *Controller) UploadDataLoadWeb() {
 	data, err := ioutil.ReadAll(f)
 	if err != nil {
 		beego.Error("read filehandle err : ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrUploadFileFailed)
 		return
 	}
 	filename := uuid.NewV4().String() + "-" + h.Filename
 	uri, err := ossfile.PutFile("dataload", filename, data)
 	if err != nil {
 		beego.Error("put file to oss err : ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrUploadFileFailed)
 		return
 	}
 
 	dataload, err := models.GetDataLoadByUuid(dataloaduuid)
 	if err != nil {
 		beego.Error("get dataload err : ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetDataload)
 		return
 	}
 	dataload.WebPath = uri
@@ -231,7 +231,7 @@ func (c *Controller) UploadDataLoadWeb() {
 	err = models.UpdateDataLoad(dataload, "web_path", "webfile_name")
 	if err != nil {
 		beego.Error("update dataload err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionPutDataload)
 	}
 	res := map[string]string{
 		"res": "success",
@@ -250,7 +250,7 @@ func (c *Controller) DownloadDataLoadWeb() {
 	filedata, err := ossfile.GetFile(dataload.WebPath)
 	if err != nil {
 		beego.Error("get file err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrDownloadFileFailed)
 		return
 	}
 	c.ReplyFile("application/octet-stream", dataload.WebfileName, filedata)

@@ -5,8 +5,8 @@ import (
 	"allsum_bi/models"
 	"allsum_bi/services/oa"
 	"allsum_bi/util"
-	"allsum_bi/util/errcode"
 	"allsum_bi/util/ossfile"
+	"common/lib/errcode"
 	"encoding/json"
 	_ "fmt"
 	"io/ioutil"
@@ -67,7 +67,7 @@ func (c *Controller) ListDemand() {
 	demands, err := models.ListDemandByField(fields, values, limit, index)
 	if err != nil {
 		beego.Error("list demands error :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetDemand)
 		return
 	}
 	var res []map[string]interface{}
@@ -113,7 +113,7 @@ func (c *Controller) AddDemand() {
 	err := models.InsertDemand(demand)
 	if err != nil {
 		beego.Error("insert demand err : ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionPutDemand)
 		return
 	}
 	res := map[string]string{
@@ -142,21 +142,21 @@ func (c *Controller) AnalyzeDemand() {
 		report, err = models.InsertReport(report_create)
 		if err != nil {
 			beego.Error("insert report err : ", err)
-			c.ReplyErr(errcode.ErrServerError)
+			c.ReplyErr(errcode.ErrActionGetReport)
 			return
 		}
 		demand.Reportid = report.Id
 		err = models.UpdateDemand(demand, "reportid")
 		if err != nil {
 			beego.Error("update demand err", err)
-			c.ReplyErr(errcode.ErrServerError)
+			c.ReplyErr(errcode.ErrActionPutDemand)
 			return
 		}
 	} else {
 		report, err = models.GetReport(demand.Reportid)
 		if err != nil {
 			beego.Error("get report err : ", err)
-			c.ReplyErr(errcode.ErrServerError)
+			c.ReplyErr(errcode.ErrActionGetReport)
 			return
 		}
 	}
@@ -178,13 +178,13 @@ func (c *Controller) GetAnalyzeReport() {
 	demand, err := models.GetDemandByUuid(demanduuid)
 	if err != nil {
 		beego.Error("get demand err :", err)
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.ErrActionGetDemand)
 		return
 	}
 	report, err := models.GetReport(demand.Reportid)
 	if err != nil {
 		beego.Error("get report err :", err)
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.ErrActionGetReport)
 	}
 	var assigner_authority map[string][]string
 	if demand.AssignerAuthority == "" {
@@ -193,7 +193,7 @@ func (c *Controller) GetAnalyzeReport() {
 		err = json.Unmarshal([]byte(demand.AssignerAuthority), &assigner_authority)
 		if err != nil {
 			beego.Error("unmarshal assigner_authority err :", err)
-			c.ReplyErr(errcode.ErrParams)
+			c.ReplyErr(errcode.ErrServerError)
 		}
 	}
 	res := map[string]interface{}{
@@ -245,13 +245,13 @@ func (c *Controller) SetDemand() {
 	demand, err := models.GetDemandByUuid(demanduuid)
 	if err != nil {
 		beego.Error("get demand err : ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetDemand)
 		return
 	}
 	report, err := models.GetReport(demand.Id)
 	if err != nil {
 		beego.Error("get report err : ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetReport)
 		return
 	}
 	demand.Description = description
@@ -263,7 +263,7 @@ func (c *Controller) SetDemand() {
 	err = models.UpdateDemand(demand, "description", "handleid", "deadline", "assigner_authority", "status")
 	if err != nil {
 		beego.Error("update demand err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionPutDemand)
 		return
 	}
 
@@ -273,7 +273,7 @@ func (c *Controller) SetDemand() {
 	err = models.UpdateReport(report, "reporttype", "status")
 	if err != nil {
 		beego.Error("update report err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionPutReport)
 		return
 	}
 
@@ -290,13 +290,13 @@ func (c *Controller) GetDemandDoc() {
 	demand, err := models.GetDemandByUuid(demanduuid)
 	if err != nil {
 		beego.Error("get demand err :", err)
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.ErrActionGetDemand)
 		return
 	}
 	filedata, err := ossfile.GetFile(demand.DocUrl)
 	if err != nil {
 		beego.Error("get file err :", err)
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.ErrDownloadFileFailed)
 		return
 	}
 	c.ReplyFile("application/octet-stream", demand.DocName, filedata)
@@ -315,14 +315,14 @@ func (c *Controller) UploadDemandDoc() {
 	data, err := ioutil.ReadAll(f)
 	if err != nil {
 		beego.Error("read filehandle err : ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrUploadFileFailed)
 		return
 	}
 	filename := uuid.NewV4().String() + "-" + h.Filename
 	uri, err := ossfile.PutFile("demand", filename, data)
 	if err != nil {
 		beego.Error("put file to oss err : ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrUploadFileFailed)
 		return
 	}
 
@@ -332,7 +332,7 @@ func (c *Controller) UploadDemandDoc() {
 	err = models.UpdateDemand(demand, "doc_url", "doc_name")
 	if err != nil {
 		beego.Error("update demand err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrUploadFileFailed)
 	}
 	res := map[string]string{
 		"res": "success",

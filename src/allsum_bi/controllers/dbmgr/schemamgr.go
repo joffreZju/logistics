@@ -2,7 +2,7 @@ package dbmgr
 
 import (
 	"allsum_bi/db"
-	"allsum_bi/util/errcode"
+	"common/lib/errcode"
 
 	"github.com/astaxie/beego"
 )

@@ -4,7 +4,7 @@ import (
 	"allsum_bi/controllers/base"
 	"allsum_bi/models"
 	"allsum_bi/services/aggregation"
-	"allsum_bi/util/errcode"
+	"common/lib/errcode"
 	"encoding/json"
 
 	"github.com/astaxie/beego"
@@ -19,7 +19,7 @@ func (c *Controller) ListAggregate() {
 	report, err := models.GetReportByUuid(reportuuid)
 	if err != nil {
 		beego.Error("get reportid err", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetReport)
 	}
 	limit, _ := c.GetInt("limit", 10)
 
@@ -27,7 +27,7 @@ func (c *Controller) ListAggregate() {
 	aggregates, err := models.ListAggregateOpsByField([]string{"reportid"}, []interface{}{report.Id}, limit, index)
 	if err != nil {
 		beego.Error("list aggregate err", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetAggregate)
 		return
 	}
 	var res []map[string]interface{}
@@ -48,7 +48,7 @@ func (c *Controller) GetAggregate() {
 	aggregateops, err := models.GetAggregateOpsByUuid(uuid)
 	if err != nil {
 		beego.Error("get aggregate err", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetAggregate)
 		return
 	}
 	res := map[string]interface{}{
@@ -80,7 +80,7 @@ func (c *Controller) SaveAggregate() {
 	report, err := models.GetReportByUuid(reportuuid)
 	if err != nil {
 		beego.Error("get report err:", err)
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.ErrActionGetReport)
 		return
 	}
 	if uuid == "" {
@@ -91,7 +91,7 @@ func (c *Controller) SaveAggregate() {
 		uuid, err := models.InsertAggregateOps(aggregate)
 		if err != nil {
 			beego.Error("insert aggregate err :", err)
-			c.ReplyErr(errcode.ErrServerError)
+			c.ReplyErr(errcode.ErrActionPutAggregate)
 			return
 		}
 		res := map[string]string{
@@ -130,7 +130,7 @@ func (c *Controller) SaveAggregate() {
 	err = aggregation.AddAggregate(uuid, create_table_name.(string), create_script.(string), alter_script.(string), flush_script.(string), cron.(string), documents.(string))
 	if err != nil {
 		beego.Error("add aggregate err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionPutAggregate)
 		return
 	}
 	res := map[string]string{
@@ -147,7 +147,7 @@ func (c *Controller) TestAggregateCreateScript() {
 	err := aggregation.TestCreateScript(uuid, table_name, create_script)
 	if err != nil {
 		beego.Error("test create script :", err)
-		c.ReplyErr(err)
+		c.ReplyErr(&errcode.CodeError{500, err.Error()})
 	}
 	res := map[string]string{
 		"res": "success",
@@ -162,7 +162,7 @@ func (c *Controller) TestAggregateAlterScript() {
 	err := aggregation.TestAlterScript(uuid, table_name, alter_script)
 	if err != nil {
 		beego.Error("test alter script : ", err)
-		c.ReplyErr(err)
+		c.ReplyErr(&errcode.CodeError{500, err.Error()})
 	}
 	res := map[string]string{
 		"res": "success",
@@ -179,7 +179,7 @@ func (c *Controller) TestAggregateFlushScript() {
 	err := aggregation.TestFlushScript(uuid, table_name, flush_script, cron)
 	if err != nil {
 		beego.Error("test flush script err :", err)
-		c.ReplyErr(err)
+		c.ReplyErr(&errcode.CodeError{500, err.Error()})
 	}
 	res := map[string]string{
 		"res": "success",

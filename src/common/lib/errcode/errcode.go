@@ -68,6 +68,28 @@ var (
 	ErrCouponUsed     = &CodeError{20158, "代金券已使用"}
 	ErrCouponIllegal  = &CodeError{20159, "非法券"}
 	ErrCouponNotExist = &CodeError{20159, "券不存在"}
+
+	//bi
+	ErrActionGetReport      = &CodeError{20500, "获取报表信息出错"}
+	ErrActionGetAggregate   = &CodeError{20501, "获取清洗信息出错"}
+	ErrActionPutAggregate   = &CodeError{20502, "插入清洗信息出错"}
+	ErrActionGetDataload    = &CodeError{20503, "获取数据录入出错"}
+	ErrActionPutDataload    = &CodeError{20504, "添加数据录入项出错"}
+	ErrActionInputData      = &CodeError{20505, "录入数据出错"}
+	ErrActionGetDbMgr       = &CodeError{20506, "获取数据库信息失败"}
+	ErrActionPutDbMgr       = &CodeError{20507, "插入据库信息失败"}
+	ErrActionCreateConn     = &CodeError{20508, "创建数据库链接失败"}
+	ErrActionDeleteDbMgr    = &CodeError{20509, "删除数据库链接失败"}
+	ErrActionNoAuthority    = &CodeError{20510, "无权执行此操作"}
+	ErrActionGetDemand      = &CodeError{20511, "获取需求信息失败"}
+	ErrActionPutDemand      = &CodeError{20512, "添加需求信息失败"}
+	ErrActionPutReport      = &CodeError{20513, "添加报表信息失败"}
+	ErrActionPutSycn        = &CodeError{20514, "添加同步任务失败"}
+	ErrActionGetSycn        = &CodeError{20515, "获取同步任务信息失败"}
+	ErrActionGetSchemaTable = &CodeError{20516, "获取表信息失败"}
+	ErrActionGetReportSet   = &CodeError{20517, "获取报表设置信息失败"}
+	ErrActionPutReportSet   = &CodeError{20518, "添加报表设置信息失败"}
+	ErrActionGetReportData  = &CodeError{20519, "获取报表数据失败"}
 )
 
 func ParseError(err error) (code int, msg string) {

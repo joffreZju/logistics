@@ -4,7 +4,7 @@ import (
 	"allsum_bi/controllers/base"
 	"allsum_bi/db/conn"
 	"allsum_bi/models"
-	"allsum_bi/util/errcode"
+	"common/lib/errcode"
 	"fmt"
 
 	"github.com/astaxie/beego"
@@ -20,7 +20,7 @@ func (c *Controller) ListDb() {
 	databases, err := models.ListDatabaseManager()
 	if err != nil {
 		beego.Error("listdb err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetDbMgr)
 		return
 	}
 	for _, v := range databases {
@@ -40,7 +40,7 @@ func (c *Controller) ListDbDetail() {
 	databases, err := models.ListDatabaseManager()
 	if err != nil {
 		beego.Error("listdb err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetDbMgr)
 		return
 	}
 	for _, v := range databases {
@@ -103,7 +103,7 @@ func (c *Controller) AddDb() {
 	err = models.InsertDatabaseManager(databasemgr)
 	if err != nil {
 		beego.Error("listdb err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionPutDbMgr)
 		return
 	}
 
@@ -143,6 +143,8 @@ func (c *Controller) UpdateDb() {
 
 	err = conn.CreateConn(conninfo)
 	if err != nil {
+		beego.Error("create conn err", err)
+		c.ReplyErr(errcode.ErrActionCreateConn)
 		return
 	}
 
@@ -175,7 +177,7 @@ func (c *Controller) DelDb() {
 	err := models.DeleteDatabaseManager(dbid)
 	if err != nil {
 		beego.Error("delete db err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionDeleteDbMgr)
 		return
 	}
 	res := map[string]string{

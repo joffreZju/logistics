@@ -6,7 +6,7 @@ import (
 	"allsum_bi/models"
 	"allsum_bi/services/etl"
 	"allsum_bi/util"
-	"allsum_bi/util/errcode"
+	"common/lib/errcode"
 
 	"github.com/astaxie/beego"
 )
@@ -22,7 +22,7 @@ func (c *Controller) ShowSycnList() {
 	tableNames, err := db.ListSchemaTable(dbid, schema)
 	if err != nil {
 		beego.Error("ListSchemaTable err ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetSchemaTable)
 		return
 	}
 	var schemaTables []string
@@ -32,7 +32,7 @@ func (c *Controller) ShowSycnList() {
 	sync, err := models.ListSyncInSourceTables(dbid, schemaTables)
 	if err != nil {
 		beego.Error("GetSyncBy err ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetSycn)
 		return
 	}
 	var res []map[string]interface{}
@@ -126,7 +126,7 @@ func (c *Controller) SetEtl() {
 	err = etl.SetAndDoEtl(setdata)
 	if err != nil {
 		//because this  action is set, so return params err
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.ErrServerError)
 		beego.Error("set etl error : ", err)
 		return
 	}

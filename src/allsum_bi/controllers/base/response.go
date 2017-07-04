@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"allsum_bi/util/errcode"
+	"common/lib/errcode"
 
 	"github.com/astaxie/beego"
 )

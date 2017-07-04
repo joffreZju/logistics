@@ -5,8 +5,8 @@ import (
 	"allsum_bi/models"
 	"allsum_bi/services/reportset"
 	"allsum_bi/util"
-	"allsum_bi/util/errcode"
 	"allsum_bi/util/ossfile"
+	"common/lib/errcode"
 	"encoding/json"
 	"io/ioutil"
 	"strconv"
@@ -37,13 +37,13 @@ func (c *Controller) ListReportSet() {
 	report, err := models.GetReportByUuid(reportuuid)
 	if err != nil {
 		beego.Error("error reportuuid")
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.ErrActionGetReport)
 		return
 	}
 	reportsets, err := models.ListReportSetByField([]string{"reportid"}, []interface{}{report.Id}, limit, index)
 	if err != nil {
 		beego.Error("list dataload err: ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetReportSet)
 		return
 	}
 	var reportsetres []map[string]interface{}
@@ -76,7 +76,7 @@ func (c *Controller) GetReportSet() {
 	reportset, err := models.GetReportSetByUuid(uuid)
 	if err != nil {
 		beego.Error("get reportset db err ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrActionGetReportSet)
 		return
 	}
 	var conditions []map[string]interface{}
@@ -84,7 +84,7 @@ func (c *Controller) GetReportSet() {
 
 	if err != nil {
 		beego.Error("unmarshal condition err ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrParams)
 		return
 	}
 	res := map[string]interface{}{
@@ -119,7 +119,7 @@ func (c *Controller) SaveReportSet() {
 		report, err := models.GetReportByUuid(reportuuid.(string))
 		if err != nil {
 			beego.Error("get Report by uuid err", err)
-			c.ReplyErr(errcode.ErrServerError)
+			c.ReplyErr(errcode.ErrActionGetReport)
 			return
 
 		}
@@ -130,7 +130,7 @@ func (c *Controller) SaveReportSet() {
 		uuidstr, err := models.InsertReportSet(reportsetdb)
 		if err != nil {
 			beego.Error("insert report set err: ", err)
-			c.ReplyErr(errcode.ErrServerError)
+			c.ReplyErr(errcode.ErrActionPutReportSet)
 			return
 		}
 		res := map[string]string{
@@ -142,7 +142,7 @@ func (c *Controller) SaveReportSet() {
 	reportsetdb, err := models.GetReportSetByUuid(uuid.(string))
 	if err != nil {
 		beego.Error("get report set err:", err)
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.ErrActionGetReportSet)
 		return
 	}
 	getsql, ok := reqbody["get_script"]
@@ -157,7 +157,7 @@ func (c *Controller) SaveReportSet() {
 	jsoncondition, err := json.Marshal(conditioninterface)
 	if err != nil {
 		beego.Error("marshal condition json err", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrParams)
 		return
 	}
 	reportsetdb.Conditions = string(jsoncondition)
@@ -171,7 +171,7 @@ func (c *Controller) SaveReportSet() {
 	err = models.UpdateReportSet(reportsetdb, "script", "conditions", "status")
 	if err != nil {
 		beego.Error("update report set ")
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.ErrActionPutReportSet)
 		return
 	}
 	res := map[string]string{
@@ -193,21 +193,21 @@ func (c *Controller) UploadReportSetWeb() {
 	data, err := ioutil.ReadAll(f)
 	if err != nil {
 		beego.Error("read filehandle err : ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrUploadFileFailed)
 		return
 	}
 	filename := uuid.NewV4().String() + "-" + h.Filename
 	uri, err := ossfile.PutFile("reportset", filename, data)
 	if err != nil {
 		beego.Error("put file to oss err : ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrUploadFileFailed)
 		return
 	}
 
 	reportset, err := models.GetReportSetByUuid(reportsetuuid)
 	if err != nil {
 		beego.Error("get reportset err : ", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrUploadFileFailed)
 		return
 	}
 	reportset.WebPath = uri
@@ -215,7 +215,7 @@ func (c *Controller) UploadReportSetWeb() {
 	err = models.UpdateReportSet(reportset, "web_path", "webfile_name")
 	if err != nil {
 		beego.Error("update reportset err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrUploadFileFailed)
 	}
 	res := map[string]string{
 		"res": "success",
@@ -229,13 +229,13 @@ func (c *Controller) GetReportSetWebFile() {
 	reportset, err := models.GetReportSetByReportUuid(uuid)
 	if err != nil {
 		beego.Error("get report err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrDownloadFileFailed)
 		return
 	}
 	filedata, err := ossfile.GetFile(reportset.WebPath)
 	if err != nil {
 		beego.Error("get file err :", err)
-		c.ReplyErr(errcode.ErrServerError)
+		c.ReplyErr(errcode.ErrDownloadFileFailed)
 		return
 	}
 	c.ReplyFile("application/octet-stream", reportset.WebfileName, filedata)
@@ -266,7 +266,7 @@ func (c *Controller) GetReportData() {
 	datas, err := reportset.GetData(reportuuid.(string), conditionList)
 	if err != nil {
 		beego.Error("get Data err", err)
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.ErrActionGetReportData)
 		return
 	}
 	c.ReplySucc(datas)

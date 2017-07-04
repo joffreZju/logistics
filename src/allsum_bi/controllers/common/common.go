@@ -3,7 +3,7 @@ package common
 import (
 	"allsum_bi/controllers/base"
 	"allsum_bi/services/oa"
-	"allsum_bi/util/errcode"
+	"common/lib/errcode"
 
 	"github.com/astaxie/beego"
 	_ "github.com/satori/go.uuid"
