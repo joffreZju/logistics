@@ -2,7 +2,10 @@ package models
 
 import (
 	"allsum_bi/db/conn"
+	"common/lib/keycrypt"
 	"fmt"
+
+	"github.com/astaxie/beego"
 )
 
 type DatabaseManager struct {
@@ -22,6 +25,13 @@ func InsertDatabaseManager(conninfo DatabaseManager) (err error) {
 	if err != nil {
 		return
 	}
+	seed := beego.AppConfig.String("seed")
+	passwd := conninfo.Password
+	conninfo.Password, err = keycrypt.Encode(seed, passwd)
+	if err != nil {
+		return
+	}
+
 	exist := db.NewRecord(conninfo)
 	if !exist {
 		return fmt.Errorf("exist")
@@ -36,6 +46,11 @@ func GetDatabaseManager(connid string) (conninfo DatabaseManager, err error) {
 		return
 	}
 	err = db.Table(GetDatabaseManagerTableName()).Where("dbid=?", connid).First(&conninfo).Error
+	if err != nil {
+		return
+	}
+	seed := beego.AppConfig.String("seed")
+	conninfo.Password, err = keycrypt.Decode(seed, conninfo.Password)
 	return
 }
 
@@ -55,6 +70,11 @@ func ListDatabaseManager() (conninfos []DatabaseManager, err error) {
 		if err != nil {
 			return conninfos, err
 		}
+		seed := beego.AppConfig.String("seed")
+		conninfo.Password, err = keycrypt.Decode(seed, conninfo.Password)
+		if err != nil {
+			return
+		}
 		conninfos = append(conninfos, conninfo)
 	}
 	return
@@ -65,6 +85,25 @@ func UpdateDatabaseManager(conninfo DatabaseManager, fields ...string) (err erro
 	if err != nil {
 		return
 	}
+	seed := beego.AppConfig.String("seed")
+	passwd := conninfo.Password
+	conninfo.Password, err = keycrypt.Encode(seed, passwd)
+	if err != nil {
+		return
+	}
+
 	err = db.Table(GetDatabaseManagerTableName()).Where("dbid=?", conninfo.Dbid).Updates(conninfo).Update(fields).Error
+	return
+}
+
+func DeleteDatabaseManager(dbid string) (err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	conninfo := DatabaseManager{
+		Dbid: dbid,
+	}
+	err = db.Table(GetDatabaseManagerTableName()).Where("dbid=?", dbid).Delete(&conninfo).Error
 	return
 }

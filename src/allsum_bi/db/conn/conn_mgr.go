@@ -19,7 +19,8 @@ func init() {
 func CreateConn(conninfo Conn) (err error) {
 	_, ok := conn[conninfo.Id]
 	if ok {
-		return fmt.Errorf("this db is conned")
+		beego.Debug("this conn is connced")
+		return nil
 	}
 	if conninfo.Dbtype != util.PG_DB_TYPE {
 		return fmt.Errorf("CreatConn: db type not import !")
@@ -81,6 +82,6 @@ func GetAllConn() (conninfos map[string]Conn) {
 
 func get_pg_url(conninfo *Conn) (connstr string) {
 	url := fmt.Sprintf("host=%s user=%s password=%s port=%d dbname=%s sslmode=disable", conninfo.Host, conninfo.DbUser, conninfo.Passwd, conninfo.Port, conninfo.Dbname)
-	beego.Debug("pgurl: ", url)
+	beego.Debug("pg params: ", conninfo.Host, conninfo.DbUser, conninfo.Port, conninfo.Dbname)
 	return url
 }

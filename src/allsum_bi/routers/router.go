@@ -75,6 +75,7 @@ func init() {
 	beego.Router(DbPrefix+"/update", &dbmgr.Controller{}, "post:UpdateDb")
 	beego.Router(DbPrefix+"/list_schema", &dbmgr.Controller{}, "get:ListSchema")
 	beego.Router(DbPrefix+"/list_schema_table", &dbmgr.Controller{}, "get:ListSchemaTable")
+	beego.Router(DbPrefix+"/delete", &dbmgr.Controller{}, "delete:DelDb")
 	//api auth white list
 
 	//	notNeedAuthList := []string{}

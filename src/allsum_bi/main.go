@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/signal"
 
+	_ "allsum_bi/models"
+
 	"github.com/astaxie/beego"
 )
 
