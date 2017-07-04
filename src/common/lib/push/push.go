@@ -3,35 +3,11 @@ package push
 import (
 	"encoding/json"
 	"fmt"
-	"time"
-
 	"github.com/GiterLab/aliyun-sms-go-sdk/sms"
 	"github.com/astaxie/beego"
 	jpushclient "github.com/ylywyn/jpush-api-go-client"
+	"time"
 )
-
-func Init() (err error) {
-	//alidayu.AppKey = "LTAIwxFn7egYfvra"
-	//alidayu.AppKey = "23441572"
-	//alidayu.AppSecret = "nBfpqo4StRZv9JreRsLQpFaZKKUT1h"
-	//alidayu.AppSecret = "8d890383b59c43ccdeb50fe9d0074087"
-	return
-}
-
-//
-//func SendMsgWithDayuToMobile(mobile, code string, product string) bool {
-//	sucess, response := alidayu.SendSMS(mobile, "登录验证", "SMS_13400735", fmt.Sprintf(`{"code":"%v","product":"%v"}`, code, product))
-//	beego.Debug(response)
-//	return sucess
-//}
-//
-//func SendSMSWithDayu(mobile, name, tplId string, params map[string]string) bool {
-//	args, _ := json.Marshal(params)
-//	sucess, response := alidayu.SendSMS(mobile, name, tplId, string(args))
-//	beego.Debug(response)
-//	fmt.Println(response, sucess)
-//	return sucess
-//}
 
 //define sms template code
 const (
@@ -75,51 +51,44 @@ func SendErrorSms(mobile, content string) error {
 	return nil
 }
 
-func JPushCommonMsg(uid []string, content string, info map[string]interface{}) {
+func JPushMsgByAlias(usersAlias []string, msgContent string, noticeInfo ...map[string]interface{}) {
+	payload := jpushclient.NewPushPayLoad()
 	//Platform
 	var pf jpushclient.Platform
 	pf.Add(jpushclient.ANDROID)
-	pf.Add(jpushclient.IOS)
-	pf.Add(jpushclient.WINPHONE)
-	//pf.All()
+
 	//Audience
 	var ad jpushclient.Audience
-	if len(uid) == 0 || uid == nil {
+	if len(usersAlias) == 0 || usersAlias == nil {
 		ad.All()
 	} else {
-		ad.SetAlias(uid)
+		ad.SetAlias(usersAlias)
 	}
+
+	//Message
+	var msg jpushclient.Message
+	msg.Content = msgContent
+
 	//Notice
 	var notice jpushclient.Notice
-	notice.SetAlert("提示")
-	notice.SetAndroidNotice(&jpushclient.AndroidNotice{Alert: content, Extras: info})
-	notice.SetIOSNotice(&jpushclient.IOSNotice{Alert: content, Extras: info, Badge: 1})
-	notice.SetWinPhoneNotice(&jpushclient.WinPhoneNotice{Alert: content, Extras: info})
-
-	var msg jpushclient.Message
-	msg.Title = "提示"
-	msg.Extras = map[string]interface{}{
-		"wy": "123",
+	if len(noticeInfo) != 0 {
+		notice.SetAlert("您有一条新消息")
+		payload.SetNotice(&notice)
 	}
 
-	payload := jpushclient.NewPushPayLoad()
 	payload.SetPlatform(&pf)
 	payload.SetAudience(&ad)
-	//payload.SetNotice(&notice)
 	payload.SetMessage(&msg)
-	payload.Options.SetApns(true)
+	bytes, _ := payload.ToBytes()
 
 	t := time.Now().Unix()
-
-	bytes, _ := payload.ToBytes()
-	fmt.Printf("%d%s\r\n", t, string(bytes))
-
+	fmt.Printf("极光推送,%d,%s\n", t, string(bytes))
 	//push
 	c := jpushclient.NewPushClient(JPUSH_DEVSECRET, JPUSH_DEVKEY)
-	str, err := c.Send(bytes)
+	ret, err := c.Send(bytes)
 	if err != nil {
-		fmt.Printf("%derr:%s\n", t, err.Error())
+		fmt.Printf("推送失败,%d,%s\n", t, err.Error())
 	} else {
-		fmt.Printf("%dok:%s\n", t, str)
+		fmt.Printf("推送成功,%d,%s\n", t, ret)
 	}
 }

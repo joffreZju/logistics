@@ -95,7 +95,7 @@ func (c *Controller) Prepare() {
 		c.UserID, _ = strconv.Atoi(uid)
 	}
 	tokenStr := c.Ctx.Request.Header.Get("access_token")
-	uKey := fmt.Sprintf("%s-%s", uid, tokenStr)
+	uKey := fmt.Sprintf("%s_%s", uid, tokenStr)
 	c.RedisClient.Expire(uKey, int64(tokenauth.TokenPeriod+10))
 
 	m, e := c.RedisClient.Hmget(uKey, []string{"company", "roles", "groups"})

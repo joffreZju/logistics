@@ -123,7 +123,7 @@ func AddGroup(prefix, desc string, beginTime time.Time, ng *model.Group, sonIds 
 		tx.Rollback()
 		return
 	}
-	ng.Path = father.Path + fmt.Sprintf("-%d", ng.Id)
+	ng.Path = father.Path + fmt.Sprintf("_%d", ng.Id)
 	e = tx.Where("id=?", ng.Id).Update("path", ng.Path).Error
 	if e != nil {
 		tx.Rollback()
@@ -141,10 +141,10 @@ func AddGroup(prefix, desc string, beginTime time.Time, ng *model.Group, sonIds 
 			}
 		}
 		for _, v := range sons {
-			newPath := ng.Path + fmt.Sprintf("-%d", v.Id)
+			newPath := ng.Path + fmt.Sprintf("_%d", v.Id)
 			//找到v的所有子孙节点
 			children := []*model.Group{}
-			e = tx.Find(&children, "path like ?", v.Path+"-%").Error
+			e = tx.Find(&children, "path like ?", v.Path+"_%").Error
 			if e != nil && e != gorm.ErrRecordNotFound {
 				tx.Rollback()
 				return
@@ -189,7 +189,7 @@ func MergeGroups(prefix, desc string, beginTime time.Time, ng *model.Group, oldI
 		tx.Rollback()
 		return
 	}
-	ng.Path = father.Path + fmt.Sprintf("-%d", ng.Id)
+	ng.Path = father.Path + fmt.Sprintf("_%d", ng.Id)
 	e = tx.Table(groupTb).Where("id=?", ng.Id).Updates(ng).Error
 	if e != nil {
 		tx.Rollback()
@@ -211,7 +211,7 @@ func MergeGroups(prefix, desc string, beginTime time.Time, ng *model.Group, oldI
 	for _, old := range olds {
 		//找到每个old的所有子孙节点
 		children := []*model.Group{}
-		e = tx.Table(groupTb).Where("path like ?", old.Path+"-%").Find(&children).Error
+		e = tx.Table(groupTb).Where("path like ?", old.Path+"_%").Find(&children).Error
 		if e != nil && e != gorm.ErrRecordNotFound {
 			tx.Rollback()
 			return
@@ -255,10 +255,10 @@ func MoveGroup(prefix, desc string, beginTime time.Time, gid, newPid int) (e err
 	if e != nil {
 		return
 	}
-	gNewPath := gNewFather.Path + fmt.Sprintf("-%d", gid)
+	gNewPath := gNewFather.Path + fmt.Sprintf("_%d", gid)
 	//找到gid的所有子孙节点，修改其path
 	children := []*model.Group{}
-	e = tx.Find(&children, "path like ?", g.Path+"-%").Error
+	e = tx.Find(&children, "path like ?", g.Path+"_%").Error
 	if e != nil && e != gorm.ErrRecordNotFound {
 		return
 	}
@@ -304,7 +304,7 @@ func DelGroup(prefix, desc string, beginTime time.Time, gid int) (e error) {
 	}
 	//找到g的所有子孙节点，修改其path
 	children := []*model.Group{}
-	e = tx.Where("path like ?", g.Path+"-%").Find(&children).Error
+	e = tx.Where("path like ?", g.Path+"_%").Find(&children).Error
 	if e != nil && e != gorm.ErrRecordNotFound {
 		return
 	}

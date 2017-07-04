@@ -77,12 +77,14 @@ func DelFormtpl(prefix, no string) (e error) {
 }
 
 //审批单模板相关
-func GetApprocvaltplList(prefix string) (atpls []*model.Approvaltpl, e error) {
+func GetApprocvaltplList(prefix string, params ...string) (atpls []*model.Approvaltpl, e error) {
 	db := model.NewOrm()
 	atpls = []*model.Approvaltpl{}
-	e = db.Table(prefix + "." + model.Approvaltpl{}.TableName()).Find(&atpls).Error
-	if e != nil {
-		return
+	if len(params) != 0 {
+		e = db.Table(prefix+"."+model.Approvaltpl{}.TableName()).
+			Where("name like ?", "%"+params[0]+"%").Find(&atpls).Error
+	} else {
+		e = db.Table(prefix + "." + model.Approvaltpl{}.TableName()).Find(&atpls).Error
 	}
 	return
 }
@@ -253,9 +255,9 @@ func nextStepOfApproval(prefix string, a *model.Approval) {
 			if e != nil {
 				beego.Error(e)
 			}
-			var matchUsers string
+			var matchUsers string //拼接userId
 			for _, v := range users {
-				matchUsers += fmt.Sprintf("%d-", v.Id)
+				matchUsers += fmt.Sprintf("%d_", v.Id)
 			}
 			af := &model.ApproveFlow{
 				ApprovalNo: a.No,
@@ -270,14 +272,14 @@ func nextStepOfApproval(prefix string, a *model.Approval) {
 				stop = true
 				break
 			}
-			//更新审批单当前信息
+			//更新审批单当前角色信息
 			a.CurrentRole = rid
-			e = db.Table(prefix + "." + a.TableName()).Model(a).Update(a).Error
+			e = db.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
 			if e != nil {
 				stop = true
 				break
 			}
-			//todo 给所有users发需要审批的消息，带上af.Id
+			//todo 给所有users发需要审批的消息，带上af.Id，带还是不带？！！
 			_ = users
 			return
 		} else if e == gorm.ErrRecordNotFound && a.SkipBlankRole == model.SkipBlankRoleYes {
@@ -321,7 +323,7 @@ func getApproverByRole(prefix string, a *model.Approval, rid int) (users []*mode
 		return
 	}
 	pids := []int{}
-	for _, v := range strings.Split(g.Path, "-") {
+	for _, v := range strings.Split(g.Path, "_") {
 		pid, e := strconv.Atoi(v)
 		if e != nil {
 			return nil, e
@@ -341,17 +343,17 @@ func getApproverByRole(prefix string, a *model.Approval, rid int) (users []*mode
 func Approve(prefix string, a *model.Approval, af *model.ApproveFlow) (e error) {
 	tx := model.NewOrm().Begin()
 	//审批，修改一步审批流程状态
-	e = tx.Table(prefix+"."+af.TableName()).Where("id=? and status=?", af.Id, af.Status).Updates(af).Error
-	if e != nil {
+	count := tx.Table(prefix+"."+af.TableName()).Where("id=? and status=?", af.Id, model.ApprovalStatWaiting).Updates(af).RowsAffected
+	if count != 1 {
 		tx.Rollback()
-		return
+		return errors.New("审批失败")
 	}
 	if af.Status == model.ApprovalStatNotAccessed {
 		a.Status = model.ApprovalStatNotAccessed
-		e = tx.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
-		if e != nil {
+		count = tx.Table(prefix + "." + a.TableName()).Model(a).Updates(a).RowsAffected
+		if count != 1 {
 			tx.Rollback()
-			return
+			return errors.New("审批失败")
 		}
 		//todo 审批状态有更新，新建消息，并发消息给审批发起人，审批单未通过
 	} else {
@@ -391,28 +393,42 @@ func GetLatestFlowOfApproval(prefix, approvalNo string) (af *model.ApproveFlow, 
 	return
 }
 
-func GetApprovalsFromMe(prefix string, uid int) (alist []*model.Approval, e error) {
+func GetApprovalsFromMe(prefix string, uid int, params ...string) (alist []*model.Approval, e error) {
 	db := model.NewOrm()
 	alist = []*model.Approval{}
-	e = db.Table(prefix+"."+model.Approval{}.TableName()).
-		Find(&alist, "user_id=?", uid).Error
+	if len(params) != 0 {
+		e = db.Table(prefix+"."+model.Approval{}.TableName()).
+			Order("ctime desc").Where("ctime>=?", params[0]).Find(&alist, "user_id=?", uid).Error
+	} else {
+		e = db.Table(prefix+"."+model.Approval{}.TableName()).
+			Order("ctime desc").Find(&alist, "user_id=?", uid).Error
+	}
 	return
 }
 
-func GetTodoApprovalsToMe(prefix string, uid int) (alist []*model.Approval, e error) {
+func GetTodoApprovalsToMe(prefix string, uid int, params ...string) (alist []*model.Approval, e error) {
 	db := model.NewOrm()
 	alist = []*model.Approval{}
 	sql := fmt.Sprintf(`select * from "%s".approval as t1 inner join "%s".approve_flow as t2
-		on t1.no = t2.approval_no where t2.status=%d and t2.match_users like '%%%d-%%'`, prefix, prefix, model.ApprovalStatWaiting, uid)
+		on t1.no = t2.approval_no
+		where t2.status=%d and t2.match_users like '%%%d_%%' `, prefix, prefix, model.ApprovalStatWaiting, uid)
+	if len(params) != 0 {
+		sql += fmt.Sprintf(`and t2.ctime>='%s' `, params[0])
+	}
+	sql += `order by t2.ctime desc`
 	e = db.Raw(sql).Scan(&alist).Error
 	return
 }
 
-func GetFinishedApprovalsToMe(prefix string, uid int) (alist []*model.Approval, e error) {
+func GetFinishedApprovalsToMe(prefix string, uid int, params ...string) (alist []*model.Approval, e error) {
 	db := model.NewOrm()
 	alist = []*model.Approval{}
 	sql := fmt.Sprintf(`select * from "%s".approval as t1 inner join "%s".approve_flow as t2
-		on t1.no = t2.approval_no where t2.user_id=%d`, prefix, prefix, uid)
+		on t1.no = t2.approval_no where t2.user_id=%d `, prefix, prefix, uid)
+	if len(params) != 0 {
+		sql += fmt.Sprintf(`and t2.ctime>='%s' `, params[0])
+	}
+	sql += `order by t2.ctime desc`
 	e = db.Raw(sql).Scan(&alist).Error
 	return
 }

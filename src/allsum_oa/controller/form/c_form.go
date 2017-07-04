@@ -123,7 +123,14 @@ func (c *Controller) DelFormtpl() {
 //审批单模板增删改查*************************
 func (c *Controller) GetApprovaltplList() {
 	prefix := c.UserComp
-	atpls, e := service.GetApprocvaltplList(prefix)
+	name := c.GetString("name")
+	var atpls []*model.Approvaltpl
+	var e error
+	if len(name) != 0 {
+		atpls, e = service.GetApprocvaltplList(prefix, name)
+	} else {
+		atpls, e = service.GetApprocvaltplList(prefix)
+	}
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -247,29 +254,6 @@ func (c *Controller) DelApprovaltpl() {
 }
 
 //审批流相关接口***************************
-//获取符合条件的审批人
-//func (c *Controller) GetApproverList() {
-//	prefix := c.UserComp
-//	currentGroup, e := c.GetInt("currentGroup")
-//	if e != nil {
-//		c.ReplyErr(errcode.ErrParams)
-//		beego.Error(e)
-//		return
-//	}
-//	atplNo := c.GetString("approvaltplNo")
-//	if strings.Contains(c.UserGroups, fmt.Sprintf("%d", currentGroup)) == false {
-//		c.ReplyErr(errcode.ErrGroupOfUser)
-//		return
-//	}
-//	rolemap, e := service.GetApproverList(prefix, atplNo, currentGroup)
-//	if e != nil {
-//		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-//		beego.Error(e)
-//	} else {
-//		c.ReplySucc(rolemap)
-//	}
-//}
-
 func (c *Controller) AddApproval() {
 	prefix := c.UserComp
 	atplNo := c.GetString("approvaltplNo")
@@ -311,6 +295,29 @@ func (c *Controller) AddApproval() {
 		c.ReplySucc(nil)
 	}
 }
+
+//获取符合条件的审批人
+//func (c *Controller) GetApproverList() {
+//	prefix := c.UserComp
+//	currentGroup, e := c.GetInt("currentGroup")
+//	if e != nil {
+//		c.ReplyErr(errcode.ErrParams)
+//		beego.Error(e)
+//		return
+//	}
+//	atplNo := c.GetString("approvaltplNo")
+//	if strings.Contains(c.UserGroups, fmt.Sprintf("%d", currentGroup)) == false {
+//		c.ReplyErr(errcode.ErrGroupOfUser)
+//		return
+//	}
+//	rolemap, e := service.GetApproverList(prefix, atplNo, currentGroup)
+//	if e != nil {
+//		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+//		beego.Error(e)
+//	} else {
+//		c.ReplySucc(rolemap)
+//	}
+//}
 
 //存为草稿的功能取消
 //func (c *Controller) UpdateApproval() {
@@ -383,7 +390,7 @@ func (c *Controller) Approve() {
 		c.ReplyErr(errcode.ErrStatOfApproval)
 		return
 	}
-	if !strings.Contains(af.MatchUsers, fmt.Sprintf("%d-", uid)) {
+	if !strings.Contains(af.MatchUsers, fmt.Sprintf("%d_", uid)) {
 		c.ReplyErr(errcode.ErrRoleOfUser)
 		return
 	}
@@ -409,7 +416,14 @@ func (c *Controller) Approve() {
 func (c *Controller) GetApprovalsFromMe() {
 	prefix := c.UserComp
 	uid := c.UserID
-	alist, e := service.GetApprovalsFromMe(prefix, uid)
+	beginTime := c.GetString("beginTime")
+	var alist []*model.Approval
+	var e error
+	if len(beginTime) != 0 {
+		alist, e = service.GetApprovalsFromMe(prefix, uid, beginTime)
+	} else {
+		alist, e = service.GetApprovalsFromMe(prefix, uid)
+	}
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -422,7 +436,14 @@ func (c *Controller) GetApprovalsFromMe() {
 func (c *Controller) GetTodoApprovalsToMe() {
 	prefix := c.UserComp
 	uid := c.UserID
-	alist, e := service.GetTodoApprovalsToMe(prefix, uid)
+	beginTime := c.GetString("beginTime")
+	var alist []*model.Approval
+	var e error
+	if len(beginTime) != 0 {
+		alist, e = service.GetTodoApprovalsToMe(prefix, uid, beginTime)
+	} else {
+		alist, e = service.GetTodoApprovalsToMe(prefix, uid)
+	}
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -435,7 +456,14 @@ func (c *Controller) GetTodoApprovalsToMe() {
 func (c *Controller) GetFinishedApprovalsToMe() {
 	prefix := c.UserComp
 	uid := c.UserID
-	alist, e := service.GetFinishedApprovalsToMe(prefix, uid)
+	beginTime := c.GetString("beginTime")
+	var alist []*model.Approval
+	var e error
+	if len(beginTime) != 0 {
+		alist, e = service.GetFinishedApprovalsToMe(prefix, uid, beginTime)
+	} else {
+		alist, e = service.GetFinishedApprovalsToMe(prefix, uid)
+	}
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)

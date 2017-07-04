@@ -201,7 +201,7 @@ func createCreatorRole(prefix string) (e error) {
 		return
 	}
 	for _, v := range funcs {
-		if len(strings.Split(v.Path, "-")) > 2 {
+		if len(strings.Split(v.Path, "_")) > 2 {
 			rf := &model.RoleFunc{
 				RoleId: r.Id,
 				FuncId: v.Id,

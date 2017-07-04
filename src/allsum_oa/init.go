@@ -5,7 +5,6 @@ import (
 	"allsum_oa/service"
 	"common/filter"
 	"common/lib/cache"
-	"common/lib/push"
 	"common/lib/redis"
 	"fmt"
 	"github.com/astaxie/beego"
@@ -49,9 +48,6 @@ func Init() (err error) {
 		beego.Error("init redis client failed : ", err)
 		return
 	}
-
-	// init push
-	err = push.Init()
 
 	// init pgsql
 	err = model.InitPgSQL(key)

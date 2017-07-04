@@ -321,6 +321,7 @@ func (c *Controller) GetGroupOpList() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
+	//limit = -1 所有记录
 	ops, e := service.GetGroupOpList(prefix, limit)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
