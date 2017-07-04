@@ -2,11 +2,33 @@ package model
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 )
+
+type JsonMap map[string]interface{}
+
+func (m JsonMap) Value() (driver.Value, error) {
+	b, e := json.Marshal(m)
+	if e != nil {
+		return "", e
+	}
+	return string(b), nil
+}
+func (m *JsonMap) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return errors.New("assert pg json failed")
+	}
+	e := json.Unmarshal(b, m)
+	if e != nil {
+		return e
+	}
+	return nil
+}
 
 type StrSlice []string
 

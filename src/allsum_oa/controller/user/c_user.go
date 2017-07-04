@@ -244,22 +244,26 @@ func (c *Controller) loginAction(user *model.User) {
 }
 
 func (c *Controller) saveUserInfoToRedis(key, cno string, u *model.User) (e error) {
-	roles, groups := "", ""
+	roles, groups, funcs := "", "", ""
 	for _, v := range u.Roles {
 		roles += fmt.Sprintf("%d_", v.Id)
 	}
 	for _, v := range u.Groups {
 		groups += fmt.Sprintf("%d_", v.Id)
 	}
+	for _, v := range u.Funcs {
+		funcs += fmt.Sprintf("%d_", v)
+	}
 	_, e = c.RedisClient.Hmset(key, map[string]interface{}{
-		"company": cno,
-		"roles":   roles,
-		"groups":  groups,
+		"company":   cno,
+		"roles":     roles,
+		"groups":    groups,
+		"functions": funcs,
 	})
 	if e != nil {
 		return
 	}
-	_, e = c.RedisClient.Expire(key, int64(tokenauth.TokenPeriod+10))
+	_, e = c.RedisClient.Expire(key, int64(tokenauth.TokenPeriod))
 	return
 }
 
@@ -358,7 +362,7 @@ func (c *Controller) LoginOut() {
 	beego.Info("login_out success token:", token.Value)
 
 	key := fmt.Sprintf("%s_%s", token.SingleID, token.Value)
-	_, err = c.RedisClient.Expire(key, 2)
+	_, err = c.RedisClient.Del(key)
 	if err != nil {
 		beego.Error(err)
 	}

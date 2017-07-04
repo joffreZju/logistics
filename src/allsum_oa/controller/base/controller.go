@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/cache"
-	"github.com/ysqi/tokenauth"
 	"strconv"
 	"strings"
 )
@@ -26,6 +25,7 @@ type Controller struct {
 	UserComp   string // 用户公司
 	UserGroups string // 用户组织
 	UserRoles  string // 用户角色
+	UserFuncs  string // 用户功能集
 	appName    string // app 名称
 	appOS      string // app 系统
 	appVer     string // app 版本号
@@ -75,7 +75,6 @@ func (c *Controller) Prepare() {
 		c.ControllerName = strs[len(strs)-2]
 		c.ActionName = strs[len(strs)-1]
 	}
-
 	//perfcounter.Add(beego.BConfig.AppName+".request.total", 1)
 	//perfcounter.Add(fmt.Sprintf("%s.%s.%s.request.total", beego.BConfig.AppName,
 	//	c.ControllerName, c.ActionName), 1)
@@ -96,9 +95,8 @@ func (c *Controller) Prepare() {
 	}
 	tokenStr := c.Ctx.Request.Header.Get("access_token")
 	uKey := fmt.Sprintf("%s_%s", uid, tokenStr)
-	c.RedisClient.Expire(uKey, int64(tokenauth.TokenPeriod+10))
 
-	m, e := c.RedisClient.Hmget(uKey, []string{"company", "roles", "groups"})
+	m, e := c.RedisClient.Hmget(uKey, []string{"company", "roles", "groups", "functions"})
 	if e != nil {
 		beego.Error(e)
 		c.ReplyErr(errcode.ErrGetLoginInfo)
@@ -106,6 +104,7 @@ func (c *Controller) Prepare() {
 	c.UserComp = m["company"]
 	c.UserGroups = m["groups"]
 	c.UserRoles = m["roles"]
+	c.UserFuncs = m["functions"]
 }
 
 func (c *Controller) Finish() {

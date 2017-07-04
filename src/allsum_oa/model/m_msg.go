@@ -11,7 +11,7 @@ const (
 
 const (
 	MsgTypeSystem = iota + 1
-	MsgTypeNeedApprove
+	MsgTypeApprove
 )
 
 //for users
@@ -20,7 +20,7 @@ type Message struct {
 	Title     string
 	MsgType   int
 	AppType   int
-	Content   string
+	Content   JsonMap `gorm:"default:null;type:jsonb"`
 	UserId    int
 	CompanyNo string
 	Ctime     time.Time `gorm:"default:current_timestamp"`

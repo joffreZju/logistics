@@ -232,11 +232,12 @@ func nextStepOfApproval(prefix string, a *model.Approval) {
 			}
 			if k == len(a.RoleFlow)-1 {
 				//审批最后一步已完成
-				e = db.Table(prefix+"."+a.TableName()).Model(a).Update("status", model.ApprovalStatAccessed).Error
+				a.Status = model.ApprovalStatAccessed
+				e = db.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
 				if e != nil {
 					beego.Error(e)
 				}
-				//todo 审批通过，新建消息，并发消息给审批发起人
+				go newMsgToCreator(prefix, a)
 				return
 			} else {
 				nextLoc = k + 1
@@ -247,7 +248,8 @@ func nextStepOfApproval(prefix string, a *model.Approval) {
 	stop := false
 	for i := nextLoc; i < len(a.RoleFlow); i++ {
 		rid := a.RoleFlow[i]
-		users, e := getApproverByRole(prefix, a, rid)
+		var users []*model.User
+		users, e = getApproverByRole(prefix, a, rid)
 		if e == nil {
 			//找到符合条件的审批人
 			r := &model.Role{}
@@ -279,32 +281,34 @@ func nextStepOfApproval(prefix string, a *model.Approval) {
 				stop = true
 				break
 			}
-			//todo 给所有users发需要审批的消息，带上af.Id，带还是不带？！！
-			_ = users
+			go newMsgToApprovers(prefix, users, a)
 			return
 		} else if e == gorm.ErrRecordNotFound && a.SkipBlankRole == model.SkipBlankRoleYes {
 			//没有符合条件的审批人，跳过
 			continue
 		} else {
-			//审批无法流转下去
+			//审批无法流转下去，没有审批人而且不允许跳过
 			stop = true
 			break
 		}
 	}
 	if stop {
 		beego.Error("审批单无法继续流转:", e)
-		e = db.Table(prefix+"."+a.TableName()).Model(a).Update("status", model.ApprovalStatStop).Error
+		a.Status = model.ApprovalStatStop
+		e = db.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
 		if e != nil {
 			beego.Error("尝试停止审批单:", e)
 		}
+		go newMsgToCreator(prefix, a)
 	} else {
 		//后面角色全部跳过，审批单完全通过
-		e = db.Table(prefix+"."+a.TableName()).Model(a).Update("status", model.ApprovalStatAccessed).Error
+		a.Status = model.ApprovalStatAccessed
+		e = db.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
 		if e != nil {
 			beego.Error(e)
 		}
+		go newMsgToCreator(prefix, a)
 	}
-	//todo 审批状态有更新，新建消息，并发消息给审批发起人
 	return
 }
 
@@ -355,11 +359,54 @@ func Approve(prefix string, a *model.Approval, af *model.ApproveFlow) (e error) 
 			tx.Rollback()
 			return errors.New("审批失败")
 		}
-		//todo 审批状态有更新，新建消息，并发消息给审批发起人，审批单未通过
+		go newMsgToCreator(prefix, a)
 	} else {
 		go nextStepOfApproval(prefix, a)
 	}
 	return tx.Commit().Error
+}
+
+func newMsgToCreator(company string, a *model.Approval) {
+	msg := &model.Message{
+		CompanyNo: company,
+		UserId:    a.UserId,
+		MsgType:   model.MsgTypeApprove,
+		Content: model.JsonMap{
+			"ApprovalNo": a.No,
+		},
+	}
+	if a.Status == model.ApprovalStatAccessed {
+		msg.Title = "你的" + a.Name + "审批单已通过"
+	} else if a.Status == model.ApprovalStatNotAccessed {
+		msg.Title = "你的" + a.Name + "审批单被拒绝"
+	} else if a.Status == model.ApprovalStatStop {
+		msg.Title = "你的" + a.Name + "审批单无法继续流转，请咨询管理员或客服"
+	}
+	e := SaveAndSendMsg(msg)
+	if e != nil {
+		beego.Error(e)
+	}
+}
+
+func newMsgToApprovers(company string, users []*model.User, a *model.Approval) {
+	creater, e := GetUserById(company, a.UserId)
+	if e != nil {
+		beego.Error(e)
+		return
+	}
+	title := "来自<" + creater.UserName + ">的审批消息"
+	for _, v := range users {
+		msg := &model.Message{
+			CompanyNo: company,
+			UserId:    v.Id,
+			MsgType:   model.MsgTypeApprove,
+			Title:     title,
+			Content: model.JsonMap{
+				"ApprovalNo": a.No,
+			},
+		}
+		go SaveAndSendMsg(msg)
+	}
 }
 
 func GetApprovalDetail(prefix, no string) (a *model.Approval, e error) {
