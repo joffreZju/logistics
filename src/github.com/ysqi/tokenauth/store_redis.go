@@ -77,6 +77,7 @@ func (store *RedisStore) SaveToken(token *Token) error {
 	mp, _ := store.db.HgetAll(recordKey)
 	for k := range mp {
 		store.db.Del(k)
+		store.db.Del(fmt.Sprintf("%s_%s", token.SingleID, k))
 	}
 
 	//first to get token byte data
@@ -111,7 +112,10 @@ func (store *RedisStore) FlushToken(token *Token) error {
 	recordKey := fmt.Sprintf("audience_%s_%s", token.ClientID, token.SingleID)
 	store.db.Hset(recordKey, token.Value, time.Now().Format("20160102150405"))
 	_, err = store.db.SetEx(token.Value, tokenBytes, token.DeadLine-time.Now().Unix())
-
+	if err != nil {
+		return err
+	}
+	_, err = store.db.Expire(fmt.Sprintf("%s_%s", token.SingleID, token.Value), token.DeadLine-time.Now().Unix())
 	return err
 }
 
