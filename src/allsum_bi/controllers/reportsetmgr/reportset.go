@@ -161,6 +161,8 @@ func (c *Controller) SaveReportSet() {
 		return
 	}
 	reportsetdb.Conditions = string(jsoncondition)
+	webpath := reqbody["web_path"].(string)
+	reportsetdb.WebPath = webpath
 	checkres := reportset.CheckConditionFormat(reportsetdb.Conditions)
 	if !checkres {
 		beego.Error("check report condition format ")
@@ -168,7 +170,7 @@ func (c *Controller) SaveReportSet() {
 		return
 	}
 	reportsetdb.Status = util.REPORTSET_STARTED
-	err = models.UpdateReportSet(reportsetdb, "script", "conditions", "status")
+	err = models.UpdateReportSet(reportsetdb, "script", "conditions", "status", "web_path")
 	if err != nil {
 		beego.Error("update report set ")
 		c.ReplyErr(errcode.ErrActionPutReportSet)

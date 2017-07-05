@@ -74,6 +74,7 @@ func AddDataLoad(dataload map[string]string) (err error) {
 	dataload_db.Documents = documents
 	dataload_db.Aggregateid = aggregationId
 	dataload_db.Status = util.DATALOAD_STARTED
+	dataload_db.WebPath = dataload["webpath"]
 	columnmaps, err := db.GetTableColumes(util.BASEDB_CONNID, table_name, schema)
 	if err != nil {
 		beego.Error("get table columes err:", err)
@@ -87,7 +88,7 @@ func AddDataLoad(dataload map[string]string) (err error) {
 	dataload_db.Columns = string(columns)
 	dataload_db.Name = dataload["name"]
 
-	err = models.UpdateDataLoad(dataload_db, "create_script", "alter_script", "documents", "aggregateid", "status", "columns", "insert_script", "name")
+	err = models.UpdateDataLoad(dataload_db, "create_script", "alter_script", "documents", "aggregateid", "status", "columns", "insert_script", "name", "web_path")
 	if err != nil {
 		return
 	}

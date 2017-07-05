@@ -125,6 +125,7 @@ func (c *Controller) SaveDataload() {
 	alter_script := c.GetString("alter_script")
 	cron := c.GetString("cron")
 	documents := c.GetString("documents")
+	webpath := c.GetString("web_path")
 	dataloadmap := map[string]string{
 		"uuid":          uuid,
 		"name":          dataloadName,
@@ -133,6 +134,7 @@ func (c *Controller) SaveDataload() {
 		"alter_script":  alter_script,
 		"flush_script":  flush_script,
 		"cron":          cron,
+		"webpath":       webpath,
 		"documents":     documents,
 	}
 	//have check
