@@ -331,7 +331,7 @@ func DelGroup(prefix, desc string, beginTime time.Time, gid int) (e error) {
 }
 
 func UpdateGroup(prefix, desc string, beginTime time.Time, g *model.Group) (e error) {
-	tx := model.NewOrm().Table(prefix + "." + model.Group{}.TableName())
+	tx := model.NewOrm().Table(prefix + "." + model.Group{}.TableName()).Begin()
 	e = tx.Where("id = ?", g.Id).Updates(g).Error
 	return handleTX(prefix, desc, beginTime, tx)
 }
