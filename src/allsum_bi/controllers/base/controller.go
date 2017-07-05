@@ -2,11 +2,12 @@ package base
 
 import (
 	"common/lib/redis"
+	"common/lib/errcode"
 	"fmt"
 	"strings"
-
+	"strconv"
 	mycache "common/lib/cache"
-
+	"github.com/ysqi/tokenauth"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/cache"
 )
@@ -37,9 +38,8 @@ func (c *Controller) Prepare() {
 		c.ActionName = strs[len(strs)-1]
 	}
 
-	//perfcounter.Add(beego.BConfig.AppName+".request.total", 1)
-	//perfcounter.Add(fmt.Sprintf("%s.%s.%s.request.total", beego.BConfig.AppName,
-	//	c.ControllerName, c.ActionName), 1)
+//	perfcounter.Add(beego.BConfig.AppName+".request.total", 1)
+//	perfcounter.Add(fmt.Sprintf("%s.%s.%s.request.total", beego.BConfig.AppName, c.ControllerName, c.ActionName), 1)
 	c.LocalCache = mycache.LocalCache
 	c.Cache = mycache.Cache
 	c.RedisClient = redis.Client
@@ -50,23 +50,23 @@ func (c *Controller) Prepare() {
 	c.appVer = strings.ToLower(strings.TrimSpace(c.GetString("ver")))
 
 	// 从 access_token 中获取uid, 客户端可不传uid
-	//	uid := c.Ctx.Request.Header.Get("uid")
-	//	if len(uid) > 0 {
-	//		c.Ctx.Input.SetParam("uid", uid)
-	//		c.UserID, _ = strconv.Atoi(uid)
-	//	}
-	//	tokenStr := c.Ctx.Request.Header.Get("access_token")
-	//	uKey := fmt.Sprintf("%s_%s", uid, tokenStr)
-	//	c.RedisClient.Expire(uKey, int64(tokenauth.TokenPeriod+10))
-	//
-	//	m, e := c.RedisClient.Hmget(uKey, []string{"company", "roles", "groups"})
-	//	if e != nil {
-	//		beego.Error(e)
-	//		c.ReplyErr(errcode.ErrGetLoginInfo)
-	//	}
-	//	c.UserComp = m["company"]
-	//	c.UserGroups = m["groups"]
-	//	c.UserRoles = m["roles"]
+	uid := c.Ctx.Request.Header.Get("uid")
+	if len(uid) > 0 {
+		c.Ctx.Input.SetParam("uid", uid)
+		c.UserID, _ = strconv.Atoi(uid)
+	}
+	tokenStr := c.Ctx.Request.Header.Get("access_token")
+	uKey := fmt.Sprintf("%s_%s", uid, tokenStr)
+	c.RedisClient.Expire(uKey, int64(tokenauth.TokenPeriod+10))
+	
+	m, e := c.RedisClient.Hmget(uKey, []string{"company", "roles", "groups"})
+	if e != nil {
+	        beego.Error(e)
+	      	  c.ReplyErr(errcode.ErrGetLoginInfo)
+	}
+	c.UserComp = m["company"]
+	c.UserGroups = m["groups"]
+	c.UserRoles = m["roles"]
 }
 
 func (c *Controller) Finish() {
