@@ -81,6 +81,6 @@ func init() {
 	notNeedAuthList := []string{}
 
 	//filter
-	beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckAuthFilter("stowage_user", notNeedAuthList))
+	beego.InsertFilter("/v1/*", beego.BeforeRouter, filter.CheckAuthFilter("stowage_user", notNeedAuthList))
 	beego.InsertFilter("/*", beego.BeforeRouter, filter.RequestFilter())
 }
