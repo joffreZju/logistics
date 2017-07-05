@@ -9,7 +9,7 @@ import (
 )
 
 func GetData(uuid string, conditions []map[string]interface{}) (datas [][]interface{}, err error) {
-	reportset, err := models.GetReportSetByReportUuid(uuid)
+	reportset, err := models.GetReportSetByUuid(uuid)
 	if err != nil {
 		return
 	}

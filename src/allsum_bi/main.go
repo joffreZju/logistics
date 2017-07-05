@@ -6,7 +6,6 @@ import (
 	"allsum_bi/services/etl"
 	"common/filter"
 	"common/lib/cache"
-	"common/lib/push"
 	"common/lib/redis"
 	"math/rand"
 	"net/http"
@@ -83,7 +82,7 @@ func Init() {
 	}
 
 	// init push
-	err = push.Init()
+	//	err = push.Init()
 
 }
 

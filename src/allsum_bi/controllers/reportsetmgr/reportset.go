@@ -49,9 +49,10 @@ func (c *Controller) ListReportSet() {
 	var reportsetres []map[string]interface{}
 	for _, reportset := range reportsets {
 		reportmap := map[string]interface{}{
-			"index": reportset.Id,
-			"uuid":  reportset.Uuid,
-			"name":  "reprot-" + strconv.Itoa(reportset.Reportid),
+			"index":   reportset.Id,
+			"uuid":    reportset.Uuid,
+			"name":    "reprot-" + strconv.Itoa(reportset.Reportid),
+			"webpath": reportset.WebPath,
 		}
 		reportsetres = append(reportsetres, reportmap)
 	}
@@ -88,13 +89,13 @@ func (c *Controller) GetReportSet() {
 		return
 	}
 	res := map[string]interface{}{
-		"uuid":         reportset.Uuid,
-		"name":         "report-" + strconv.Itoa(reportset.Reportid),
-		"script":       reportset.Script,
-		"conditions":   conditions,
-		"web_path":     reportset.WebPath,
-		"webfile_name": reportset.WebfileName,
-		"status":       reportset.Status,
+		"uuid":       reportset.Uuid,
+		"name":       "report-" + strconv.Itoa(reportset.Reportid),
+		"script":     reportset.Script,
+		"conditions": conditions,
+		"web_path":   reportset.WebPath,
+		//		"webfile_name": reportset.WebfileName,
+		"status": reportset.Status,
 	}
 	c.ReplySucc(res)
 	return
@@ -226,21 +227,21 @@ func (c *Controller) UploadReportSetWeb() {
 }
 
 func (c *Controller) GetReportSetWebFile() {
-	uuid := c.GetString("uuid")
-
-	reportset, err := models.GetReportSetByReportUuid(uuid)
-	if err != nil {
-		beego.Error("get report err :", err)
-		c.ReplyErr(errcode.ErrDownloadFileFailed)
-		return
-	}
-	filedata, err := ossfile.GetFile(reportset.WebPath)
-	if err != nil {
-		beego.Error("get file err :", err)
-		c.ReplyErr(errcode.ErrDownloadFileFailed)
-		return
-	}
-	c.ReplyFile("application/octet-stream", reportset.WebfileName, filedata)
+	//	uuid := c.GetString("uuid")
+	//
+	//	reportset, err := models.GetReportSetByReportUuid(uuid)
+	//	if err != nil {
+	//		beego.Error("get report err :", err)
+	//		c.ReplyErr(errcode.ErrDownloadFileFailed)
+	//		return
+	//	}
+	//	filedata, err := ossfile.GetFile(reportset.WebPath)
+	//	if err != nil {
+	//		beego.Error("get file err :", err)
+	//		c.ReplyErr(errcode.ErrDownloadFileFailed)
+	//		return
+	//	}
+	//	c.ReplyFile("application/octet-stream", reportset.WebfileName, filedata)
 	return
 }
 
@@ -252,8 +253,9 @@ func (c *Controller) GetReportData() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	reportuuid, ok := reqbody["report_uuid"]
-	if !ok {
+	//	reportuuid, ok := reqbody["report_uuid"]
+	reportsetuuid, ok1 := reqbody["reportset_uuid"]
+	if !ok1 {
 		beego.Error("miss uuid")
 		c.ReplyErr(errcode.ErrParams)
 		return
@@ -265,7 +267,7 @@ func (c *Controller) GetReportData() {
 		conditionList = append(conditionList, v.(map[string]interface{}))
 	}
 	//	conditionList := conditions.([]map[string]interface{})
-	datas, err := reportset.GetData(reportuuid.(string), conditionList)
+	datas, err := reportset.GetData(reportsetuuid.(string), conditionList)
 	if err != nil {
 		beego.Error("get Data err", err)
 		c.ReplyErr(errcode.ErrActionGetReportData)
