@@ -435,7 +435,7 @@ func GetApproval(prefix, no string) (a *model.Approval, e error) {
 
 func GetLatestFlowOfApproval(prefix, approvalNo string) (af *model.ApproveFlow, e error) {
 	af = new(model.ApproveFlow)
-	e = model.NewOrm().Table(prefix+"."+af.TableName()).Limit(1).Order("id desc").
+	e = model.NewOrm().Table(prefix+"."+af.TableName()).Order("id desc").Limit(1).
 		First(af, "approval_no=?", approvalNo).Error
 	return
 }

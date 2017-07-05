@@ -340,14 +340,14 @@ func GetGroupOpList(prefix string, limit int) (ops []*model.GroupOperation, e er
 	//limit = -1 所有记录
 	ops = []*model.GroupOperation{}
 	e = model.NewOrm().Table(prefix + "." + model.GroupOperation{}.TableName()).
-		Select([]string{"id", "begin_time", "descrp", "status"}).Limit(limit).Find(&ops).Error
+		Select([]string{"id", "begin_time", "descrp", "status"}).Order("id desc").Limit(limit).Find(&ops).Error
 	return
 }
 
 func SearchGroupOpsByTime(prefix string, begin, end time.Time) (ops []*model.GroupOperation, e error) {
 	ops = []*model.GroupOperation{}
 	e = model.NewOrm().Table(prefix+"."+model.GroupOperation{}.TableName()).
-		Select([]string{"id", "begin_time", "descrp", "status"}).
+		Select([]string{"id", "begin_time", "descrp", "status"}).Order("id desc").
 		Where("begin_time between ? and ?", begin, end).Find(&ops).Error
 	return
 }

@@ -103,7 +103,7 @@ func (c *Controller) getBeginTimeOfOperation() (t time.Time, e error) {
 			return
 		}
 	}
-	//t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 	//todo beginTime可以设置一天中任何时间，方便测试
 	return t, nil
 }
