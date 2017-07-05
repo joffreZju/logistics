@@ -18,9 +18,20 @@ func CreateMsg(m *model.Message) (err error) {
 	return
 }
 
+func GetHistoryMsg(company string, uid, minId int) (msgs []*model.Message, err error) {
+	msgs = []*model.Message{}
+	err = model.NewOrm().Where("id < ? and user_id = ? and company_no = ?", minId, uid, company).
+		Order("id desc").Limit(500).Find(&msgs).Error
+	if err == gorm.ErrRecordNotFound {
+		err = nil
+	}
+	return
+}
+
 func GetLatestMsg(company string, uid, maxId int) (msgs []*model.Message, err error) {
 	msgs = []*model.Message{}
-	err = model.NewOrm().Where("id > ? and user_id = ? and company_no = ?", maxId, uid, company).Find(&msgs).Error
+	err = model.NewOrm().Where("id > ? and user_id = ? and company_no = ?", maxId, uid, company).
+		Order("id desc").Find(&msgs).Error
 	if err == gorm.ErrRecordNotFound {
 		err = nil
 	}

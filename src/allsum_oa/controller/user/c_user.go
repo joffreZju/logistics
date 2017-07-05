@@ -63,6 +63,7 @@ func (c *Controller) GetCode() {
 
 func (c *Controller) UserRegister() {
 	tel := c.GetString("tel")
+	username := c.GetString("username")
 	code := c.GetString("smscode")
 	mycode := c.Cache.Get(tel)
 	if mycode == nil {
@@ -82,6 +83,7 @@ func (c *Controller) UserRegister() {
 	u := model.User{
 		Tel:      tel,
 		No:       model.UniqueNo("U"),
+		UserName: username,
 		Password: pwdEncode,
 		UserType: model.UserTypeNormal,
 		Status:   model.UserStatusOk,

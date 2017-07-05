@@ -37,6 +37,7 @@ func LoadRouter() {
 	beego.Router(UserPrefix+"/update_info", &user.Controller{}, "*:UpdateUserInfo")
 	beego.Router(UserPrefix+"/resetpwd", &user.Controller{}, "*:Resetpwd")
 	beego.Router(UserPrefix+"/switch_company", &user.Controller{}, "*:SwitchCurrentFirm")
+	beego.Router(UserPrefix+"/msg/get_history_msgs", &msg.Controller{}, "*:GetHistoryMsg")
 	beego.Router(UserPrefix+"/msg/get_latest_msgs", &msg.Controller{}, "*:GetLatestMsg")
 	beego.Router(UserPrefix+"/msg/del_msg_byid", &msg.Controller{}, "*:DelMsgById")
 
