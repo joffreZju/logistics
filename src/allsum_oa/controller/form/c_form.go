@@ -417,13 +417,8 @@ func (c *Controller) GetApprovalsFromMe() {
 	prefix := c.UserComp
 	uid := c.UserID
 	beginTime := c.GetString("beginTime")
-	var alist []*model.Approval
-	var e error
-	if len(beginTime) != 0 {
-		alist, e = service.GetApprovalsFromMe(prefix, uid, beginTime)
-	} else {
-		alist, e = service.GetApprovalsFromMe(prefix, uid)
-	}
+	condition := c.GetString("statusCondition")
+	alist, e := service.GetApprovalsFromMe(prefix, uid, beginTime, condition)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -432,37 +427,26 @@ func (c *Controller) GetApprovalsFromMe() {
 	c.ReplySucc(alist)
 }
 
-//获取需要我审批的审批单
-func (c *Controller) GetTodoApprovalsToMe() {
+//获取我收到的审批单
+func (c *Controller) GetApprovalsToMe() {
 	prefix := c.UserComp
 	uid := c.UserID
 	beginTime := c.GetString("beginTime")
+	condition := c.GetString("statusCondition")
 	var alist []*model.Approval
 	var e error
-	if len(beginTime) != 0 {
+	if condition == model.GetApprovalApproving {
 		alist, e = service.GetTodoApprovalsToMe(prefix, uid, beginTime)
-	} else {
-		alist, e = service.GetTodoApprovalsToMe(prefix, uid)
-	}
-	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-		beego.Error(e)
-		return
-	}
-	c.ReplySucc(alist)
-}
-
-//获取我审批过的审批单
-func (c *Controller) GetFinishedApprovalsToMe() {
-	prefix := c.UserComp
-	uid := c.UserID
-	beginTime := c.GetString("beginTime")
-	var alist []*model.Approval
-	var e error
-	if len(beginTime) != 0 {
+	} else if condition == model.GetApprovalFinished {
 		alist, e = service.GetFinishedApprovalsToMe(prefix, uid, beginTime)
 	} else {
-		alist, e = service.GetFinishedApprovalsToMe(prefix, uid)
+		alist, e = service.GetTodoApprovalsToMe(prefix, uid, beginTime)
+		if e != nil {
+			beego.Error(e)
+		}
+		var alistFinished []*model.Approval
+		alistFinished, e = service.GetFinishedApprovalsToMe(prefix, uid, beginTime)
+		alist = append(alist, alistFinished...)
 	}
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))

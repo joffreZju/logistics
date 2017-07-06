@@ -33,6 +33,11 @@ const (
 	SkipBlankRoleYes
 )
 
+const (
+	GetApprovalApproving = "approving"
+	GetApprovalFinished  = "finished"
+)
+
 type Formtpl struct {
 	No         string `gorm:"primary_key"`
 	Name       string `gorm:"not null"`

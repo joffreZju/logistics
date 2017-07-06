@@ -12,7 +12,8 @@ import (
 
 func GetAttrList(prefix string) (al []model.Attribute, e error) {
 	al = []model.Attribute{}
-	e = model.NewOrm().Table(prefix + "." + model.Attribute{}.TableName()).Find(&al).Error
+	e = model.NewOrm().Table(prefix + "." + model.Attribute{}.TableName()).
+		Order("id").Find(&al).Error
 	return
 }
 
@@ -383,7 +384,7 @@ func GetGroupList(prefix string) (gs []*model.Group, e error) {
 func GetUsersOfGroup(prefix string, gid int) (users []*model.User, e error) {
 	users = []*model.User{}
 	sql := fmt.Sprintf(`select * from "%s"."allsum_user" as t1 inner join "%s".user_group as t2
-		on t1.id=t2.user_id where t2.group_id=%d`, prefix, prefix, gid)
+		on t1.id=t2.user_id where t2.group_id=%d order by t1.id`, prefix, prefix, gid)
 	e = model.NewOrm().Raw(sql).Scan(&users).Error
 	return
 }

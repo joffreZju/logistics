@@ -139,7 +139,7 @@ func createSchema(schema string) (e error) {
 func GetUserListOfCompany(prefix string) (users []*model.User, e error) {
 	users = []*model.User{}
 	e = model.NewOrm().Table(prefix + "." + model.User{}.TableName()).
-		Find(&users).Error
+		Order("id").Find(&users).Error
 	if e != nil {
 		return
 	}

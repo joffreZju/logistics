@@ -1,7 +1,7 @@
 ### 系统常量定义
 
 - 接口修改
-    - 注册加了username字段，加了获取历史消息接口
+    - 注册加了username字段，加了获取历史消息接口,获取（发起，收到）的审批单列表
 
     - 所有上传的文件名，系统统一在前面拼接了长度为36的uuid字符串，需要展示文件名的地方，下载文件后直接截掉即可。
 
@@ -53,13 +53,12 @@ Approval.Status{1：正在审批，2：审批通过，3：审批不通过，4：
 Approval.TreeFlowUp{1:No,2:Yes}
 Approval.SkipBlankRole{1:No, 2:Yes}
 
-
 组织树操作记录
 GroupOperation.Status{1:历史记录,2:未生效记录}
 
-涉及修改的接口:
-1. 管理员审核公司
-2. 启用/禁用 审批单模板，表单模板
+审批单查询可选字段
+beginTime:{"2017-07-01T14:47:00+08:00"}
+conditon:{"approving","finished"}
 ```
 
 

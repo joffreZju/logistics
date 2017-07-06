@@ -13,7 +13,7 @@ import (
 //表单模板相关
 func GetFormtplList(prefix string) (ftpls []*model.Formtpl, e error) {
 	ftpls = []*model.Formtpl{}
-	e = model.NewOrm().Table(prefix + "." + model.Formtpl{}.TableName()).Find(&ftpls).Error
+	e = model.NewOrm().Table(prefix + "." + model.Formtpl{}.TableName()).Order("no desc").Find(&ftpls).Error
 	return
 }
 
@@ -78,13 +78,12 @@ func DelFormtpl(prefix, no string) (e error) {
 
 //审批单模板相关
 func GetApprocvaltplList(prefix string, params ...string) (atpls []*model.Approvaltpl, e error) {
-	db := model.NewOrm()
+	db := model.NewOrm().Table(prefix + "." + model.Approvaltpl{}.TableName()).Order("no desc")
 	atpls = []*model.Approvaltpl{}
 	if len(params) != 0 {
-		e = db.Table(prefix+"."+model.Approvaltpl{}.TableName()).
-			Where("name like ?", "%"+params[0]+"%").Find(&atpls).Error
+		e = db.Where("name like ?", "%"+params[0]+"%").Find(&atpls).Error
 	} else {
-		e = db.Table(prefix + "." + model.Approvaltpl{}.TableName()).Find(&atpls).Error
+		e = db.Find(&atpls).Error
 	}
 	return
 }
@@ -440,16 +439,19 @@ func GetLatestFlowOfApproval(prefix, approvalNo string) (af *model.ApproveFlow, 
 	return
 }
 
-func GetApprovalsFromMe(prefix string, uid int, params ...string) (alist []*model.Approval, e error) {
-	db := model.NewOrm()
+func GetApprovalsFromMe(prefix string, uid int, beginTime, condition string) (alist []*model.Approval, e error) {
 	alist = []*model.Approval{}
-	if len(params) != 0 {
-		e = db.Table(prefix+"."+model.Approval{}.TableName()).
-			Order("ctime desc").Where("ctime>=?", params[0]).Find(&alist, "user_id=?", uid).Error
-	} else {
-		e = db.Table(prefix+"."+model.Approval{}.TableName()).
-			Order("ctime desc").Find(&alist, "user_id=?", uid).Error
+	db := model.NewOrm().Table(prefix+"."+model.Approval{}.TableName()).
+		Order("status, ctime desc").Where("user_id=?", uid)
+	if len(beginTime) != 0 {
+		db = db.Where("ctime>=?", beginTime)
 	}
+	if condition == model.GetApprovalApproving {
+		db = db.Where("status=?", model.ApprovalStatWaiting)
+	} else if condition == model.GetApprovalFinished {
+		db = db.Where("status<>?", model.ApprovalStatWaiting)
+	}
+	e = db.Find(&alist).Error
 	return
 }
 
@@ -459,7 +461,7 @@ func GetTodoApprovalsToMe(prefix string, uid int, params ...string) (alist []*mo
 	sql := fmt.Sprintf(`select * from "%s".approval as t1 inner join "%s".approve_flow as t2
 		on t1.no = t2.approval_no
 		where t2.status=%d and t2.match_users like '%%%d_%%' `, prefix, prefix, model.ApprovalStatWaiting, uid)
-	if len(params) != 0 {
+	if len(params) != 0 && len(params[0]) != 0 {
 		sql += fmt.Sprintf(`and t2.ctime>='%s' `, params[0])
 	}
 	sql += `order by t2.ctime desc`
@@ -470,9 +472,10 @@ func GetTodoApprovalsToMe(prefix string, uid int, params ...string) (alist []*mo
 func GetFinishedApprovalsToMe(prefix string, uid int, params ...string) (alist []*model.Approval, e error) {
 	db := model.NewOrm()
 	alist = []*model.Approval{}
+	//approve_flow 中user_id有值表示已经审批过
 	sql := fmt.Sprintf(`select * from "%s".approval as t1 inner join "%s".approve_flow as t2
 		on t1.no = t2.approval_no where t2.user_id=%d `, prefix, prefix, uid)
-	if len(params) != 0 {
+	if len(params) != 0 && len(params[0]) != 0 {
 		sql += fmt.Sprintf(`and t2.ctime>='%s' `, params[0])
 	}
 	sql += `order by t2.ctime desc`

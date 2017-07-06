@@ -359,13 +359,11 @@ func (c *Controller) SearchGroupOpsByTime() {
 func (c *Controller) GetGroupOpDetail() {
 	prefix := c.UserComp
 	opId, e := c.GetInt("opId")
-	//t, e := time.ParseInLocation(model.TimeFormatWithLocal, c.GetString("beginTime"), time.Local)
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
 	}
-	//t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 	groups, e := service.GetGroupOpDetail(prefix, opId)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
