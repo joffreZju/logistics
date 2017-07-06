@@ -46,7 +46,7 @@ func (c *Controller) GetLatestMsg() {
 }
 
 func (c *Controller) DelMsgById() {
-	msgId, err := c.GetInt("msgId")
+	msgId, err := c.GetInt("id")
 	if err != nil {
 		beego.Error("parameters wrong:", err)
 		c.ReplyErr(errcode.ErrParams)
