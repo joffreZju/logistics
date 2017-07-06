@@ -197,7 +197,7 @@ func (c *Controller) FirmControlUserStatus() {
 }
 
 func (c *Controller) FirmUpdateUserProfile() {
-	cno := c.GetString("cno")
+	prefix := c.UserComp
 	tel := c.GetString("tel")
 	uname := c.GetString("username")
 	mail := c.GetString("mail")
@@ -205,12 +205,10 @@ func (c *Controller) FirmUpdateUserProfile() {
 	if e != nil {
 		gender = 0
 	}
-	rstr := c.GetString("roles")
-	gstr := c.GetString("groups")
 	user, e := service.GetUserByTel("public", tel)
 	if e != nil {
 		beego.Error(e)
-		c.ReplyErr(errcode.ErrParams)
+		c.ReplyErr(errcode.ErrGetUserInfoFailed)
 		return
 	}
 	user.UserName = uname
@@ -222,10 +220,24 @@ func (c *Controller) FirmUpdateUserProfile() {
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	e = model.UpdateUser(cno, user)
+	e = model.UpdateUser(prefix, user)
 	if e != nil {
 		beego.Error(e)
 		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	c.ReplySucc(nil)
+}
+
+func (c *Controller) FirmUpdateUserRoleAndGroup() {
+	prefix := c.UserComp
+	tel := c.GetString("tel")
+	rstr := c.GetString("roles")
+	gstr := c.GetString("groups")
+	user, e := service.GetUserByTel("public", tel)
+	if e != nil {
+		beego.Error(e)
+		c.ReplyErr(errcode.ErrParams)
 		return
 	}
 	if len(rstr) != 0 {
@@ -236,13 +248,11 @@ func (c *Controller) FirmUpdateUserProfile() {
 			beego.Error(e)
 			return
 		}
-		if len(rids) != 0 {
-			e = service.UpdateRolesOfUser(cno, rids, user.Id)
-			if e != nil {
-				c.ReplyErr(errcode.ErrServerError)
-				beego.Error(e)
-				return
-			}
+		e = service.UpdateRolesOfUser(prefix, rids, user.Id)
+		if e != nil {
+			c.ReplyErr(errcode.ErrServerError)
+			beego.Error(e)
+			return
 		}
 	}
 	if len(gstr) != 0 {
@@ -253,13 +263,11 @@ func (c *Controller) FirmUpdateUserProfile() {
 			beego.Error(e)
 			return
 		}
-		if len(gids) != 0 {
-			e = service.UpdateGroupssOfUser(cno, gids, user.Id)
-			if e != nil {
-				c.ReplyErr(errcode.ErrServerError)
-				beego.Error(e)
-				return
-			}
+		e = service.UpdateGroupssOfUser(prefix, gids, user.Id)
+		if e != nil {
+			c.ReplyErr(errcode.ErrServerError)
+			beego.Error(e)
+			return
 		}
 	}
 	c.ReplySucc(nil)

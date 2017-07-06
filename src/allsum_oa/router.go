@@ -51,7 +51,8 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/getusers_ofcompany", &user.Controller{}, "*:FirmGetUserList")
 	beego.Router(FirmPrefix+"/search_users_byname", &user.Controller{}, "*:FirmSearchUsersByName")
 	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
-	beego.Router(FirmPrefix+"/update_user", &user.Controller{}, "Post:FirmUpdateUserProfile")
+	beego.Router(FirmPrefix+"/update_user_profile", &user.Controller{}, "Post:FirmUpdateUserProfile")
+	beego.Router(FirmPrefix+"/update_rolegroup_ofuser", &user.Controller{}, "Post:FirmUpdateUserRoleAndGroup")
 	beego.Router(FirmPrefix+"/control_user", &user.Controller{}, "Post:FirmControlUserStatus")
 	//管理组织树
 	beego.Router(FirmPrefix+"/add_attr", &group.Controller{}, "*:AddAttr")
