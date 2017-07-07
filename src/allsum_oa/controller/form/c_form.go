@@ -271,7 +271,7 @@ func (c *Controller) AddApproval() {
 		beego.Error(e)
 		return
 	}
-	if a.Status != model.ApprovalStatWaiting || len(a.RoleFlow) == 0 {
+	if a.Status != model.ApprovalStatWaiting || len(atpl.RoleFlow) == 0 {
 		c.ReplyErr(errcode.New(CommonErr, "审批单设置错误"))
 		beego.Error("审批单设置错误")
 		return
