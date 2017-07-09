@@ -45,6 +45,7 @@ func LoadRouter() {
 	beego.Router(AdminPrefix+"/firm_info", &user.Controller{}, "*:AdminGetFirmInfo")
 	beego.Router(AdminPrefix+"/firm_list", &user.Controller{}, "*:AdminGetFirmList")
 	beego.Router(AdminPrefix+"/firm_audit", &user.Controller{}, "*:AdminFirmAudit")
+	beego.Router(AdminPrefix+"/add_function", &user.Controller{}, "Post:AdminAddFunction")
 
 	//公司管理员相关
 	beego.Router(FirmPrefix+"/update_firm_info", &user.Controller{}, "*:UpdateFirmInfo")

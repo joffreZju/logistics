@@ -126,16 +126,6 @@ func GetFuncIdsOfUser(prefix string, uid int) (fids []int, e error) {
 	return
 }
 
-func createSchema(schema string) (e error) {
-	sql := fmt.Sprintf(`create schema "%s"`, schema)
-	e = model.NewOrm().Exec(sql).Error
-	if e != nil && (strings.Contains(e.Error(), "already exists") ||
-		strings.Contains(e.Error(), "已经存在")) {
-		return nil
-	}
-	return
-}
-
 func GetUserListOfCompany(prefix string) (users []*model.User, e error) {
 	users = []*model.User{}
 	e = model.NewOrm().Table(prefix + "." + model.User{}.TableName()).
@@ -180,6 +170,16 @@ func GetUserListByUids(prefix string, uids []int) (users []*model.User, e error)
 	users = []*model.User{}
 	e = model.NewOrm().Table(prefix+"."+model.User{}.TableName()).
 		Find(&users, "id in (?)", uids).Error
+	return
+}
+
+func createSchema(schema string) (e error) {
+	sql := fmt.Sprintf(`create schema "%s"`, schema)
+	e = model.NewOrm().Exec(sql).Error
+	if e != nil && (strings.Contains(e.Error(), "already exists") ||
+		strings.Contains(e.Error(), "已经存在")) {
+		return nil
+	}
 	return
 }
 
@@ -288,6 +288,28 @@ func AuditCompany(cno string, approverId int, status int, msg string) (err error
 			tx.Rollback()
 			return err
 		}
+	}
+	return tx.Commit().Error
+}
+
+func AddFunction(f *model.Function) (e error) {
+	db := model.NewOrm()
+	ffather := &model.Function{}
+	e = db.Find(ffather, f.Pid).Error
+	if e != nil || strings.Count(ffather.Path, "_") > 2 {
+		return errors.New("父节点选取有误")
+	}
+	tx := db.Begin()
+	e = tx.Create(f).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	f.Path = fmt.Sprintf("%s_%d", ffather.Path, f.Id)
+	e = tx.Model(f).Updates(f).Error
+	if e != nil {
+		tx.Rollback()
+		return
 	}
 	return tx.Commit().Error
 }
