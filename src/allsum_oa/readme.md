@@ -32,6 +32,7 @@
 
 ```
 User.Status{1:正常,2:锁定}
+User.Gender{1:男,2:女}
 
 User.UserType{1:普通用户}
 
@@ -78,7 +79,7 @@ conditon:{"approving","finished"}
         - password:string（密码，必填）
         - addr:string
         - desc:string
-        - gender:int(0/1)
+        - gender:int(1/2)
 
 - 获取用户公司列表（get，post）
     - 登录之前先请求获取用户的注册公司列表，然后选择其中一个来登录。

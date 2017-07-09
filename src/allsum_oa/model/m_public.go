@@ -40,7 +40,7 @@ type User struct {
 	UserName  string `gorm:""`
 	Icon      string `gorm:""`
 	Descrp    string
-	Gender    int       // 0:男 1：女
+	Gender    int       // 1:男 2:女
 	Address   string    `gorm:"size:64"`
 	Ctime     time.Time `gorm:"default:current_timestamp"`
 	LoginTime time.Time `gorm:"timestamp"`
@@ -204,12 +204,15 @@ func AddUserToCompany(cno string, uid int) (err error) {
 }
 
 type Function struct {
-	Id     int    `gorm:"primary_key;AUTO_INCREMENT"`
-	Name   string `gorm:"not null"`
-	Descrp string
-	Pid    int       `gorm:"not null"`
-	Ctime  time.Time `gorm:"default:current_timestamp"`
-	Path   string    `gorm:""`
+	Id       int    `gorm:"primary_key;AUTO_INCREMENT"`
+	Name     string `gorm:"not null"`
+	Descrp   string
+	Pid      int       `gorm:"not null"`
+	Ctime    time.Time `gorm:"default:current_timestamp"`
+	Path     string    `gorm:""`
+	Icon     string    //菜单图标
+	SysId    string    //各系统id
+	Services StrSlice  //此功能可访问的API接口集合
 }
 
 func (Function) TableName() string {
@@ -220,4 +223,14 @@ func GetFunctions() (funcs []*Function, e error) {
 	funcs = []*Function{}
 	e = NewOrm().Find(&funcs).Error
 	return
+}
+
+type AppVersion struct {
+	Id          int `gorm:"primary_key;AUTO_INCREMENT"`
+	Version     string
+	Environment int //1:开发2:测试3:预发布4:生产
+	DownloadUrl string
+	UpgradeType int //1:透明2:友好提示3:强制升级
+	Descrp      string
+	Ctime       time.Time `gorm:"default:current_timestamp"`
 }

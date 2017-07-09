@@ -101,8 +101,6 @@ func LoadRouter() {
 	beego.Router(FirmPrefix+"/approve", &form.Controller{}, "*:Approve")
 	beego.Router(FirmPrefix+"/get_approvals_from_me", &form.Controller{}, "*:GetApprovalsFromMe")
 	beego.Router(FirmPrefix+"/get_approvals_to_me", &form.Controller{}, "*:GetApprovalsToMe")
-	//beego.Router(FirmPrefix+"/get_todo_approvals_to_me", &form.Controller{}, "*:GetTodoApprovalsToMe")
-	//beego.Router(FirmPrefix+"/get_finished_approvals_to_me", &form.Controller{}, "*:GetFinishedApprovalsToMe")
 	beego.Router(FirmPrefix+"/get_approval_detail", &form.Controller{}, "*:GetApprovalDetail")
 
 	// 非登录态列表

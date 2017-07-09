@@ -12,13 +12,13 @@ const (
 )
 
 //审批单生命周期状态
+//审批中，审批通过，不通过，取消审批，停止(无法进行下午)(审批未完成之前都可以取消)
 const (
 	ApprovalStatWaiting = iota + 1
 	ApprovalStatAccessed
 	ApprovalStatNotAccessed
 	ApprovalStatCanceled
 	ApprovalStatStop
-	//草稿->提交->审批中->审批通过（或不通过）->取消审批->停止，无法进行下午(除了审批通过或不通过，其他都可以取消)
 )
 
 //审批单是否沿组织树流动
@@ -33,6 +33,7 @@ const (
 	SkipBlankRoleYes
 )
 
+//获取 正在审批的 或 已完成的 审批单
 const (
 	GetApprovalApproving = "approving"
 	GetApprovalFinished  = "finished"

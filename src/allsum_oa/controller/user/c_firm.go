@@ -119,7 +119,7 @@ func (c *Controller) FirmAddUser() {
 	name := c.GetString("name")
 	gender, e := c.GetInt("gender")
 	if e != nil {
-		gender = 0
+		gender = 1
 	}
 	groups, roles := []int{}, []int{}
 	gstr, rstr := c.GetString("groups"), c.GetString("roles")
@@ -203,7 +203,7 @@ func (c *Controller) FirmUpdateUserProfile() {
 	mail := c.GetString("mail")
 	gender, e := c.GetInt("gender")
 	if e != nil {
-		gender = 0
+		gender = 1
 	}
 	user, e := service.GetUserByTel("public", tel)
 	if e != nil {

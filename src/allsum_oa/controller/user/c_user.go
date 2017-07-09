@@ -84,6 +84,7 @@ func (c *Controller) UserRegister() {
 		Tel:      tel,
 		No:       model.UniqueNo("U"),
 		UserName: username,
+		Gender:   1,
 		Password: pwdEncode,
 		UserType: model.UserTypeNormal,
 		Status:   model.UserStatusOk,
