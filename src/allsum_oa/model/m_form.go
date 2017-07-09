@@ -102,6 +102,9 @@ type Approval struct {
 	UserId        int       `gorm:"not null"`
 	RoleId        int       `gorm:""`
 	GroupId       int       `gorm:""`
+	UserName      string    `gorm:""`
+	RoleName      string    `gorm:""`
+	GroupName     string    `gorm:""`
 	Status        int       `gorm:"not null"`
 
 	FormContent  *Form          `gorm:"-"`

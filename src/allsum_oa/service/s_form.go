@@ -202,6 +202,25 @@ func CancelApproval(prefix, no string) (e error) {
 }
 
 func AddApproval(prefix string, a *model.Approval) (e error) {
+	db := model.NewOrm()
+	user := &model.User{}
+	group := &model.Group{}
+	role := &model.Role{}
+	e = db.Table(prefix+"."+user.TableName()).First(user, a.UserId).Error
+	if e != nil {
+		return
+	}
+	e = db.Table(prefix+"."+group.TableName()).First(group, a.GroupId).Error
+	if e != nil {
+		return
+	}
+	e = db.Table(prefix+"."+role.TableName()).First(role, a.RoleId).Error
+	if e != nil {
+		return
+	}
+	a.UserName = user.UserName
+	a.GroupName = group.Name
+	a.RoleName = role.Name
 	tx := model.NewOrm().Begin()
 	e = tx.Table(prefix + "." + a.TableName()).Create(a).Error
 	if e != nil {
@@ -388,6 +407,7 @@ func newMsgToCreator(company string, a *model.Approval) {
 }
 
 func newMsgToApprovers(company string, users []*model.User, a *model.Approval) {
+	//可以使用a.UserName
 	creater, e := GetUserById(company, a.UserId)
 	if e != nil {
 		beego.Error(e)
