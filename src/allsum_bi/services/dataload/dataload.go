@@ -7,7 +7,6 @@ import (
 	"allsum_bi/util"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/astaxie/beego"
@@ -18,7 +17,7 @@ func AddDataLoad(dataload map[string]string) (err error) {
 	if err != nil {
 		return
 	}
-	schema := db.GetCompanySchema(strconv.Itoa(dataload_db.Owner))
+	schema := db.GetCompanySchema(dataload_db.Owner)
 	table_name := dataload["table_name"]
 	schema_table := schema + "." + table_name
 	create_script := dataload["create_script"]
@@ -100,7 +99,7 @@ func TestCreateScript(dataload_uuid string, table_name string, create_script str
 	if err != nil {
 		return
 	}
-	schema := db.GetCompanySchema(strconv.Itoa(dataload.Owner))
+	schema := db.GetCompanySchema(dataload.Owner)
 	isexsit := db.CheckTableExist(util.BASEDB_CONNID, schema+"."+table_name)
 	if isexsit {
 		return fmt.Errorf("table is exsit ", schema+"."+table_name)
@@ -131,7 +130,7 @@ func TestAlterScript(dataload_uuid string, table_name string, alter_script strin
 	if err != nil {
 		return
 	}
-	schema := db.GetCompanySchema(strconv.Itoa(dataload.Owner))
+	schema := db.GetCompanySchema(dataload.Owner)
 	//	isexsit := db.CheckTableExist(util.BASEDB_CONNID, schema+"."+table_name)
 	//	if !isexsit {
 	//		return fmt.Errorf("table is not exist ", schema+"."+table_name)

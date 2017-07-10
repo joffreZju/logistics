@@ -8,6 +8,7 @@ import (
 	"allsum_bi/controllers/demand"
 	"allsum_bi/controllers/etlmgr"
 	"allsum_bi/controllers/reportsetmgr"
+	"allsum_bi/controllers/testmgr"
 	"common/filter"
 
 	"github.com/astaxie/beego"
@@ -20,6 +21,7 @@ const (
 	AggregatePrefix string = "/v1/aggregate"
 	ReportSetPrefix string = "/v1/reportset"
 	DbPrefix        string = "/v1/dbmgr"
+	TestPrefix      string = "/v1/testmgr"
 )
 
 func init() {
@@ -76,6 +78,12 @@ func init() {
 	beego.Router(DbPrefix+"/list_schema", &dbmgr.Controller{}, "get:ListSchema")
 	beego.Router(DbPrefix+"/list_schema_table", &dbmgr.Controller{}, "get:ListSchemaTable")
 	beego.Router(DbPrefix+"/delete", &dbmgr.Controller{}, "delete:DelDb")
+
+	//testmgr
+	beego.Router(TestPrefix+"/get", &testmgr.Controller{}, "get:GetTestInfo")
+	beego.Router(TestPrefix+"/add", &testmgr.Controller{}, "get:AddTest")
+	beego.Router(TestPrefix+"/get_image", &testmgr.Controller{}, "get:GetTestFile")
+
 	//api auth white list
 
 	notNeedAuthList := []string{}

@@ -12,7 +12,7 @@ type DataLoad struct {
 	Id           int
 	Uuid         string
 	Name         string
-	Owner        int
+	Owner        string
 	Columns      string
 	CreateScript string
 	AlterScript  string

@@ -20,6 +20,7 @@ func (c *Controller) ListAggregate() {
 	if err != nil {
 		beego.Error("get reportid err", err)
 		c.ReplyErr(errcode.ErrActionGetReport)
+		return
 	}
 	limit, _ := c.GetInt("limit", 10)
 

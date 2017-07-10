@@ -35,3 +35,7 @@ func GetAggregateOpsTableName() string {
 func GetReportSetTableName() string {
 	return util.BI_SCHEMA + ".report_set"
 }
+
+func GetTestInfoTableName() string {
+	return util.BI_SCHEMA + ".test_info"
+}

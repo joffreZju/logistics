@@ -40,6 +40,8 @@ func InitDatabase() {
 	db.Table(models.GetSynchronousLogTableName()).AutoMigrate(&models.SynchronousLog{})
 	db.Table(models.GetDataLoadTableName()).AutoMigrate(&models.DataLoad{})
 	db.Table(models.GetAggregateOpsTableName()).AutoMigrate(&models.AggregateOps{})
+	beego.Debug("testinfo table: ", models.GetTestInfoTableName())
+	//	db.Table(models.GetTestInfoTableName()).AutoMigrate(&models.TestInfo{})
 	//	db.Table(models.GetAggregateOpsLogTableName()).AutoMigrate(&models.AggregateOps{})
 }
 

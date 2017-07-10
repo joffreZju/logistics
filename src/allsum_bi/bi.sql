@@ -117,6 +117,10 @@ COMMENT ON COLUMN aggregate_log.res IS '聚合结果信息';
 COMMENT ON COLUMN aggregate_log."timestamp" IS '时间';
 
 
+
+
+
+
 --
 -- Name: aggregate_ops_id_seq; Type: SEQUENCE; Schema: bi_system; Owner: user_logistic
 --
@@ -232,6 +236,42 @@ COMMENT ON COLUMN aggregate_ops.aggregate_use_tables IS '清洗中用到的表';
 
 
 --
+-- Name: test_info_id_seq; Type: SEQUENCE; Schema: bi_system; Owner: user_logistic
+--
+
+CREATE SEQUENCE test_info_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE test_info_id_seq OWNER TO user_logistic;
+
+--
+-- Name: test_info; Type: TABLE; Schema: bi_system; Owner: user_logistic
+--
+
+CREATE TABLE test_info (
+    id bigint DEFAULT nextval('test_info_id_seq'::regclass) NOT NULL,
+    uuid character varying(64) NOT NULL,
+    reportid bigint,
+    documents text,
+    filepaths varchar(128)[],
+    status int2 
+);
+
+
+ALTER TABLE test_info OWNER TO user_logistic;
+
+
+COMMENT ON COLUMN test_info.filepaths IS '文件路径列表';
+
+
+
+
+--
 -- Name: data_load_id_seq; Type: SEQUENCE; Schema: bi_system; Owner: user_logistic
 --
 
@@ -253,7 +293,7 @@ CREATE TABLE data_load (
     id bigint DEFAULT nextval('data_load_id_seq'::regclass) NOT NULL,
     uuid character varying(64) NOT NULL,
     name character varying(125),
-    owner bigint NOT NULL,
+    owner character varying(128) NOT NULL,
     columns character varying,
     create_script text,
     alter_script text,

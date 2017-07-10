@@ -87,3 +87,8 @@ const REPORTSET_BUILDING = "building"
 const REPORTSET_STARTED = "started"
 const REPORTSET_ERROR = "error"
 const REPORTSET_STOP = "stop"
+
+//test
+const TEST_MAX_UPLOAD_IMAGE = 9
+const IS_OPEN = 1
+const IS_CLOSE = 0

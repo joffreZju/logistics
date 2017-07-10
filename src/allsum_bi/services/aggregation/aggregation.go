@@ -5,11 +5,10 @@ import (
 	"allsum_bi/models"
 	"allsum_bi/util"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
-func AddAggregateByDataload(name string, owner int, schema_table string, flush_script string, cron string, documents string) (aggregate models.AggregateOps, err error) {
+func AddAggregateByDataload(name string, owner string, schema_table string, flush_script string, cron string, documents string) (aggregate models.AggregateOps, err error) {
 	aggregate = models.AggregateOps{
 		Name:      name,
 		DestTable: schema_table,
@@ -22,7 +21,7 @@ func AddAggregateByDataload(name string, owner int, schema_table string, flush_s
 	if err != nil {
 		return
 	}
-	schema := db.GetCompanySchema(strconv.Itoa(owner))
+	schema := db.GetCompanySchema(owner)
 	flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
 	flush_script_real = strings.Replace(flush_script_real, schema, util.SCRIPT_SCHEMA, util.SCRIPT_LIMIT)
 

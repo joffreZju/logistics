@@ -93,12 +93,12 @@ func (c *Controller) GetDataload() {
 
 func (c *Controller) SaveDataload() {
 	dataloadName := c.GetString("name")
-	dataloadOwner, err := c.GetInt("owner")
-	if err != nil {
-		beego.Error("save dataloadOwner err", err)
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
+	dataloadOwner := c.GetString("owner")
+	//	if err != nil {
+	//		beego.Error("save dataloadOwner err", err)
+	//		c.ReplyErr(errcode.ErrParams)
+	//		return
+	//	}
 	uuid := c.GetString("uuid")
 
 	if uuid == "" {
@@ -138,7 +138,7 @@ func (c *Controller) SaveDataload() {
 		"documents":     documents,
 	}
 	//have check
-	err = dataload.AddDataLoad(dataloadmap)
+	err := dataload.AddDataLoad(dataloadmap)
 	if err != nil {
 		beego.Error("save dataload err :", err)
 		c.ReplyErr(errcode.ErrServerError)
