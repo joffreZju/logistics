@@ -480,7 +480,9 @@ func GetTodoApprovalsToMe(prefix string, uid int, params ...string) (alist []*mo
 	alist = []*model.Approval{}
 	sql := fmt.Sprintf(`select * from "%s".approval as t1 inner join "%s".approve_flow as t2
 		on t1.no = t2.approval_no
-		where t2.status=%d and t2.match_users like '%%%d_%%' `, prefix, prefix, model.ApprovalStatWaiting, uid)
+		where t1.status=%d and t2.status=%d and t2.match_users like '%%%d_%%' `,
+		prefix, prefix, model.ApprovalStatWaiting, model.ApprovalStatWaiting, uid)
+
 	if len(params) != 0 && len(params[0]) != 0 {
 		sql += fmt.Sprintf(`and t2.ctime>='%s' `, params[0])
 	}
