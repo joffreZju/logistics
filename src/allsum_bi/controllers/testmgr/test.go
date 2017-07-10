@@ -57,6 +57,7 @@ func (c *Controller) AddTest() {
 	var uripaths []string
 	for i <= util.TEST_MAX_UPLOAD_IMAGE {
 		uploadkey := fmt.Sprintf("file_%d", i)
+		i += 1
 		f, h, err := c.GetFile(uploadkey)
 		if err != nil {
 			beego.Error("get file err :", err)

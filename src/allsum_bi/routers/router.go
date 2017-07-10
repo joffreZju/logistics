@@ -81,7 +81,7 @@ func init() {
 
 	//testmgr
 	beego.Router(TestPrefix+"/get", &testmgr.Controller{}, "get:GetTestInfo")
-	beego.Router(TestPrefix+"/add", &testmgr.Controller{}, "get:AddTest")
+	beego.Router(TestPrefix+"/add", &testmgr.Controller{}, "post:AddTest")
 	beego.Router(TestPrefix+"/get_image", &testmgr.Controller{}, "get:GetTestFile")
 
 	//api auth white list

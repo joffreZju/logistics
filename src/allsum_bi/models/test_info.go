@@ -3,6 +3,7 @@ package models
 import (
 	"allsum_bi/db/conn"
 	"fmt"
+	"strings"
 )
 
 type TestInfo struct {
@@ -10,7 +11,7 @@ type TestInfo struct {
 	Uuid      string
 	Reportid  int
 	Documents string
-	FilePaths []string
+	FilePaths interface{}
 	Status    int
 }
 
@@ -23,6 +24,9 @@ func InsertTestInfo(testinfo TestInfo) (uuidstr string, err error) {
 	if !exsit {
 		return uuidstr, err
 	}
+	filepaths := testinfo.FilePaths.([]string)
+	filepatharray := "{" + strings.Join(filepaths, ",") + "}"
+	testinfo.FilePaths = filepatharray
 	err = db.Table(GetTestInfoTableName()).Create(&testinfo).Error
 	uuidstr = testinfo.Uuid
 	return
