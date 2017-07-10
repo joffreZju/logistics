@@ -156,12 +156,6 @@ func GetCompany(cno string) (c *Company, err error) {
 	return
 }
 
-func GetCompanyList() (list []Company, err error) {
-	list = []Company{}
-	err = NewOrm().Find(&list).Error
-	return
-}
-
 func DeleteCompany(cno string) (err error) {
 	err = NewOrm().Table(Company{}.TableName()).Where("no=?", cno).Update("status", CompanyStatDeleted).Error
 	return
@@ -212,7 +206,7 @@ type Function struct {
 	Path     string    `gorm:""`
 	Icon     string    //菜单图标
 	SysId    string    //各系统id
-	Services StrSlice  //此功能可访问的API接口集合
+	Services StrSlice  `gorm:"type:text[]"` //此功能可访问的API接口集合
 }
 
 func (Function) TableName() string {
@@ -228,9 +222,13 @@ func GetFunctions() (funcs []*Function, e error) {
 type AppVersion struct {
 	Id          int `gorm:"primary_key;AUTO_INCREMENT"`
 	Version     string
-	Environment int //1:开发2:测试3:预发布4:生产
-	DownloadUrl string
-	UpgradeType int //1:透明2:友好提示3:强制升级
+	Environment int      //1:开发2:测试3:预发布4:生产
+	DownloadUrl StrSlice `gorm:"type:text[]"` //多个下载地址
+	UpgradeType int      //1:透明2:友好提示3:强制升级
 	Descrp      string
 	Ctime       time.Time `gorm:"default:current_timestamp"`
+}
+
+func (AppVersion) TableName() string {
+	return "app_version"
 }

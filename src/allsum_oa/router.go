@@ -42,10 +42,15 @@ func LoadRouter() {
 	beego.Router(UserPrefix+"/msg/del_msg_byid", &msg.Controller{}, "*:DelMsgById")
 
 	//allsum管理员审核公司
-	beego.Router(AdminPrefix+"/firm_info", &user.Controller{}, "*:AdminGetFirmInfo")
+	//beego.Router(AdminPrefix+"/firm_info", &user.Controller{}, "*:AdminGetFirmInfo")
 	beego.Router(AdminPrefix+"/firm_list", &user.Controller{}, "*:AdminGetFirmList")
 	beego.Router(AdminPrefix+"/firm_audit", &user.Controller{}, "*:AdminFirmAudit")
 	beego.Router(AdminPrefix+"/add_function", &user.Controller{}, "Post:AdminAddFunction")
+	beego.Router(AdminPrefix+"/update_function", &user.Controller{}, "Post:AdminUpdateFunction")
+	beego.Router(AdminPrefix+"/del_function", &user.Controller{}, "*:AdminDelFunction")
+	beego.Router(AdminPrefix+"/get_appversions", &user.Controller{}, "*:GetAppVersionList")
+	beego.Router(AdminPrefix+"/add_appversion", &user.Controller{}, "*:AddAppVersion")
+	beego.Router(ExemptPrefix+"/get_latest_appversion", &user.Controller{}, "*:GetLatestAppVersion")
 
 	//公司管理员相关
 	beego.Router(FirmPrefix+"/update_firm_info", &user.Controller{}, "*:UpdateFirmInfo")

@@ -90,6 +90,7 @@ func initModel() (err error) {
 		db.Table(prefix + UserCompany{}.TableName()).AutoMigrate(new(UserCompany))
 		db.Table(prefix + Function{}.TableName()).AutoMigrate(new(Function))
 		db.Table(prefix + Message{}.TableName()).AutoMigrate(new(Message))
+		db.Table(prefix + AppVersion{}.TableName()).AutoMigrate(new(AppVersion))
 	}
 	//init schema model
 	comps := []Company{}

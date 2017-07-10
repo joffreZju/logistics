@@ -124,7 +124,7 @@ type ApproveFlow struct {
 	UserName   string
 	RoleId     int
 	RoleName   string
-	Status     int
+	Status     int //只有三种状态1：正在审批，2：审批通过，3：审批不通过
 	Comment    string
 	Ctime      time.Time `gorm:"default:current_timestamp"`
 }

@@ -50,64 +50,6 @@ func (c *Controller) UpdateFirmInfo() {
 	c.ReplySucc(nil)
 }
 
-func (c *Controller) AdminGetFirmInfo() {
-	no := c.GetString("cno")
-	f, err := model.GetCompany(no)
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrFirmNotExisted)
-		return
-	}
-	c.ReplySucc(*f)
-}
-
-func (c *Controller) AdminGetFirmList() {
-	list, err := model.GetCompanyList()
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	c.ReplySucc(list)
-}
-
-func (c *Controller) AdminFirmAudit() {
-	uid := c.UserID
-	cno := c.GetString("cno")
-	status, err := c.GetInt("status")
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
-	msg := c.GetString("msg")
-	err = service.AuditCompany(cno, uid, status, msg)
-	if err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrServerError)
-		return
-	}
-	c.ReplySucc(nil)
-}
-
-func (c *Controller) AdminAddFunction() {
-	fstr := c.GetString("function")
-	f := &model.Function{}
-	e := json.Unmarshal([]byte(fstr), f)
-	if e != nil {
-		c.ReplyErr(errcode.ErrParams)
-		beego.Error(e)
-		return
-	}
-	e = service.AddFunction(f)
-	if e != nil {
-		c.ReplyErr(errcode.New(commonErr, e.Error()))
-		beego.Error(e)
-	} else {
-		c.ReplySucc(nil)
-	}
-}
-
 func (c *Controller) FirmGetUserList() {
 	prefix := c.UserComp
 	users, e := service.GetUserListOfCompany(prefix)

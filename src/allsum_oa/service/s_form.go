@@ -269,24 +269,28 @@ func nextStepOfApproval(prefix string, a *model.Approval) {
 		var users []*model.User
 		users, e = getApproverByRole(prefix, a, rid)
 		if e == nil {
-			//找到符合条件的审批人
+			//找到若干符合条件的审批人
+			//开始创建一步流程
+			var matchUsers string //拼接userId
+			for _, v := range users {
+				matchUsers += fmt.Sprintf("%d_", v.Id)
+			}
+			//skip oneself
+			//if strings.Contains(matchUsers, fmt.Sprintf("%d_", a.UserId)){
+			//	continue
+			//}
 			r := &model.Role{}
 			e = db.Table(prefix+"."+r.TableName()).First(r, "id=?", rid).Error
 			if e != nil {
 				beego.Error(e)
 			}
-			var matchUsers string //拼接userId
-			for _, v := range users {
-				matchUsers += fmt.Sprintf("%d_", v.Id)
-			}
 			af := &model.ApproveFlow{
 				ApprovalNo: a.No,
 				MatchUsers: matchUsers,
-				RoleId:     r.Id,
+				RoleId:     rid,
 				RoleName:   r.Name,
 				Status:     model.ApprovalStatWaiting,
 			}
-			//创建一步流程
 			e = db.Table(prefix + "." + af.TableName()).Create(af).Error
 			if e != nil {
 				stop = true
@@ -407,13 +411,7 @@ func newMsgToCreator(company string, a *model.Approval) {
 }
 
 func newMsgToApprovers(company string, users []*model.User, a *model.Approval) {
-	//可以使用a.UserName
-	creater, e := GetUserById(company, a.UserId)
-	if e != nil {
-		beego.Error(e)
-		return
-	}
-	title := "来自<" + creater.UserName + ">的审批消息"
+	title := "来自<" + a.UserName + ">的审批消息"
 	for _, v := range users {
 		msg := &model.Message{
 			CompanyNo: company,

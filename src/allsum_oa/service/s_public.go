@@ -173,6 +173,25 @@ func GetUserListByUids(prefix string, uids []int) (users []*model.User, e error)
 	return
 }
 
+func GetCompanyList() (interface{}, error) {
+	type CompanyDetail struct {
+		model.Company
+		CreateUser model.User
+	}
+	list := []*CompanyDetail{}
+	e := model.NewOrm().Table(model.Company{}.TableName()).Find(&list).Error
+	if e != nil {
+		return nil, e
+	}
+	for _, v := range list {
+		e = model.NewOrm().Table(model.User{}.TableName()).First(&v.CreateUser, v.Creator).Error
+		if e != nil {
+			return nil, e
+		}
+	}
+	return list, nil
+}
+
 func createSchema(schema string) (e error) {
 	sql := fmt.Sprintf(`create schema "%s"`, schema)
 	e = model.NewOrm().Exec(sql).Error
@@ -306,8 +325,39 @@ func AddFunction(f *model.Function) (e error) {
 		return
 	}
 	f.Path = fmt.Sprintf("%s_%d", ffather.Path, f.Id)
-	e = tx.Model(f).Updates(f).Error
+	count := tx.Model(f).Updates(f).RowsAffected
+	if count != 1 {
+		tx.Rollback()
+		return
+	}
+	return tx.Commit().Error
+}
+
+func UpdateFunction(f *model.Function) (e error) {
+	tx := model.NewOrm().Begin()
+	count := tx.Model(f).Updates(f).RowsAffected
+	if count != 1 {
+		tx.Rollback()
+		return
+	}
+	return tx.Commit().Error
+}
+
+func DelFunction(fid int) (e error) {
+	db := model.NewOrm()
+	f := &model.Function{}
+	e = db.First(f, fid).Error
 	if e != nil {
+		return
+	}
+	var count int64 = 0
+	e = db.Table(f.TableName()).Where("pid=?", fid).Count(&count).Error
+	if e != nil || count != 0 {
+		return errors.New("该功能节点不能被删除")
+	}
+	tx := db.Begin()
+	count = tx.Delete(f).RowsAffected
+	if count != 1 {
 		tx.Rollback()
 		return
 	}

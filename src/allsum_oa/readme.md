@@ -53,6 +53,7 @@ Approvaltpl.SkipBlankRole{1:No, 2:Yes}
 Approval.Status{1：正在审批，2：审批通过，3：审批不通过，4：审批取消，5：审批停止，无法进行下去（没有审批人）}
 Approval.TreeFlowUp{1:No,2:Yes}
 Approval.SkipBlankRole{1:No, 2:Yes}
+Approval.ApproveFlow{1：正在审批，2：审批通过，3：审批不通过}
 
 组织树操作记录
 GroupOperation.Status{1:历史记录,2:未生效记录}
@@ -60,6 +61,13 @@ GroupOperation.Status{1:历史记录,2:未生效记录}
 审批单查询可选字段
 beginTime:{"2017-07-01T14:47:00+08:00"}
 conditon:{"approving","finished"}
+
+AppVersion{
+    Environment: 1:开发2:测试3:预发布4:生产
+    DownloadUrl: []string, 多个下载地址
+    UpgradeType: 1:透明2:友好提示3:强制升级
+}
+
 ```
 
 
