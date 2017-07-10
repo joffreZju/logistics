@@ -49,7 +49,7 @@ func GetReportSetByReportid(reportid int) (reportset ReportSet, err error) {
 	return
 }
 
-func GetReportSet(id int) (reportset ReportSet) {
+func GetReportSet(id int) (reportset ReportSet, err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return

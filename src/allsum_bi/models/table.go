@@ -39,3 +39,7 @@ func GetReportSetTableName() string {
 func GetTestInfoTableName() string {
 	return util.BI_SCHEMA + ".test_info"
 }
+
+func GetUserAuthorityTableName(companyid string) string {
+	return util.BI_COMMENT_PREFIX + companyid + ".user_authority"
+}
