@@ -11,7 +11,7 @@ type TestInfo struct {
 	Uuid      string
 	Reportid  int
 	Documents string
-	FilePaths interface{}
+	Filepaths interface{}
 	Status    int
 }
 
@@ -24,9 +24,9 @@ func InsertTestInfo(testinfo TestInfo) (uuidstr string, err error) {
 	if !exsit {
 		return uuidstr, err
 	}
-	filepaths := testinfo.FilePaths.([]string)
+	filepaths := testinfo.Filepaths.([]string)
 	filepatharray := "{" + strings.Join(filepaths, ",") + "}"
-	testinfo.FilePaths = filepatharray
+	testinfo.Filepaths = filepatharray
 	err = db.Table(GetTestInfoTableName()).Create(&testinfo).Error
 	uuidstr = testinfo.Uuid
 	return
@@ -38,6 +38,9 @@ func GetTestInfo(id int) (testinfo TestInfo, err error) {
 		return
 	}
 	err = db.Table(GetTestInfoTableName()).Where("id=?", id).First(&testinfo).Error
+	testinfo.Filepaths = string(testinfo.Filepaths.([]byte))
+	testinfo.Filepaths = strings.TrimRight(strings.TrimPrefix(testinfo.Filepaths.(string), "{"), "}")
+	testinfo.Filepaths = strings.Split(testinfo.Filepaths.(string), ",")
 	return
 }
 
@@ -61,6 +64,9 @@ func ListTestInfos(fields []string, values []interface{}, limit int, index int) 
 		if err != nil {
 			return testinfos, err
 		}
+		testinfo.Filepaths = string(testinfo.Filepaths.([]byte))
+		testinfo.Filepaths = strings.TrimRight(strings.TrimPrefix(testinfo.Filepaths.(string), "{"), "}")
+		testinfo.Filepaths = strings.Split(testinfo.Filepaths.(string), ",")
 		testinfos = append(testinfos, testinfo)
 	}
 	return
@@ -82,6 +88,9 @@ func GetTestInfoByReportid(reportid int) (testinfos []TestInfo, err error) {
 		if err != nil {
 			return testinfos, err
 		}
+		testinfo.Filepaths = string(testinfo.Filepaths.([]byte))
+		testinfo.Filepaths = strings.TrimRight(strings.TrimPrefix(testinfo.Filepaths.(string), "{"), "}")
+		testinfo.Filepaths = strings.Split(testinfo.Filepaths.(string), ",")
 		testinfos = append(testinfos, testinfo)
 	}
 	return
@@ -103,6 +112,9 @@ func ListAllTestInfos() (testinfos []TestInfo, err error) {
 		if err != nil {
 			return testinfos, err
 		}
+		testinfo.Filepaths = string(testinfo.Filepaths.([]byte))
+		testinfo.Filepaths = strings.TrimRight(strings.TrimPrefix(testinfo.Filepaths.(string), "{"), "}")
+		testinfo.Filepaths = strings.Split(testinfo.Filepaths.(string), ",")
 		testinfos = append(testinfos, testinfo)
 	}
 	return

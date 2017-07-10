@@ -35,7 +35,7 @@ func (c *Controller) GetTestInfo() {
 	var filepaths [][]string
 	for _, testinfo := range testinfos {
 		documents = append(documents, testinfo.Documents)
-		filepaths = append(filepaths, testinfo.FilePaths)
+		filepaths = append(filepaths, testinfo.Filepaths.([]string))
 	}
 
 	res := map[string]interface{}{
@@ -83,7 +83,7 @@ func (c *Controller) AddTest() {
 	testinfo := models.TestInfo{
 		Reportid:  report.Id,
 		Documents: documents,
-		FilePaths: uripaths,
+		Filepaths: uripaths,
 		Status:    util.IS_OPEN,
 	}
 	_, err = models.InsertTestInfo(testinfo)
