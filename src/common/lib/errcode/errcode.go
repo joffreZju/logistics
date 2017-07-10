@@ -90,6 +90,8 @@ var (
 	ErrActionGetReportSet   = &CodeError{20517, "获取报表设置信息失败"}
 	ErrActionPutReportSet   = &CodeError{20518, "添加报表设置信息失败"}
 	ErrActionGetReportData  = &CodeError{20519, "获取报表数据失败"}
+	ErrActionPutTestData    = &CodeError{20520, "添加测试数据失败"}
+	ErrActionGetTestInfo    = &CodeError{20521, "获取测试数据失败"}
 )
 
 func ParseError(err error) (code int, msg string) {
