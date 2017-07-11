@@ -165,6 +165,9 @@ func DoEtlCalibration(dbid string, schema string, table string) (err error) {
 	}
 	sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
 	params, err := db.QueryDatas(util.BASEDB_CONNID, sqlstr)
+	if err != nil {
+		return err
+	}
 	_, err = callEtl(dbid, sync.Owner, sync.SourceTable, scriptMap["transport"], scriptMap["transform"], params[0])
 	if err != nil {
 		return
@@ -193,7 +196,13 @@ func StartEtl(uuid string) (err error) {
 	}
 	sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
 	params, err := db.QueryDatas(util.BASEDB_CONNID, sqlstr)
+	if err != nil {
+		return
+	}
 	pipeline, err := buildEtl(sync.SourceDbId, sync.Owner, sync.SourceTable, scriptMap["transport"], scriptMap["transform"], params[0])
+	if err != nil {
+		return
+	}
 	pipeline.SetCron(sync.Cron)
 	runjs := pipeline.MakeRunJs()
 
