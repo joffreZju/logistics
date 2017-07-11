@@ -163,9 +163,9 @@ func DoEtlCalibration(dbid string, schema string, table string) (err error) {
 	for _, field := range fields {
 		fieldinterfaces = append(fieldinterfaces, field)
 	}
-	sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
 	params := [][]interface{}{nil}
-	if sqlstr != "" {
+	if scriptMap["paramsql"] != "" {
+		sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
 		params, err = db.QueryDatas(util.BASEDB_CONNID, sqlstr)
 		if err != nil {
 			return err
@@ -198,9 +198,9 @@ func StartEtl(uuid string) (err error) {
 	for _, field := range fields {
 		fieldinterfaces = append(fieldinterfaces, field)
 	}
-	sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
 	params := [][]interface{}{nil}
-	if sqlstr != "" {
+	if scriptMap["paramsql"] != "" {
+		sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
 		params, err = db.QueryDatas(util.BASEDB_CONNID, sqlstr)
 		if err != nil {
 			return err
@@ -297,9 +297,9 @@ func SetAndDoEtl(setdata map[string]interface{}) (err error) {
 	for _, v := range fields {
 		fieldinterfaces = append(fieldinterfaces, v)
 	}
-	sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
 	params := [][]interface{}{nil}
-	if sqlstr != "" {
+	if scriptMap["paramsql"] != "" {
+		sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
 		params, err = db.QueryDatas(util.BASEDB_CONNID, sqlstr)
 		if err != nil {
 			return err
