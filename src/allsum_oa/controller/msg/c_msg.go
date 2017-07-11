@@ -11,6 +11,10 @@ type Controller struct {
 	base.Controller
 }
 
+const (
+	commonErr = 99999
+)
+
 func (c *Controller) GetHistoryMsg() {
 	uid := c.UserID
 	company := c.UserComp
@@ -58,4 +62,24 @@ func (c *Controller) DelMsgById() {
 		return
 	}
 	c.ReplySucc(nil)
+}
+
+func (c *Controller) GetMsgsByPage() {
+	page, e := c.GetInt("page")
+	limit, e1 := c.GetInt("limit")
+	if e != nil || e1 != nil {
+		c.ReplyErr(e)
+		beego.Error(e, e1)
+		return
+	}
+	sum, msgs, e := service.GetMsgsByPage(c.UserComp, c.UserID, page, limit)
+	if e != nil {
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc(map[string]interface{}{
+			"Sum":  sum,
+			"Msgs": msgs,
+		})
+	}
 }

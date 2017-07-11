@@ -38,6 +38,20 @@ func GetLatestMsg(company string, uid, maxId int) (msgs []*model.Message, err er
 	return
 }
 
+func GetMsgsByPage(company string, uid, page, limit int) (sum int, msgs []*model.Message, err error) {
+	db := model.NewOrm().Table(model.Message{}.TableName()).Where("user_id = ? and company_no = ?", uid, company)
+	err = db.Count(&sum).Error
+	if err != nil {
+		return
+	}
+	msgs = []*model.Message{}
+	err = db.Order("id desc").Offset(limit * (page - 1)).Limit(limit).Find(&msgs).Error
+	//if err == gorm.ErrRecordNotFound {
+	//	err = nil
+	//}
+	return
+}
+
 func DelMsgById(msgId int) (err error) {
 	m := &model.Message{Id: msgId}
 	err = model.NewOrm().Delete(m).Error

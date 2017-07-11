@@ -40,6 +40,7 @@ func LoadRouter() {
 	beego.Router(UserPrefix+"/msg/get_history_msgs", &msg.Controller{}, "*:GetHistoryMsg")
 	beego.Router(UserPrefix+"/msg/get_latest_msgs", &msg.Controller{}, "*:GetLatestMsg")
 	beego.Router(UserPrefix+"/msg/del_msg_byid", &msg.Controller{}, "*:DelMsgById")
+	beego.Router(UserPrefix+"/msg/get_msgs_bypage", &msg.Controller{}, "*:GetMsgsByPage")
 
 	//allsum管理员审核公司
 	//beego.Router(AdminPrefix+"/firm_info", &user.Controller{}, "*:AdminGetFirmInfo")
