@@ -322,3 +322,12 @@ AppVersion{
         - Opinion:int(0:同意，1:拒绝,必填)
         - Comment:string(选填)
     }
+    
+- 使用string _ 做匹配处理的地方：
+    m_form.go: ApproveFlow.MatchUsers
+    s_form.go, c_form.go: 使用以上MatchUsers
+    base.controller.go: userInfo在redis中的key
+    c_user.go: redis中的groups, roles, functions的拼接
+    
+    
+    

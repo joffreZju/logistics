@@ -256,7 +256,7 @@ func (c *Controller) loginAction(user *model.User) {
 }
 
 func (c *Controller) saveUserInfoToRedis(key, cno string, u *model.User) (e error) {
-	roles, groups, funcs := "", "", ""
+	roles, groups, funcs := "_", "_", "_"
 	for _, v := range u.Roles {
 		roles += fmt.Sprintf("%d_", v.Id)
 	}

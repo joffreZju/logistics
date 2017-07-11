@@ -271,12 +271,12 @@ func nextStepOfApproval(prefix string, a *model.Approval) {
 		if e == nil {
 			//找到若干符合条件的审批人
 			//开始创建一步流程
-			var matchUsers string //拼接userId
+			var matchUsers string = "_" //拼接userId
 			for _, v := range users {
 				matchUsers += fmt.Sprintf("%d_", v.Id)
 			}
 			//skip oneself
-			//if strings.Contains(matchUsers, fmt.Sprintf("%d_", a.UserId)){
+			//if strings.Contains(matchUsers, fmt.Sprintf("_%d_", a.UserId)){
 			//	continue
 			//}
 			r := &model.Role{}
@@ -478,7 +478,7 @@ func GetTodoApprovalsToMe(prefix string, uid int, params ...string) (alist []*mo
 	alist = []*model.Approval{}
 	sql := fmt.Sprintf(`select * from "%s".approval as t1 inner join "%s".approve_flow as t2
 		on t1.no = t2.approval_no
-		where t1.status=%d and t2.status=%d and t2.match_users like '%%%d_%%' `,
+		where t1.status=%d and t2.status=%d and t2.match_users like '%%_%d_%%' `,
 		prefix, prefix, model.ApprovalStatWaiting, model.ApprovalStatWaiting, uid)
 
 	if len(params) != 0 && len(params[0]) != 0 {

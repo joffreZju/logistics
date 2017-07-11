@@ -6,8 +6,8 @@ INSERT INTO "public"."function" (name, descrp, pid, path) VALUES ('组织管理'
 INSERT INTO "public"."function" (name, descrp, pid, path) VALUES ('我的工作', null, '1', '1-3');
 INSERT INTO "public"."function" (name, descrp, pid, path) VALUES ('系统设置', null, '1', '1-4');
 INSERT INTO "public"."function" (name, descrp, pid, path) VALUES ('组织属性维护', null, '2', '1-2-5');
-INSERT INTO "public"."function" (name, descrp, pid, path) VALUES ('组织数管理', null, '2', '1-2-6');
-INSERT INTO "public"."function" (name, descrp, pid, path) VALUES ('组织数查询', null, '2', '1-2-7');
+INSERT INTO "public"."function" (name, descrp, pid, path) VALUES ('组织树管理', null, '2', '1-2-6');
+INSERT INTO "public"."function" (name, descrp, pid, path) VALUES ('组织树查询', null, '2', '1-2-7');
 INSERT INTO "public"."function" (name, descrp, pid, path) VALUES ('我的审批', null, '3', '1-3-8');
 INSERT INTO "public"."function" (name, descrp, pid, path) VALUES ('我的申请', null, '3', '1-3-9');
 INSERT INTO "public"."function" (name, descrp, pid, path) VALUES ('审批流设定', null, '4', '1-4-10');

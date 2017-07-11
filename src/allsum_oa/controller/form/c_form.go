@@ -296,61 +296,6 @@ func (c *Controller) AddApproval() {
 	}
 }
 
-//获取符合条件的审批人
-//func (c *Controller) GetApproverList() {
-//	prefix := c.UserComp
-//	currentGroup, e := c.GetInt("currentGroup")
-//	if e != nil {
-//		c.ReplyErr(errcode.ErrParams)
-//		beego.Error(e)
-//		return
-//	}
-//	atplNo := c.GetString("approvaltplNo")
-//	if strings.Contains(c.UserGroups, fmt.Sprintf("%d", currentGroup)) == false {
-//		c.ReplyErr(errcode.ErrGroupOfUser)
-//		return
-//	}
-//	rolemap, e := service.GetApproverList(prefix, atplNo, currentGroup)
-//	if e != nil {
-//		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-//		beego.Error(e)
-//	} else {
-//		c.ReplySucc(rolemap)
-//	}
-//}
-
-//存为草稿的功能取消
-//func (c *Controller) UpdateApproval() {
-//	prefix := c.UserComp
-//	str := c.GetString("approval")
-//	a := model.Approval{}
-//	e := json.Unmarshal([]byte(str), &a)
-//	if e != nil {
-//		c.ReplyErr(errcode.ErrParams)
-//		beego.Error(e)
-//		return
-//	}
-//	if (a.Status != model.ApprovalStatDraft && a.Status != model.ApprovalStatWaiting) || len(a.UserFlow) == 0 {
-//		c.ReplyErr(errcode.New(CommonErr, "审批单状态错误"))
-//		beego.Error("approval status is wrong")
-//		return
-//	}
-//	if len(a.No) == 0 || len(a.FormNo) == 0 || a.FormNo != a.FormContent.No {
-//		c.ReplyErr(errcode.New(CommonErr, "审批单编号有误"))
-//		return
-//	}
-//	a.Currentuser = a.UserFlow[0]
-//	e = service.UpdateApproval(prefix, &a)
-//	if e != nil {
-//		c.ReplyErr(errcode.New(CommonErr, e.Error()))
-//		beego.Error(e)
-//	} else {
-//		if a.Status == model.ApprovalStatWaiting {
-//		}
-//		c.ReplySucc(nil)
-//	}
-//}
-
 func (c *Controller) CancelApproval() {
 	prefix := c.UserComp
 	no := c.GetString("no")
@@ -390,7 +335,7 @@ func (c *Controller) Approve() {
 		c.ReplyErr(errcode.ErrStatOfApproval)
 		return
 	}
-	if !strings.Contains(af.MatchUsers, fmt.Sprintf("%d_", uid)) {
+	if !strings.Contains(af.MatchUsers, fmt.Sprintf("_%d_", uid)) {
 		c.ReplyErr(errcode.ErrRoleOfUser)
 		return
 	}

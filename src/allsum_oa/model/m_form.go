@@ -119,7 +119,7 @@ func (Approval) TableName() string {
 type ApproveFlow struct {
 	Id         int    `gorm:"AUTO_INCREMENT,primary_key"`
 	ApprovalNo string `gorm:"not null"`
-	MatchUsers string // 满足条件的用户id拼接1_2_3_
+	MatchUsers string // 满足条件的用户id拼接 _1_2_3_
 	UserId     int
 	UserName   string
 	RoleId     int
