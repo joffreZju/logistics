@@ -408,7 +408,7 @@ func (c *Controller) Approve() {
 		c.ReplyErr(errcode.ErrStatOfApproval)
 		beego.Error(e)
 	} else {
-		c.ReplySucc(nil)
+		c.ReplySucc(a)
 	}
 }
 

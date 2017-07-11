@@ -436,7 +436,8 @@ func (c *Controller) Resetpwd() {
 }
 
 func (c *Controller) GetFunctionsTree() {
-	funcs, e := model.GetFunctions()
+	sysId := c.GetString("sysId")
+	funcs, e := model.GetFunctions(sysId)
 	if e != nil {
 		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
