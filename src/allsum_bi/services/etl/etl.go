@@ -164,10 +164,14 @@ func DoEtlCalibration(dbid string, schema string, table string) (err error) {
 		fieldinterfaces = append(fieldinterfaces, field)
 	}
 	sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
-	params, err := db.QueryDatas(util.BASEDB_CONNID, sqlstr)
-	if err != nil {
-		return err
+	params := [][]interface{}{nil}
+	if sqlstr != "" {
+		params, err = db.QueryDatas(util.BASEDB_CONNID, sqlstr)
+		if err != nil {
+			return err
+		}
 	}
+
 	_, err = callEtl(dbid, sync.Owner, sync.SourceTable, scriptMap["transport"], scriptMap["transform"], params[0])
 	if err != nil {
 		return
@@ -195,10 +199,14 @@ func StartEtl(uuid string) (err error) {
 		fieldinterfaces = append(fieldinterfaces, field)
 	}
 	sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
-	params, err := db.QueryDatas(util.BASEDB_CONNID, sqlstr)
-	if err != nil {
-		return
+	params := [][]interface{}{nil}
+	if sqlstr != "" {
+		params, err = db.QueryDatas(util.BASEDB_CONNID, sqlstr)
+		if err != nil {
+			return err
+		}
 	}
+
 	pipeline, err := buildEtl(sync.SourceDbId, sync.Owner, sync.SourceTable, scriptMap["transport"], scriptMap["transform"], params[0])
 	if err != nil {
 		return
@@ -290,7 +298,14 @@ func SetAndDoEtl(setdata map[string]interface{}) (err error) {
 		fieldinterfaces = append(fieldinterfaces, v)
 	}
 	sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
-	params, err := db.QueryDatas(util.BASEDB_CONNID, sqlstr)
+	params := [][]interface{}{nil}
+	if sqlstr != "" {
+		params, err = db.QueryDatas(util.BASEDB_CONNID, sqlstr)
+		if err != nil {
+			return err
+		}
+	}
+
 	pipeline, err := callEtl(util.BASEDB_CONNID, sync.Owner, sync.SourceTable, scriptMap["transport"], scriptMap["transform"], params[0])
 	if err != nil {
 		return
