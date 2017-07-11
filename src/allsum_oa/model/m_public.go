@@ -213,9 +213,9 @@ func (Function) TableName() string {
 	return "function"
 }
 
-func GetFunctions(sysId string) (funcs []*Function, e error) {
+func GetFunctions(sysIds []string) (funcs []*Function, e error) {
 	funcs = []*Function{}
-	e = NewOrm().Where(Function{SysId: sysId}).Find(&funcs).Error
+	e = NewOrm().Where("sys_id in (?)", sysIds).Find(&funcs).Error
 	return
 }
 

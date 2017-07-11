@@ -1,6 +1,7 @@
 package push
 
 import (
+	"encoding/json"
 	"testing"
 )
 
@@ -18,7 +19,26 @@ import (
 //}
 
 func TestJPush(t *testing.T) {
-	tels := []string{"wy"}
-	JPushMsgByAlias(tels, "nihao", map[string]interface{}{})
+	alias := []string{"C0607145711618_21"}
+	msg := &struct {
+		CompanyNo string
+		UserId    int
+		MsgType   int
+		Title     string
+		Content   map[string]string
+	}{
+		"C0607145711618",
+		21,
+		2,
+		`来自$` + "王俊" + `$的审批消息`,
+		map[string]string{
+			"ApprovalNo": "12345",
+		},
+	}
+	b, e := json.Marshal(msg)
+	if e != nil {
+		t.Log("failed")
+	}
+	JPushMsgByAlias(alias, string(b), map[string]interface{}{})
 	t.Log("hello world\n")
 }

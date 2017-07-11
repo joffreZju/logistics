@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/ysqi/tokenauth"
 	"github.com/ysqi/tokenauth2beego/o2o"
@@ -146,10 +147,9 @@ func (c *Controller) UpdateUserInfo() {
 	uid := c.UserID
 	uname := c.GetString("username")
 	icon := c.GetString("icon")
-	if len(uname) == 0 && len(icon) == 0 {
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
+	gendr, _ := c.GetInt("gender")
+	mail := c.GetString("mail")
+	address := c.GetString("address")
 	user, e := service.GetUserById("public", uid)
 	if e != nil {
 		beego.Error(e)
@@ -161,6 +161,15 @@ func (c *Controller) UpdateUserInfo() {
 	}
 	if len(icon) != 0 {
 		user.Icon = icon
+	}
+	if gendr != 0 {
+		user.Gender = gendr
+	}
+	if len(mail) != 0 {
+		user.Mail = mail
+	}
+	if len(address) != 0 {
+		user.Address = address
 	}
 	e = model.UpdateUser("public", user)
 	if e != nil {
@@ -436,8 +445,15 @@ func (c *Controller) Resetpwd() {
 }
 
 func (c *Controller) GetFunctionsTree() {
-	sysId := c.GetString("sysId")
-	funcs, e := model.GetFunctions(sysId)
+	idstr := c.GetString("sysIds")
+	sysIds := []string{}
+	e := json.Unmarshal([]byte(idstr), &sysIds)
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	funcs, e := model.GetFunctions(sysIds)
 	if e != nil {
 		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)

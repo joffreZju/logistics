@@ -411,7 +411,7 @@ func newMsgToCreator(company string, a *model.Approval) {
 }
 
 func newMsgToApprovers(company string, users []*model.User, a *model.Approval) {
-	title := "来自<" + a.UserName + ">的审批消息"
+	title := "来自$" + a.UserName + "$的审批消息"
 	for _, v := range users {
 		msg := &model.Message{
 			CompanyNo: company,
