@@ -250,13 +250,14 @@ func createCreatorRole(prefix string) (e error) {
 	return tx.Commit().Error
 }
 
-func AuditCompany(cno string, approverId int, status int, msg string) (err error) {
+func AuditCompany(cno string, approver *model.User, status int, msg string) (err error) {
 	tx := model.NewOrm().Begin()
 	c := tx.Model(&model.Company{}).Where("no=?", cno).
 		Updates(&model.Company{
-			Approver:   approverId,
-			Status:     status,
-			ApproveMsg: msg}).RowsAffected
+			Approver:     approver.Id,
+			ApproverName: approver.UserName,
+			Status:       status,
+			ApproveMsg:   msg}).RowsAffected
 	if c != 1 {
 		err = errors.New("approve compony failed")
 		tx.Rollback()

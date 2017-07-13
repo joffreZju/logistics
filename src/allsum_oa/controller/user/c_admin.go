@@ -30,19 +30,24 @@ func (c *Controller) AdminGetFirmList() {
 }
 
 func (c *Controller) AdminFirmAudit() {
-	uid := c.UserID
 	cno := c.GetString("cno")
+	msg := c.GetString("msg")
 	status, err := c.GetInt("status")
 	if err != nil {
 		beego.Error(err)
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	msg := c.GetString("msg")
-	err = service.AuditCompany(cno, uid, status, msg)
+	approver, e := service.GetUserById(c.UserComp, c.UserID)
+	if e != nil {
+		c.ReplyErr(errcode.ErrGetUserInfoFailed)
+		beego.Error(e)
+		return
+	}
+	err = service.AuditCompany(cno, approver, status, msg)
 	if err != nil {
-		beego.Error(err)
 		c.ReplyErr(errcode.ErrServerError)
+		beego.Error(err)
 		return
 	}
 	c.ReplySucc(nil)

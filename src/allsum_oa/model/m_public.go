@@ -129,21 +129,22 @@ func Update___User(prefix string, u *User, fields ...string) (err error) {
 }
 
 type Company struct {
-	Id          int    `gorm:"auto_increment;primary_key"`
-	No          string `gorm:"unique"`
-	Creator     int    `gorm:"not null"`
-	AdminId     int    `gorm:"not null"`
-	FirmName    string
-	FirmType    string
-	Descrp      string
-	Address     string
-	Phone       string
-	LicenseFile StrSlice  `gorm:"type:text[]"`
-	Status      int       //1:待审核;2:审核通过;3:审核不通过4:删除;
-	Approver    int       //审核人
-	ApproveTime time.Time //批复时间
-	ApproveMsg  string    //审批意见
-	Ctime       time.Time `gorm:"default:current_timestamp" json:",omitempty"` //申请时间
+	Id           int    `gorm:"auto_increment;primary_key"`
+	No           string `gorm:"unique"`
+	Creator      int    `gorm:"not null"`
+	AdminId      int    `gorm:"not null"`
+	FirmName     string
+	FirmType     string
+	Descrp       string
+	Address      string
+	Phone        string
+	LicenseFile  StrSlice  `gorm:"type:text[]"`
+	Status       int       //1:待审核;2:审核通过;3:审核不通过4:删除;
+	Approver     int       //审核人
+	ApproverName string    //审核人
+	ApproveTime  time.Time //批复时间
+	ApproveMsg   string    //审批意见
+	Ctime        time.Time `gorm:"default:current_timestamp"` //申请时间
 }
 
 func (Company) TableName() string {
