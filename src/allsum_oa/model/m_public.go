@@ -216,7 +216,7 @@ func (Function) TableName() string {
 
 func GetFunctions(sysIds []string) (funcs []*Function, e error) {
 	funcs = []*Function{}
-	e = NewOrm().Where("sys_id in (?)", sysIds).Find(&funcs).Error
+	e = NewOrm().Order("id").Where("sys_id in (?) or pid='0'", sysIds).Find(&funcs).Error
 	return
 }
 

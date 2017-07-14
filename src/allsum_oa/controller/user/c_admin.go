@@ -75,7 +75,8 @@ func (c *Controller) AdminUpdateFunction() {
 	fstr := c.GetString("function")
 	f := &model.Function{}
 	e := json.Unmarshal([]byte(fstr), f)
-	if e != nil || f.Pid != 0 {
+	if e != nil || f.Pid != 0 || len(f.SysId) != 0 {
+		//不能修改Pid,SysId
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
