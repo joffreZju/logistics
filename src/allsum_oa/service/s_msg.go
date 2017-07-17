@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego"
-	"github.com/jinzhu/gorm"
 	"net"
 	"net/http"
 	"time"
@@ -22,9 +21,6 @@ func GetHistoryMsg(company string, uid, minId int) (msgs []*model.Message, err e
 	msgs = []*model.Message{}
 	err = model.NewOrm().Where("id < ? and user_id = ? and company_no = ?", minId, uid, company).
 		Order("id desc").Limit(500).Find(&msgs).Error
-	if err == gorm.ErrRecordNotFound {
-		err = nil
-	}
 	return
 }
 
@@ -32,9 +28,6 @@ func GetLatestMsg(company string, uid, maxId int) (msgs []*model.Message, err er
 	msgs = []*model.Message{}
 	err = model.NewOrm().Where("id > ? and user_id = ? and company_no = ?", maxId, uid, company).
 		Order("id desc").Find(&msgs).Error
-	if err == gorm.ErrRecordNotFound {
-		err = nil
-	}
 	return
 }
 
@@ -46,9 +39,6 @@ func GetMsgsByPage(company string, uid, page, limit int) (sum int, msgs []*model
 	}
 	msgs = []*model.Message{}
 	err = db.Order("id desc").Offset(limit * (page - 1)).Limit(limit).Find(&msgs).Error
-	//if err == gorm.ErrRecordNotFound {
-	//	err = nil
-	//}
 	return
 }
 

@@ -126,6 +126,7 @@ func InitSchemaModel(prefix string) (e error) {
 	db.Table(prefix + Formtpl{}.TableName()).AutoMigrate(new(Formtpl))
 	db.Table(prefix + Form{}.TableName()).AutoMigrate(new(Form))
 	db.Table(prefix + Approvaltpl{}.TableName()).AutoMigrate(new(Approvaltpl))
+	db.Table(prefix + ApprovaltplFlow{}.TableName()).AutoMigrate(new(ApprovaltplFlow))
 	db.Table(prefix + Approval{}.TableName()).AutoMigrate(new(Approval))
 	db.Table(prefix + ApproveFlow{}.TableName()).AutoMigrate(new(ApproveFlow))
 	return nil

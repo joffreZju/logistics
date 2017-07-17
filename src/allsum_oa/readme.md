@@ -1,6 +1,20 @@
 ### 系统常量定义
 
 - 接口修改
+    - MatchUsers修改为1-2-3, "-"拼接
+
+    - allsum_oa表单审批中的所有接口地址都修改了，其他接口地址会逐步改。表单模板部分只改了地址，接口内容没有改。
+
+    - 新增审批流模板时，根据用户已选的roleId,调用接口获取可选的所有组织列表，
+    
+    - 新增和编辑审批流模板，删除skipBlankRole，treeflowup，roleflow字段，增加FlowContent
+    
+    - 发起审批单删掉approval.Status 字段。
+    
+    - 删掉approval.{TreeFlowUp, SkipBlankRole, RoleFlow, CurrentRole},增加CurrentFlow
+    
+    - 审批单详情，返回所有的流程id正序排列，id小于approval.CurrentFlow的是已经走过的流程。
+
     - 注册加了username字段，加了获取历史消息接口,获取（发起，收到）的审批单列表
 
     - 所有上传的文件名，系统统一在前面拼接了长度为36的uuid字符串，需要展示文件名的地方，下载文件后直接截掉即可。
@@ -44,16 +58,19 @@ Formtpl.Status{1:初始化,2:启用,3:禁用}
 审批单模板状态
 Approvaltpl.Status{1:初始化,2:启用,3:禁用}
 
+流程是否必审
+ApprovaltplFlow.Necessary{1:不必须,2:必审}
+
 审批单是否向组织树向上流动
-Approvaltpl.TreeFlowUp{1:No,2:Yes}
+// Approvaltpl.TreeFlowUp{1:No,2:Yes}
 审批单是否跳过没有用户的角色
-Approvaltpl.SkipBlankRole{1:No, 2:Yes}
+// Approvaltpl.SkipBlankRole{1:No, 2:Yes}
 
 审批单状态
 Approval.Status{1：正在审批，2：审批通过，3：审批不通过，4：审批取消，5：审批停止，无法进行下去（没有审批人）}
-Approval.TreeFlowUp{1:No,2:Yes}
-Approval.SkipBlankRole{1:No, 2:Yes}
 Approval.ApproveFlow{1：正在审批，2：审批通过，3：审批不通过}
+// Approval.TreeFlowUp{1:No,2:Yes}
+// Approval.SkipBlankRole{1:No, 2:Yes}
 
 组织树操作记录
 GroupOperation.Status{1:历史记录,2:未生效记录}

@@ -88,13 +88,6 @@ func GetApprocvaltplList(prefix string, params ...string) (atpls []*model.Approv
 	return
 }
 
-func GetApprovaltpl(prefix, atplno string) (atpl *model.Approvaltpl, e error) {
-	atpl = &model.Approvaltpl{}
-	e = model.NewOrm().Table(prefix+"."+model.Approvaltpl{}.TableName()).
-		First(atpl, "no=?", atplno).Error
-	return
-}
-
 func GetApprovaltplDetail(prefix, atplno string) (atpl *model.Approvaltpl, e error) {
 	db := model.NewOrm()
 	atpl = &model.Approvaltpl{}
@@ -109,12 +102,40 @@ func GetApprovaltplDetail(prefix, atplno string) (atpl *model.Approvaltpl, e err
 	if e != nil {
 		return
 	}
+	e = db.Table(prefix+"."+model.ApprovaltplFlow{}.TableName()).Order("id").
+		Find(&atpl.FlowContent, "approvaltpl_no=?", atpl.No).Error
+	return
+}
+
+func GetMatchGroupsOfRole(prefix string, rid int) (groups []*model.Group, e error) {
+	sql := fmt.Sprintf(
+		`SELECT *
+		FROM "%s"."group"
+		WHERE id IN (SELECT t2.group_id
+					 FROM "%s".user_role AS t1
+					   INNER JOIN "%s".user_group AS t2
+						 ON t1.user_id = t2.user_id
+					 WHERE t1.role_id = ?);`, prefix, prefix, prefix)
+	groups = []*model.Group{}
+	e = model.NewOrm().Raw(sql, rid).Scan(&groups).Error
 	return
 }
 
 func AddApprovaltpl(prefix string, atpl *model.Approvaltpl) (e error) {
-	e = model.NewOrm().Table(prefix + "." + atpl.TableName()).Create(atpl).Error
-	return
+	tx := model.NewOrm().Begin()
+	e = tx.Table(prefix + "." + atpl.TableName()).Create(atpl).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	for _, v := range atpl.FlowContent {
+		e = tx.Table(prefix + "." + v.TableName()).Create(v).Error
+		if e != nil {
+			tx.Rollback()
+			return
+		}
+	}
+	return tx.Commit().Error
 }
 
 func UpdateApprovaltpl(prefix string, atpl *model.Approvaltpl) (e error) {
@@ -125,6 +146,19 @@ func UpdateApprovaltpl(prefix string, atpl *model.Approvaltpl) (e error) {
 		tx.Rollback()
 		e = errors.New("wrong approvaltpl no")
 		return
+	}
+	e = tx.Table(prefix+"."+model.ApprovaltplFlow{}.TableName()).
+		Delete(&model.ApprovaltplFlow{}, "approvaltpl_no=?", atpl.No).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	for _, v := range atpl.FlowContent {
+		e = tx.Table(prefix + "." + v.TableName()).Create(v).Error
+		if e != nil {
+			tx.Rollback()
+			return
+		}
 	}
 	return tx.Commit().Error
 }
@@ -150,49 +184,29 @@ func DelApprovaltpl(prefix, no string) (e error) {
 		e = errors.New("wrong approvaltpl no")
 		return
 	}
+	e = tx.Table(prefix+"."+model.ApprovaltplFlow{}.TableName()).
+		Delete(&model.ApprovaltplFlow{}, "approvaltpl_no=?", no).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
 	return tx.Commit().Error
 }
 
-//func UpdateApproval(prefix string, a *model.Approval) (e error) {
-//	aprvl := model.Approval{}
-//	e = model.NewOrm().Table(prefix + "." + aprvl.TableName()).First(&aprvl, "no=?", a.No).Error
-//	if e != nil {
-//		return
-//	}
-//	if aprvl.Status != model.ApprovalStatDraft {
-//		e = errors.New("approval is already commited")
-//		return
-//	}
-//	tx := model.NewOrm().Begin()
-//	c := tx.Table(prefix + "." + a.FormContent.TableName()).
-//		Model(a.FormContent).Updates(a.FormContent).RowsAffected
-//	if c != 1 {
-//		tx.Rollback()
-//		e = errors.New("wrong form no")
-//		return
-//	}
-//	c = tx.Table(prefix + "." + a.TableName()).Model(a).Updates(a).RowsAffected
-//	if c != 1 {
-//		tx.Rollback()
-//		e = errors.New("wrong approval no")
-//		return
-//	}
-//	return tx.Commit().Error
-//}
-
+//审批流相关
 func CancelApproval(prefix, no string) (e error) {
 	db := model.NewOrm().Table(prefix + "." + model.Approval{}.TableName())
-	a := model.Approval{}
-	e = db.First(&a, "no=?", no).Error
+	a := &model.Approval{}
+	e = db.First(a, "no=?", no).Error
 	if e != nil {
 		return
 	}
-	if a.Status == model.ApprovalStatAccessed || a.Status == model.ApprovalStatNotAccessed {
+	if a.Status != model.ApprovalStatWaiting {
 		e = errors.New("审批单已经完成")
 		return
 	}
 	tx := db.Begin()
-	c := tx.Model(&a).Update("status", model.ApprovalStatCanceled).RowsAffected
+	c := tx.Model(a).Update("status", model.ApprovalStatCanceled).RowsAffected
 	if c != 1 {
 		tx.Rollback()
 		e = errors.New("审批单编号错误")
@@ -201,7 +215,7 @@ func CancelApproval(prefix, no string) (e error) {
 	return tx.Commit().Error
 }
 
-func AddApproval(prefix string, a *model.Approval) (e error) {
+func AddApproval(prefix string, a *model.Approval, atplNo string) (e error) {
 	db := model.NewOrm()
 	user := &model.User{}
 	group := &model.Group{}
@@ -221,160 +235,168 @@ func AddApproval(prefix string, a *model.Approval) (e error) {
 	a.UserName = user.UserName
 	a.GroupName = group.Name
 	a.RoleName = role.Name
+	//获取并写入每一步流程
+	var aflows []*model.ApproveFlow
+	aflows, e = getApprovalFlows(prefix, a, atplNo)
+	if e != nil {
+		return
+	}
 	tx := model.NewOrm().Begin()
+	for _, v := range aflows {
+		e = tx.Table(prefix + "." + v.TableName()).Create(v).Error
+		if e != nil {
+			tx.Rollback()
+			return
+		}
+	}
+	//写入审批单
+	a.CurrentFlow = aflows[0].Id
 	e = tx.Table(prefix + "." + a.TableName()).Create(a).Error
 	if e != nil {
 		tx.Rollback()
 		return
 	}
+	//写入表单内容
 	e = tx.Table(prefix + "." + a.FormContent.TableName()).Create(a.FormContent).Error
 	if e != nil {
 		tx.Rollback()
 		return
 	}
-	go nextStepOfApproval(prefix, a)
+	go newMsgToApprovers(prefix, aflows[0].MatchUsers, a)
 	return tx.Commit().Error
 }
 
-//当前角色审批完成后调用next，会判断整个审批单是否完成，如果没有那么继续下一步
-func nextStepOfApproval(prefix string, a *model.Approval) {
-	var e error
+//根据模板以及发起人信息，获取所有要走的flows
+func getApprovalFlows(prefix string, a *model.Approval, atplNo string) (aflows []*model.ApproveFlow, e error) {
+	aflows = []*model.ApproveFlow{}
 	db := model.NewOrm()
-	var nextLoc int
-	if a.CurrentRole == 0 {
-		nextLoc = 0
-	} else {
-		for k, v := range a.RoleFlow {
-			if v != a.CurrentRole {
-				continue
-			}
-			if k == len(a.RoleFlow)-1 {
-				//审批最后一步已完成
-				a.Status = model.ApprovalStatAccessed
-				e = db.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
-				if e != nil {
-					beego.Error(e)
-				}
-				go newMsgToCreator(prefix, a)
-				return
-			} else {
-				nextLoc = k + 1
-				break
-			}
-		}
-	}
-	stop := false
-	for i := nextLoc; i < len(a.RoleFlow); i++ {
-		rid := a.RoleFlow[i]
-		var users []*model.User
-		users, e = getApproverByRole(prefix, a, rid)
-		if e == nil {
-			//找到若干符合条件的审批人
-			//开始创建一步流程
-			var matchUsers string = "_" //拼接userId
-			for _, v := range users {
-				matchUsers += fmt.Sprintf("%d_", v.Id)
-			}
-			//skip oneself
-			//if strings.Contains(matchUsers, fmt.Sprintf("_%d_", a.UserId)){
-			//	continue
-			//}
-			r := &model.Role{}
-			e = db.Table(prefix+"."+r.TableName()).First(r, "id=?", rid).Error
-			if e != nil {
-				beego.Error(e)
-			}
-			af := &model.ApproveFlow{
-				ApprovalNo: a.No,
-				MatchUsers: matchUsers,
-				RoleId:     rid,
-				RoleName:   r.Name,
-				Status:     model.ApprovalStatWaiting,
-			}
-			e = db.Table(prefix + "." + af.TableName()).Create(af).Error
-			if e != nil {
-				stop = true
-				break
-			}
-			//更新审批单当前角色信息
-			a.CurrentRole = rid
-			e = db.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
-			if e != nil {
-				stop = true
-				break
-			}
-			go newMsgToApprovers(prefix, users, a)
-			return
-		} else if e == gorm.ErrRecordNotFound && a.SkipBlankRole == model.SkipBlankRoleYes {
-			//没有符合条件的审批人，跳过
-			continue
-		} else {
-			//审批无法流转下去，没有审批人而且不允许跳过
-			stop = true
-			break
-		}
-	}
-	if stop {
-		beego.Error("审批单无法继续流转:", e)
-		a.Status = model.ApprovalStatStop
-		e = db.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
-		if e != nil {
-			beego.Error("尝试停止审批单:", e)
-		}
-		go newMsgToCreator(prefix, a)
-	} else {
-		//后面角色全部跳过，审批单完全通过
-		a.Status = model.ApprovalStatAccessed
-		e = db.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
-		if e != nil {
-			beego.Error(e)
-		}
-		go newMsgToCreator(prefix, a)
-	}
-	return
-}
-
-//找到审批角色下的用户
-func getApproverByRole(prefix string, a *model.Approval, rid int) (users []*model.User, e error) {
-	//完全按照角色流动
-	if a.TreeFlowUp == model.TreeFlowUpNo {
-		users, e = GetUsersOfRole(prefix, rid)
-		return
-	}
-	//在组织树路径上寻找符合条件的角色
-	db := model.NewOrm()
-	g := &model.Group{}
-	e = db.Table(prefix+"."+g.TableName()).First(g, "id=?", a.GroupId).Error
+	atplFlows := []*model.ApprovaltplFlow{}
+	e = db.Table(prefix + "." + model.ApprovaltplFlow{}.TableName()).Order("id").
+		Where(&model.ApprovaltplFlow{ApprovaltplNo: atplNo}).Find(&atplFlows).Error
 	if e != nil {
 		return
 	}
-	pids := []int{}
-	for _, v := range strings.Split(g.Path, "_") {
+	//根据模板和发起人信息找出需要进行的审批流程
+	realFlows := []*model.ApprovaltplFlow{}
+	myLocation := -1
+	//倒序遍历
+	for i := len(atplFlows) - 1; i >= 0; i-- {
+		f := atplFlows[i]
+		if f.RoleId == a.RoleId && (f.GroupId == 0 || f.GroupId == a.GroupId) {
+			//发起人所在位置
+			myLocation = i
+			realFlows = append(realFlows, f)
+		} else if i > myLocation {
+			//发起人后面的位置
+			realFlows = append(realFlows, f)
+		} else if i < myLocation && f.Necessary == model.FlowNecessaryYes {
+			//发起人前面的位置，但是必审
+			realFlows = append(realFlows, f)
+		}
+	}
+	if len(realFlows) == 0 {
+		e = errors.New("发起失败：没有符合条件的审批人!")
+		return
+	}
+	//倒序遍历
+	for i := len(realFlows) - 1; i >= 0; i-- {
+		v := realFlows[i]
+		var users []*model.User
+		users, e = getMatchUsersOfFlow(prefix, a, v)
+		if e != nil || len(users) == 0 {
+			beego.Error(e)
+			e = errors.New("发起失败：没有符合条件的审批人!")
+			return
+		}
+		matchUsers := "-"
+		for _, u := range users {
+			matchUsers += fmt.Sprintf("%d-", u.Id)
+		}
+		role := &model.Role{Id: v.RoleId}
+		e = db.Table(prefix + "." + role.TableName()).Where(role).Find(role).Error
+		if e != nil {
+			return
+		}
+		af := &model.ApproveFlow{
+			ApprovalNo: a.No,
+			MatchUsers: matchUsers,
+			RoleId:     role.Id,
+			RoleName:   role.Name,
+			Status:     model.ApprovalStatWaiting,
+		}
+		aflows = append(aflows, af)
+	}
+	return aflows, nil
+}
+
+//获取一步流程对应的用户
+func getMatchUsersOfFlow(prefix string, a *model.Approval, atplFlow *model.ApprovaltplFlow) (users []*model.User, e error) {
+	//在指定组织寻找角色
+	db := model.NewOrm()
+	users = []*model.User{}
+	if atplFlow.GroupId != 0 {
+		sql := fmt.Sprintf(
+			`SELECT *
+			FROM "%s".allsum_user
+			WHERE id IN (SELECT t1.user_id
+						 FROM "%s".user_group AS t1
+						   INNER JOIN "%s".user_role AS t2
+							 ON t1.user_id = t2.user_id
+						 WHERE t2.role_id = ? AND t1.group_id = ?);`, prefix, prefix, prefix)
+		e = db.Raw(sql, atplFlow.RoleId, atplFlow.GroupId).Scan(&users).Error
+		return
+	}
+	//在发起人所在组织树路径上寻找符合条件的角色,先找上级,再找下级
+	sql := fmt.Sprintf(
+		`SELECT *
+		FROM "%s".allsum_user
+		WHERE id IN
+			  (SELECT t1.user_id
+			   FROM "%s".user_group AS t1
+				 INNER JOIN "%s".user_role AS t2
+				   ON t1.user_id = t2.user_id
+			   WHERE t2.role_id =? AND t1.group_id IN (?) )`, prefix, prefix, prefix)
+
+	me := &model.Group{}
+	e = db.Table(prefix+"."+me.TableName()).First(me, "id=?", a.GroupId).Error
+	if e != nil {
+		return
+	}
+	//找上级,找到就返回
+	fathers := []int{}
+	for _, v := range strings.Split(me.Path, "-") {
 		pid, e := strconv.Atoi(v)
 		if e != nil {
 			return nil, e
 		}
-		pids = append(pids, pid)
+		fathers = append(fathers, pid)
 	}
-	//找到同时在组织路径上，在审批角色流里面的所有用户
-	sql := fmt.Sprintf(`SELECT * from "%s".allsum_user WHERE id in
-		(SELECT t1.user_id FROM "%s".user_group as t1 INNER JOIN "%s".user_role as t2
-		on t1.user_id = t2.user_id
-		where t1.group_id in (?) and t2.role_id=? )`, prefix, prefix, prefix)
-	users = []*model.User{}
-	e = db.Raw(sql, pids, rid).Scan(&users).Error
+	e = db.Raw(sql, atplFlow.RoleId, fathers).Scan(&users).Error
+	if len(users) != 0 {
+		return
+	}
+	//找下级
+	children := []int{}
+	e = db.Table(prefix+"."+me.TableName()).Where("path like ?", me.Path+"-%").Pluck("id", &children).Error
+	if e != nil {
+		return
+	}
+	e = db.Raw(sql, atplFlow.RoleId, children).Scan(&users).Error
 	return
 }
 
 func Approve(prefix string, a *model.Approval, af *model.ApproveFlow) (e error) {
-	tx := model.NewOrm().Begin()
+	db := model.NewOrm()
+	tx := db.Begin()
 	//审批，修改一步审批流程状态
-	count := tx.Table(prefix+"."+af.TableName()).Where("id=? and status=?", af.Id, model.ApprovalStatWaiting).Updates(af).RowsAffected
+	count := tx.Table(prefix+"."+af.TableName()).
+		Where("id=? and status=?", af.Id, model.ApprovalStatWaiting).Updates(af).RowsAffected
 	if count != 1 {
 		tx.Rollback()
 		return errors.New("审批失败")
 	}
 	if af.Status == model.ApprovalStatNotAccessed {
+		//整个审批单未通过
 		a.Status = model.ApprovalStatNotAccessed
 		count = tx.Table(prefix + "." + a.TableName()).Model(a).Updates(a).RowsAffected
 		if count != 1 {
@@ -383,7 +405,31 @@ func Approve(prefix string, a *model.Approval, af *model.ApproveFlow) (e error) 
 		}
 		go newMsgToCreator(prefix, a)
 	} else {
-		go nextStepOfApproval(prefix, a)
+		nextFlow := &model.ApproveFlow{}
+		e = db.Table(prefix+"."+nextFlow.TableName()).Order("id").Limit(1).
+			Where("approval_no=? and id>?", a.No, a.CurrentFlow).Find(nextFlow).Error
+		if e == gorm.ErrRecordNotFound {
+			//流程走完,整个审批单通过
+			a.Status = model.ApprovalStatAccessed
+			e = tx.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
+			if e != nil {
+				tx.Rollback()
+				return
+			}
+			go newMsgToCreator(prefix, a)
+		} else if e == nil {
+			//继续下一步
+			a.CurrentFlow = nextFlow.Id
+			e = tx.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
+			if e != nil {
+				tx.Rollback()
+				return
+			}
+			go newMsgToApprovers(prefix, nextFlow.MatchUsers, a)
+		} else {
+			tx.Rollback()
+			return errors.New("审批失败")
+		}
 	}
 	return tx.Commit().Error
 }
@@ -410,12 +456,18 @@ func newMsgToCreator(company string, a *model.Approval) {
 	}
 }
 
-func newMsgToApprovers(company string, users []*model.User, a *model.Approval) {
+func newMsgToApprovers(company, matchUsers string, a *model.Approval) {
 	title := "来自$" + a.UserName + "$的审批消息"
+	users := strings.Split(strings.Trim(matchUsers, "-"), "-")
 	for _, v := range users {
+		uid, e := strconv.Atoi(v)
+		if e != nil {
+			beego.Error(e)
+			continue
+		}
 		msg := &model.Message{
 			CompanyNo: company,
-			UserId:    v.Id,
+			UserId:    uid,
 			MsgType:   model.MsgTypeApprove,
 			Title:     title,
 			Content: model.JsonMap{
@@ -426,34 +478,15 @@ func newMsgToApprovers(company string, users []*model.User, a *model.Approval) {
 	}
 }
 
-func GetApprovalDetail(prefix, no string) (a *model.Approval, e error) {
-	a = new(model.Approval)
-	db := model.NewOrm()
-	e = db.Table(prefix+"."+a.TableName()).First(a, "no=?", no).Error
-	if e != nil {
-		return
-	}
-	a.FormContent = new(model.Form)
-	e = db.Table(prefix+"."+model.Form{}.TableName()).
-		First(a.FormContent, "no=?", a.FormNo).Error
-	if e != nil {
-		return
-	}
-	e = db.Table(prefix + "." + model.ApproveFlow{}.TableName()).Order("ctime").
-		Where(&model.ApproveFlow{ApprovalNo: a.No}).Find(&a.ApproveFLows).Error
-	return
-}
-
 func GetApproval(prefix, no string) (a *model.Approval, e error) {
 	a = new(model.Approval)
 	e = model.NewOrm().Table(prefix+"."+a.TableName()).First(a, "no=?", no).Error
 	return
 }
 
-func GetLatestFlowOfApproval(prefix, approvalNo string) (af *model.ApproveFlow, e error) {
+func GetApproveFlowById(prefix string, id int) (af *model.ApproveFlow, e error) {
 	af = new(model.ApproveFlow)
-	e = model.NewOrm().Table(prefix+"."+af.TableName()).Order("id desc").Limit(1).
-		First(af, "approval_no=?", approvalNo).Error
+	e = model.NewOrm().Table(prefix+"."+af.TableName()).First(af, "id=?", id).Error
 	return
 }
 
@@ -477,8 +510,8 @@ func GetTodoApprovalsToMe(prefix string, uid int, params ...string) (alist []*mo
 	db := model.NewOrm()
 	alist = []*model.Approval{}
 	sql := fmt.Sprintf(`select * from "%s".approval as t1 inner join "%s".approve_flow as t2
-		on t1.no = t2.approval_no
-		where t1.status=%d and t2.status=%d and t2.match_users like '%%_%d_%%' `,
+		on t1.current_flow = t2.id
+		where t1.status=%d and t2.status=%d and t2.match_users like '%%-%d-%%' `,
 		prefix, prefix, model.ApprovalStatWaiting, model.ApprovalStatWaiting, uid)
 
 	if len(params) != 0 && len(params[0]) != 0 {
@@ -500,5 +533,23 @@ func GetFinishedApprovalsToMe(prefix string, uid int, params ...string) (alist [
 	}
 	sql += `order by t2.ctime desc`
 	e = db.Raw(sql).Scan(&alist).Error
+	return
+}
+
+func GetApprovalDetail(prefix, no string) (a *model.Approval, e error) {
+	a = new(model.Approval)
+	db := model.NewOrm()
+	e = db.Table(prefix+"."+a.TableName()).First(a, "no=?", no).Error
+	if e != nil {
+		return
+	}
+	a.FormContent = new(model.Form)
+	e = db.Table(prefix+"."+model.Form{}.TableName()).
+		First(a.FormContent, "no=?", a.FormNo).Error
+	if e != nil {
+		return
+	}
+	e = db.Table(prefix + "." + model.ApproveFlow{}.TableName()).Order("id").
+		Where(&model.ApproveFlow{ApprovalNo: a.No}).Find(&a.ApproveFLows).Error
 	return
 }

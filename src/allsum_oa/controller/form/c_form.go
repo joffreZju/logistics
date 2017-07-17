@@ -151,6 +151,22 @@ func (c *Controller) GetApprovaltplDetail() {
 	}
 }
 
+func (c *Controller) GetMatchGroupsOfRole() {
+	rid, e := c.GetInt("rid")
+	if e != nil {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error(e)
+		return
+	}
+	groups, e := service.GetMatchGroupsOfRole(c.UserComp, rid)
+	if e != nil {
+		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		beego.Error(e)
+	} else {
+		c.ReplySucc(groups)
+	}
+}
+
 func (c *Controller) AddApprovaltpl() {
 	prefix := c.UserComp
 	str := c.GetString("approvaltpl")
@@ -161,9 +177,7 @@ func (c *Controller) AddApprovaltpl() {
 		beego.Error(e)
 		return
 	}
-	if (atpl.SkipBlankRole != model.SkipBlankRoleNo && atpl.SkipBlankRole != model.SkipBlankRoleYes) ||
-		(atpl.TreeFlowUp != model.TreeFlowUpNo && atpl.TreeFlowUp != model.TreeFlowUpYes) ||
-		len(atpl.RoleFlow) == 0 {
+	if len(atpl.AllowRoles) == 0 && len(atpl.FlowContent) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error("审批单模板设置错误")
 		return
@@ -176,6 +190,16 @@ func (c *Controller) AddApprovaltpl() {
 		atpl.Status = model.TplAbled
 	} else {
 		atpl.Status = model.TplInit
+	}
+	//检测流程设置是否合法
+	for _, v := range atpl.FlowContent {
+		if (v.Necessary != model.FlowNecessaryNo && v.Necessary != model.FlowNecessaryYes) ||
+			v.RoleId == 0 {
+			c.ReplyErr(errcode.ErrParams)
+			beego.Error("审批单模板设置错误")
+			return
+		}
+		v.ApprovaltplNo = atpl.No
 	}
 	e = service.AddApprovaltpl(prefix, atpl)
 	if e != nil {
@@ -191,14 +215,12 @@ func (c *Controller) UpdateApprovaltpl() {
 	str := c.GetString("approvaltpl")
 	atpl := &model.Approvaltpl{}
 	e := json.Unmarshal([]byte(str), atpl)
-	if e != nil {
+	if e != nil || len(atpl.No) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
 	}
-	if (atpl.SkipBlankRole != model.SkipBlankRoleNo && atpl.SkipBlankRole != model.SkipBlankRoleYes) ||
-		(atpl.TreeFlowUp != model.TreeFlowUpNo && atpl.TreeFlowUp != model.TreeFlowUpYes) ||
-		len(atpl.RoleFlow) == 0 {
+	if len(atpl.AllowRoles) == 0 || len(atpl.FlowContent) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error("审批单模板设置错误")
 		return
@@ -209,6 +231,16 @@ func (c *Controller) UpdateApprovaltpl() {
 		atpl.Status = model.TplAbled
 	} else {
 		atpl.Status = model.TplInit
+	}
+	//检测流程设置是否合法
+	for _, v := range atpl.FlowContent {
+		if (v.Necessary != model.FlowNecessaryNo && v.Necessary != model.FlowNecessaryYes) ||
+			v.RoleId == 0 {
+			c.ReplyErr(errcode.ErrParams)
+			beego.Error("审批单模板设置错误")
+			return
+		}
+		v.ApprovaltplNo = atpl.No
 	}
 	e = service.UpdateApprovaltpl(prefix, atpl)
 	if e != nil {
@@ -223,7 +255,7 @@ func (c *Controller) ControlApprovaltpl() {
 	prefix := c.UserComp
 	no := c.GetString("no")
 	status, e := c.GetInt("status")
-	if e != nil {
+	if e != nil || len(no) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
@@ -244,6 +276,11 @@ func (c *Controller) ControlApprovaltpl() {
 func (c *Controller) DelApprovaltpl() {
 	prefix := c.UserComp
 	no := c.GetString("no")
+	if len(no) == 0 {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error("no长度为零")
+		return
+	}
 	e := service.DelApprovaltpl(prefix, no)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
@@ -257,23 +294,12 @@ func (c *Controller) DelApprovaltpl() {
 func (c *Controller) AddApproval() {
 	prefix := c.UserComp
 	atplNo := c.GetString("approvaltplNo")
-	atpl, e := service.GetApprovaltpl(prefix, atplNo)
-	if e != nil {
-		c.ReplyErr(errcode.ErrParams)
-		beego.Error(e)
-		return
-	}
 	astr := c.GetString("approval")
 	a := &model.Approval{}
-	e = json.Unmarshal([]byte(astr), a)
-	if e != nil {
+	e := json.Unmarshal([]byte(astr), a)
+	if e != nil || a.UserId != c.UserID {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
-		return
-	}
-	if a.Status != model.ApprovalStatWaiting {
-		c.ReplyErr(errcode.New(CommonErr, "审批单设置错误"))
-		beego.Error("审批单设置错误")
 		return
 	}
 	//处理表单内容
@@ -282,12 +308,9 @@ func (c *Controller) AddApproval() {
 	//生成编号
 	a.No = model.UniqueNo("A")
 	a.Ctime = time.Now()
+	a.Status = model.ApprovalStatWaiting
 	a.FormNo = a.FormContent.No
-	//从模板中抽取审批流设定的条件
-	a.TreeFlowUp = atpl.TreeFlowUp
-	a.SkipBlankRole = atpl.SkipBlankRole
-	a.RoleFlow = atpl.RoleFlow
-	e = service.AddApproval(prefix, a)
+	e = service.AddApproval(prefix, a, atplNo)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -325,7 +348,7 @@ func (c *Controller) Approve() {
 		beego.Error(e)
 		return
 	}
-	af, e := service.GetLatestFlowOfApproval(prefix, a.No)
+	af, e := service.GetApproveFlowById(prefix, a.CurrentFlow)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
@@ -335,8 +358,9 @@ func (c *Controller) Approve() {
 		c.ReplyErr(errcode.ErrStatOfApproval)
 		return
 	}
-	if !strings.Contains(af.MatchUsers, fmt.Sprintf("_%d_", uid)) {
-		c.ReplyErr(errcode.ErrRoleOfUser)
+	beego.Info(af.MatchUsers)
+	if !strings.Contains(af.MatchUsers, fmt.Sprintf("-%d-", uid)) {
+		c.ReplyErr(errcode.ErrInfoOfUser)
 		return
 	}
 	user, e := service.GetUserById("public", uid)

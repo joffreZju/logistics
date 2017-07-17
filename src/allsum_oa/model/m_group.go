@@ -31,7 +31,7 @@ type Group struct {
 	Pid       int       `gorm:"not null"` //父节点id
 	Ctime     time.Time `gorm:"default:current_timestamp"`
 	Utime     time.Time
-	Path      string //`gorm:"not null"` 需要先插入记录再更新path
+	Path      string //`gorm:"not null"` 需要先插入记录再更新path 1-2-3
 }
 
 func (Group) TableName() string {

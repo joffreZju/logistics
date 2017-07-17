@@ -220,7 +220,7 @@ func createCreatorRole(prefix string) (e error) {
 		return
 	}
 	for _, v := range funcs {
-		if len(strings.Split(v.Path, "_")) > 2 {
+		if len(strings.Split(v.Path, "-")) > 2 {
 			rf := &model.RoleFunc{
 				RoleId: r.Id,
 				FuncId: v.Id,
@@ -316,7 +316,7 @@ func AddFunction(f *model.Function) (e error) {
 	db := model.NewOrm()
 	ffather := &model.Function{}
 	e = db.Find(ffather, f.Pid).Error
-	if e != nil || strings.Count(ffather.Path, "_") > 2 {
+	if e != nil || strings.Count(ffather.Path, "-") > 2 {
 		return errors.New("父节点选取有误")
 	}
 	tx := db.Begin()
@@ -325,7 +325,7 @@ func AddFunction(f *model.Function) (e error) {
 		tx.Rollback()
 		return
 	}
-	f.Path = fmt.Sprintf("%s_%d", ffather.Path, f.Id)
+	f.Path = fmt.Sprintf("%s-%d", ffather.Path, f.Id)
 	count := tx.Model(f).Updates(f).RowsAffected
 	if count != 1 {
 		tx.Rollback()
