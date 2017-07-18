@@ -13,6 +13,7 @@ type Demand struct {
 	Uuid              string
 	Owner             string
 	OwnerName         string
+	Exhibitor         string
 	Reportid          int
 	Description       string
 	Contactid         int

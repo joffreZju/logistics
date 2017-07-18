@@ -4,6 +4,7 @@ import (
 	"allsum_bi/db"
 	_ "allsum_bi/routers"
 	"allsum_bi/services/etl"
+	"allsum_bi/services/kettle"
 	"common/filter"
 	"common/lib/cache"
 	"common/lib/redis"
@@ -30,7 +31,10 @@ func main() {
 
 	//启动etl
 	etl.Start()
-	//	etl.TestETL()
+	//
+	//启动kettle任务
+	kettle.Start()
+
 	go beego.Run()
 
 	//INIT

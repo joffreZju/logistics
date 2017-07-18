@@ -12,11 +12,24 @@ import (
 	"github.com/astaxie/beego"
 )
 
+func Start() {
+	InitJob()
+	StartJobCron()
+	go ReloadJobPath()
+}
+
+func InitJob() {
+	kettleHomePath := beego.AppConfig.String("kettle::homepath")
+	kettleWorkPath := beego.AppConfig.String("kettle::workpath")
+	os.MkdirAll(kettleWorkPath, 0771)
+	os.MkdirAll(kettleHomePath, 0771)
+}
+
 func ExecJob(jobfile string) (fmtstr string, err error) {
 	kettleHomePath := beego.AppConfig.String("kettle::homepath")
 	kettleWorkPath := beego.AppConfig.String("kettle::workpath")
 	kettlejobpath := kettleWorkPath + jobfile
-	cmd := exec.Command(kettleHomePath+"kitchen.sh", "-file"+kettlejobpath)
+	cmd := exec.Command(kettleHomePath+"kitchen.sh", "-file="+kettlejobpath)
 	fmtbytes, err := cmd.Output()
 	if err != nil {
 		fmtstr = string(fmtbytes)

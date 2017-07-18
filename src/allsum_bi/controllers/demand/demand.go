@@ -77,6 +77,7 @@ func (c *Controller) ListDemand() {
 			"uuid":  demand.Uuid,
 			//			"owner":             demand.Owner,
 			"owner_name": demand.OwnerName,
+			"exhibitor":  demand.Exhibitor,
 			//			"reportid":          demand.Reportid,
 			"description": demand.Description,
 			//			"handleid":          demand.Handleid,
@@ -100,6 +101,7 @@ func (c *Controller) AddDemand() {
 	owner := c.GetString("ownerid")
 
 	ownername := c.GetString("owner_name")
+	exhibitor := c.GetString("exhibitor")
 	description := c.GetString("description")
 	inittime := time.Now()
 	status := util.DEMAND_STATUS_NO_ASSIGN
@@ -108,6 +110,7 @@ func (c *Controller) AddDemand() {
 		OwnerName:   ownername,
 		Description: description,
 		Inittime:    inittime,
+		Exhibitor:   exhibitor,
 		Status:      status,
 	}
 	err := models.InsertDemand(demand)
@@ -163,6 +166,7 @@ func (c *Controller) AnalyzeDemand() {
 	res := map[string]interface{}{
 		"reportuuid":   report.Uuid,
 		"demand_owner": demand.OwnerName,
+		"exhibitor":    demand.Exhibitor,
 		"inittime":     demand.Inittime,
 		"contactid":    demand.Contactid,
 		"description":  demand.Description,
@@ -200,6 +204,7 @@ func (c *Controller) GetAnalyzeReport() {
 		"reportuuid":         report.Uuid,
 		"demanduuid":         demand.Uuid,
 		"demand_owner":       demand.OwnerName,
+		"exhibitor":          demand.Exhibitor,
 		"contactid":          demand.Contactid,
 		"description":        demand.Description,
 		"inittime":           demand.Inittime,

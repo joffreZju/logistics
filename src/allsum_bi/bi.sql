@@ -336,8 +336,9 @@ ALTER TABLE demand_id_seq OWNER TO user_logistic;
 CREATE TABLE demand (
     id bigint DEFAULT nextval('demand_id_seq'::regclass) NOT NULL,
     uuid character varying(64) NOT NULL,
-    owner character varying(125) NOT NULL,
-    owner_name character varying(64) NOT NULL,
+    owner character varying(128) NOT NULL,
+    owner_name character varying(256) NOT NULL,
+    exhibitor character varying(128) NOT NULL,
     reportid bigint NOT NULL,
     description text NOT NULL,
     price double precision,
