@@ -66,53 +66,62 @@ func MakeRunScript(fullscript string) (runjs string, err error) {
 	return
 }
 
-func NewPipeline() (pipeline Pipeline) {
-	return Pipeline{}
-}
-
-func (p *Pipeline) MakeSourceJs(id string) (err error) {
+func MakeSourceJs(id string) (sourcejs string, err error) {
 	conninfo, err := conn.GetConninfo(id)
 	if err != nil {
 		return
 	}
-	p.SourceJs = fmt.Sprintf(util.JS_TEMPLATE, "source", conninfo.Host, conninfo.Port, conninfo.Dbname, conninfo.DbUser, conninfo.Passwd)
+	//TODO  check DBTYPE
+	sourcejs = fmt.Sprintf(util.JS_TEMPLATE, "source", conninfo.Host, conninfo.Port, conninfo.Dbname, conninfo.DbUser, conninfo.Passwd)
 	return
 }
 
-func (p *Pipeline) MakeRunJs() (runjs string) {
+func MakeRunJs(sourcejs string, sinkjs string, transportjs string) (runjs string) {
 	//	allJsScript := strings.Split(p.FullJs, "#")
-	runjs = p.SourceJs + "\n" + p.SinkJs + "\n" + p.TransPortJs + "\n"
+	runjs = sourcejs + "\n" + sinkjs + "\n" + transportjs + "\n"
 	return
 }
 
-func (p *Pipeline) SetCron(cron string) {
-	p.Cron = cron
-	return
-}
-
-func (p *Pipeline) MakeSinkJs() (err error) {
+//
+//func (p *Pipeline) SetCron(cron string) {
+//	p.Cron = cron
+//	return
+//}
+//
+func MakeSinkJs() (sinkjs string, err error) {
 	conninfo, err := conn.GetConninfo(util.BASEDB_CONNID)
 	if err != nil {
 		return
 	}
-	p.SinkJs = fmt.Sprintf(util.JS_TEMPLATE, "sink", conninfo.Host, conninfo.Port, conninfo.Dbname, conninfo.DbUser, conninfo.Passwd)
+	sinkjs = fmt.Sprintf(util.JS_TEMPLATE, "sink", conninfo.Host, conninfo.Port, conninfo.Dbname, conninfo.DbUser, conninfo.Passwd)
 	return
 }
 
-func (p *Pipeline) MakeTransPortForm(transportform string, transform string, params ...interface{}) {
-	if transform == "" {
-		p.TransformJs = ""
-		p.TransPortForm = transportform
-	} else {
-		p.MakeTransformJs([]byte(transform), params...)
-		p.TransPortForm = fmt.Sprintf(transportform, p.TransformPath)
+//func (p *Pipeline) MakeTransPortForm(transportform string, transform string, params ...interface{}) {
+//	if transform == "" {
+//		p.TransformJs = ""
+//		p.TransPortForm = transportform
+//	} else {
+//		p.MakeTransformJs([]byte(transform), params...)
+//		p.TransPortForm = fmt.Sprintf(transportform, p.TransformPath)
+//	}
+//}
+//
+func MakeTransportJs(dbid string, sourceschema string, sourcetable string, destschema string, desttable string, script string, params ...interface{}) (transportjs string, err error) {
+	transportstr := ""
+	if script != "" {
+		transportstr = fmt.Sprintf(script, params...)
 	}
-}
+	sourceNameSpace, err := db.EncodeTableSchema(dbid, sourceschema, sourcetable)
+	if err != nil {
+		return
+	}
+	sinkNameSpace, err := db.EncodeTableSchema(dbid, sourceschema, sourcetable)
+	if err != nil {
+		return
+	}
 
-func (p *Pipeline) MakeTransportJs(sourceNameSpace string, sinkNameSpace string) (err error) {
-	p.SourceTable = sourceNameSpace
-	p.DestTable = sinkNameSpace
-	p.TransPortJs = fmt.Sprintf(util.JS_TRANSPORT, sourceNameSpace, p.TransPortForm, sinkNameSpace)
+	transportjs = fmt.Sprintf(util.JS_TRANSPORT, sourceNameSpace, transportstr, sinkNameSpace)
 	return
 }
 

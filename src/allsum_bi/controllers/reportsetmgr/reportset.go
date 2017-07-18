@@ -5,14 +5,10 @@ import (
 	"allsum_bi/models"
 	"allsum_bi/services/reportset"
 	"allsum_bi/util"
-	"allsum_bi/util/ossfile"
 	"common/lib/errcode"
 	"encoding/json"
-	"io/ioutil"
-	"strconv"
 
 	"github.com/astaxie/beego"
-	uuid "github.com/satori/go.uuid"
 )
 
 type Controller struct {
@@ -48,11 +44,21 @@ func (c *Controller) ListReportSet() {
 	}
 	var reportsetres []map[string]interface{}
 	for _, reportset := range reportsets {
+		var conditions []map[string]interface{}
+		err = json.Unmarshal([]byte(reportset.Conditions), &conditions)
+
+		if err != nil {
+			beego.Error("unmarshal condition err ", err)
+			c.ReplyErr(errcode.ErrParams)
+			return
+		}
 		reportmap := map[string]interface{}{
-			"index":   reportset.Id,
-			"uuid":    reportset.Uuid,
-			"name":    "reprot-" + strconv.Itoa(reportset.Reportid),
-			"webpath": reportset.WebPath,
+			"index":      reportset.Id,
+			"uuid":       reportset.Uuid,
+			"name":       reportset.Name,
+			"script":     reportset.Script,
+			"conditions": reportset.Conditions,
+			"webpath":    reportset.WebPath,
 		}
 		reportsetres = append(reportsetres, reportmap)
 	}
@@ -90,7 +96,8 @@ func (c *Controller) GetReportSet() {
 	}
 	res := map[string]interface{}{
 		"uuid":       reportset.Uuid,
-		"name":       "report-" + strconv.Itoa(reportset.Reportid),
+		"dbid":       reportset.Dbid,
+		"name":       reportset.Name,
 		"script":     reportset.Script,
 		"conditions": conditions,
 		"web_path":   reportset.WebPath,
@@ -170,8 +177,13 @@ func (c *Controller) SaveReportSet() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
+	dbid, ok := reqbody["dbid"]
+	if !ok {
+		dbid = util.BASEDB_CONNID
+	}
+	reportsetdb.Dbid = dbid.(string)
 	reportsetdb.Status = util.REPORTSET_STARTED
-	err = models.UpdateReportSet(reportsetdb, "script", "conditions", "status", "web_path")
+	err = models.UpdateReportSet(reportsetdb, "dbid", "script", "conditions", "status", "web_path")
 	if err != nil {
 		beego.Error("update report set ")
 		c.ReplyErr(errcode.ErrActionPutReportSet)
@@ -185,45 +197,45 @@ func (c *Controller) SaveReportSet() {
 }
 
 func (c *Controller) UploadReportSetWeb() {
-	reportsetuuid := c.GetString("uuid")
-	f, h, err := c.GetFile("uploadfile")
-	if err != nil {
-		beego.Error("get file err : ", err)
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
-	f.Close()
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		beego.Error("read filehandle err : ", err)
-		c.ReplyErr(errcode.ErrUploadFileFailed)
-		return
-	}
-	filename := uuid.NewV4().String() + "-" + h.Filename
-	uri, err := ossfile.PutFile("reportset", filename, data)
-	if err != nil {
-		beego.Error("put file to oss err : ", err)
-		c.ReplyErr(errcode.ErrUploadFileFailed)
-		return
-	}
-
-	reportset, err := models.GetReportSetByUuid(reportsetuuid)
-	if err != nil {
-		beego.Error("get reportset err : ", err)
-		c.ReplyErr(errcode.ErrUploadFileFailed)
-		return
-	}
-	reportset.WebPath = uri
-	reportset.WebfileName = h.Filename
-	err = models.UpdateReportSet(reportset, "web_path", "webfile_name")
-	if err != nil {
-		beego.Error("update reportset err :", err)
-		c.ReplyErr(errcode.ErrUploadFileFailed)
-	}
-	res := map[string]string{
-		"res": "success",
-	}
-	c.ReplySucc(res)
+	//	reportsetuuid := c.GetString("uuid")
+	//	f, h, err := c.GetFile("uploadfile")
+	//	if err != nil {
+	//		beego.Error("get file err : ", err)
+	//		c.ReplyErr(errcode.ErrParams)
+	//		return
+	//	}
+	//	f.Close()
+	//	data, err := ioutil.ReadAll(f)
+	//	if err != nil {
+	//		beego.Error("read filehandle err : ", err)
+	//		c.ReplyErr(errcode.ErrUploadFileFailed)
+	//		return
+	//	}
+	//	filename := uuid.NewV4().String() + "-" + h.Filename
+	//	uri, err := ossfile.PutFile("reportset", filename, data)
+	//	if err != nil {
+	//		beego.Error("put file to oss err : ", err)
+	//		c.ReplyErr(errcode.ErrUploadFileFailed)
+	//		return
+	//	}
+	//
+	//	reportset, err := models.GetReportSetByUuid(reportsetuuid)
+	//	if err != nil {
+	//		beego.Error("get reportset err : ", err)
+	//		c.ReplyErr(errcode.ErrUploadFileFailed)
+	//		return
+	//	}
+	//	reportset.WebPath = uri
+	//	reportset.WebfileName = h.Filename
+	//	err = models.UpdateReportSet(reportset, "web_path", "webfile_name")
+	//	if err != nil {
+	//		beego.Error("update reportset err :", err)
+	//		c.ReplyErr(errcode.ErrUploadFileFailed)
+	//	}
+	//	res := map[string]string{
+	//		"res": "success",
+	//	}
+	//	c.ReplySucc(res)
 }
 
 func (c *Controller) GetReportSetWebFile() {

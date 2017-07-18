@@ -3,7 +3,6 @@ package reportset
 import (
 	"allsum_bi/db"
 	"allsum_bi/models"
-	"allsum_bi/util"
 	"fmt"
 	"strings"
 )
@@ -23,7 +22,7 @@ func GetData(uuid string, conditions []map[string]interface{}) (datas [][]interf
 		value := conditionMap["value"]
 		sqlstr = strings.Replace(sqlstr, "{"+field+"}", value.(string), 1)
 	}
-	datas, err = db.QueryDatas(util.BASEDB_CONNID, sqlstr)
+	datas, err = db.QueryDatas(reportset.Dbid, sqlstr)
 	return
 
 }

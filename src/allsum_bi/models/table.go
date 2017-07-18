@@ -43,3 +43,11 @@ func GetTestInfoTableName() string {
 func GetUserAuthorityTableName(companyid string) string {
 	return util.BI_COMMENT_PREFIX + companyid + ".user_authority"
 }
+
+func GetKettleJobTableName() string {
+	return util.BI_SCHEMA + ".kettle_job"
+}
+
+func GetKettleJobLogTableName() string {
+	return util.BI_SCHEMA + ".kettle_job_log"
+}

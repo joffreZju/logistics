@@ -10,6 +10,8 @@ import (
 type ReportSet struct {
 	Id               int
 	Uuid             string
+	Dbid             string
+	Name             string
 	Reportid         int
 	Script           string
 	Params           string

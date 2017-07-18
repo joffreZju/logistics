@@ -2,6 +2,7 @@ package db
 
 import (
 	"allsum_bi/db/conn"
+	"allsum_bi/util"
 	"fmt"
 	"strings"
 
@@ -193,6 +194,39 @@ func ListTableData(dbid string, table_name string, conditions []map[string]inter
 			return datas, err
 		}
 		datas = append(datas, data)
+	}
+	return
+}
+
+func EncodeTableSchema(dbid string, schema string, table string) (schema_table string, err error) {
+	conninfo, err := conn.GetConninfo(dbid)
+	if err != nil {
+		return
+	}
+	if conninfo.Dbtype == util.PG_DB_TYPE {
+		schema_table = schema + "." + table
+	} else {
+		schema_table = table
+	}
+	return
+}
+
+func DecodeTableSchema(dbid string, schema_table string) (schema string, table string, err error) {
+	conninfo, err := conn.GetConninfo(dbid)
+	if err != nil {
+		return
+	}
+	if conninfo.Dbtype == util.PG_DB_TYPE {
+		schema_table_slice := strings.Split(schema_table, ".")
+		if len(schema_table_slice) < 2 {
+			return schema, table, fmt.Errorf("error")
+		}
+		schema = schema_table_slice[0]
+		table = schema_table_slice[1]
+	} else {
+		schema_table_slice := strings.Split(schema_table, ".")
+		schema = ""
+		table = schema_table_slice[0]
 	}
 	return
 }

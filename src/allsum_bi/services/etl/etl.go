@@ -23,60 +23,6 @@ func Start() {
 	StartEtlCron()
 }
 
-//func TestETL() {
-//
-//	sync := models.Synchronous{
-//		Owner:        "xxx",
-//		CreateScript: "create table XX.XX",
-//		Documents:    "文档",
-//		Status:       "building",
-//	}
-//	syncid, err := models.InsertSynchronous(sync)
-//	if err != nil {
-//		beego.Error("err:", err)
-//		return
-//	}
-//	sync.Id = syncid
-//	beego.Debug("sync.id", sync.Id)
-//	pipeline := NewPipeline()
-//	pipeline.Id = sync.Id
-//	err = pipeline.MakeSourceJs("earthsumuid")
-//	if err != nil {
-//		beego.Error(err)
-//		return
-//	}
-//	err = pipeline.MakeSinkJs()
-//	if err != nil {
-//		beego.Error(err)
-//		return
-//	}
-//
-//	pipeline.MakeTransPortForm("", "", "")
-//
-//	err = pipeline.MakeTransportJs("public.route_base", "public.route_base")
-//	if err != nil {
-//		beego.Error(err)
-//		return
-//	}
-//
-//	pipeline.SetCron("0 * * * * *")
-//	pipeline.MakeFullJs()
-//	beego.Debug("fulljs:", pipeline.FullJs)
-//	runjs := pipeline.MakeRunJs()
-//
-//	err = Save(&pipeline)
-//	if err != nil {
-//		beego.Error(err)
-//		return
-//	}
-//	beego.Debug("runjs:", runjs)
-//	err = AddCronWithScript(pipeline.Id, pipeline.Cron, runjs)
-//	if err != nil {
-//		beego.Error(err)
-//		return
-//	}
-//}
-//
 func DoETL(scriptbuff []byte) (err error) {
 	transporter, err := newBuilder(scriptbuff)
 	if err != nil {
@@ -87,20 +33,38 @@ func DoETL(scriptbuff []byte) (err error) {
 }
 
 func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
-	createsql, err := db.GetTableDesc(dbid, schema, table, schema, table)
+	sourceTable, err := db.EncodeTableSchema(dbid, schema, table)
 	if err != nil {
 		return
+	}
+	destTable, err := db.EncodeTableSchema(util.BASEDB_CONNID, schema, table)
+	if err != nil {
+		return
+	}
+	sync, err := models.GetSynchronousByTableName(dbid, sourceTable)
+	var isinsert bool
+	var createsql string
+	if err == nil {
+		isinsert = false
+		createsql = strings.Replace(sync.CreateScript, util.SCRIPT_TABLE, sync.DestTable, -1)
+		createsql = strings.Replace(createsql, util.SCRIPT_SCHEMA, schema, -1)
+	} else {
+		isinsert = true
+		createsql, err = db.GetTableDesc(dbid, schema, table, schema, table)
+		if err != nil {
+			return err
+		}
 	}
 	beego.Debug("create sql:", createsql)
 	err = db.Exec(util.BASEDB_CONNID, createsql)
 	if err != nil {
 		return
 	}
-	var pipeline Pipeline
+
 	calletl := make(chan string)
 	defer close(calletl)
 	go func() {
-		pipeline, err = callEtl(dbid, schema, table, "", "", "")
+		err = callEtl(dbid, sourceTable, destTable, "", "")
 		if err != nil {
 			beego.Error("call etl", err)
 			db.DeleteTable(util.BASEDB_CONNID, schema, table)
@@ -115,64 +79,65 @@ func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
 		beego.Error("timeout")
 		return
 	}
-	createscript, err := pipeline.MakeFullCreateScript(createsql)
-	if err != nil {
-		db.DeleteTable(util.BASEDB_CONNID, schema, table)
-		return
-	}
-	script, err := pipeline.MakeDefaultTransPortScript(util.BASEDB_CONNID)
-	if err != nil {
-		db.DeleteTable(util.BASEDB_CONNID, schema, table)
-		return
-	}
-	sync := models.Synchronous{
+	//createscript, err := pipeline.MakeFullCreateScript(createsql)
+	//	if err != nil {
+	//		db.DeleteTable(util.BASEDB_CONNID, schema, table)
+	//		return
+	//	}
+	//	script, err := pipeline.MakeDefaultTransPortScript(util.BASEDB_CONNID)
+	//	if err != nil {
+	//		db.DeleteTable(util.BASEDB_CONNID, schema, table)
+	//		return
+	//	}
+	sync_res := models.Synchronous{
 		Owner:        schema,
-		CreateScript: createscript,
+		CreateScript: createsql,
+		AlterScript:  "",
+		ParamScript:  "",
+		Script:       fmt.Sprintf(util.TRANSPORTFORM_GOJA, util.DEFAULT_TRANSPORT),
 		SourceDbId:   dbid,
-		SourceTable:  schema + "." + table,
+		SourceTable:  sourceTable,
 		DestDbId:     util.BASEDB_CONNID,
-		DestTable:    schema + "." + table,
-		Script:       script,
+		DestTable:    destTable,
 		Status:       util.SYNC_BUILDING,
 		Lasttime:     time.Now(),
 	}
-	_, err = models.InsertSynchronous(sync)
-	if err != nil {
-		db.DeleteTable(util.BASEDB_CONNID, schema, table)
-		return
+	fmt.Println("insert res: ", sync_res)
+	if isinsert {
+		_, err = models.InsertSynchronous(sync_res)
+		if err != nil {
+			db.DeleteTable(util.BASEDB_CONNID, schema, table)
+			return
+		}
+	} else {
+		sync_res.Id = sync.Id
+		err = models.UpdateSynchronous(sync_res, "owner", "create_script", "alter_script", "script", "source_db_id", "source_table", "dest_db_id", "dest_table", "script", "status", "lasttime")
+		if err != nil {
+			return
+		}
 	}
 	return
 }
 
 func DoEtlCalibration(dbid string, schema string, table string) (err error) {
-	//TODO
-	syncmap, err := models.ListSyncInSourceTables(dbid, []string{schema + "." + table})
+	sourceTable, err := db.EncodeTableSchema(dbid, schema, table)
 	if err != nil {
-		return err
+		return
 	}
-	sync, ok := syncmap[schema+"."+table]
-	if !ok {
-		return fmt.Errorf("no find sync task")
-	}
-	scriptMap, err := DecodeScript(sync.Script)
-	if err != nil {
-		return fmt.Errorf("sync db script err: ", err)
-	}
-	fields := strings.Split(scriptMap["paramfields"], ",")
-	fieldinterfaces := []interface{}{}
-	for _, field := range fields {
-		fieldinterfaces = append(fieldinterfaces, field)
-	}
+	sync, err := models.GetSynchronousByTableName(dbid, sourceTable)
 	params := [][]interface{}{nil}
-	if scriptMap["paramsql"] != "" {
-		sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
+	if sync.ParamScript == "" {
+		sync.Script = ""
+	} else {
+		sqlstr := strings.Replace(sync.ParamScript, util.SCRIPT_TABLE, sync.DestTable, -1)
+		sqlstr = strings.Replace(sqlstr, util.SCRIPT_SCHEMA, schema, -1)
 		params, err = db.QueryDatas(util.BASEDB_CONNID, sqlstr)
 		if err != nil {
 			return err
 		}
 	}
 
-	_, err = callEtl(dbid, sync.Owner, sync.SourceTable, scriptMap["transport"], scriptMap["transform"], params[0])
+	err = callEtl(dbid, sourceTable, sync.DestTable, sync.Script, params[0])
 	if err != nil {
 		return
 	}
@@ -189,60 +154,61 @@ func StartEtl(uuid string) (err error) {
 	if err != nil {
 		return
 	}
-	scriptMap, err := DecodeScript(sync.Script)
-	if err != nil {
-		return fmt.Errorf("sync db script err: ", err)
-	}
-	fields := strings.Split(scriptMap["paramfields"], ",")
-	fieldinterfaces := []interface{}{}
-	for _, field := range fields {
-		fieldinterfaces = append(fieldinterfaces, field)
-	}
 	params := [][]interface{}{nil}
-	if scriptMap["paramsql"] != "" {
-		sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
+	if sync.ParamScript == "" {
+		sync.Script = ""
+	} else {
+		sqlstr := strings.Replace(sync.ParamScript, util.SCRIPT_TABLE, sync.SourceTable, -1)
+		sqlstr = strings.Replace(sqlstr, util.SCRIPT_SCHEMA, sync.Owner, -1)
 		params, err = db.QueryDatas(util.BASEDB_CONNID, sqlstr)
 		if err != nil {
 			return err
 		}
 	}
 
-	pipeline, err := buildEtl(sync.SourceDbId, sync.Owner, sync.SourceTable, scriptMap["transport"], scriptMap["transform"], params[0])
+	//
+	//TODO makerunjs
+	runjs, err := buildEtl(sync.SourceDbId, sync.SourceTable, sync.DestTable, sync.Script, params[0]...)
 	if err != nil {
 		return
 	}
-	pipeline.SetCron(sync.Cron)
-	runjs := pipeline.MakeRunJs()
-
-	err = AddCronWithScript(sync.Id, pipeline.Cron, runjs)
+	err = AddCronWithScript(sync.Id, sync.Cron, runjs)
 	if err != nil {
 		return
 	}
 	return
 }
 
-func callEtl(dbid string, schema string, table string, transportform string, transform string, params ...interface{}) (pipeline Pipeline, err error) {
-	pipeline = NewPipeline()
-	err = pipeline.MakeSourceJs(dbid)
+func callEtl(dbid string, SourceTable string, DestTable string, script string, params ...interface{}) (err error) {
+	//	pipeline = NewPipeline()
+	sourcejs, err := MakeSourceJs(dbid)
 	if err != nil {
 		beego.Error("make source js err : ", err)
 		return
 	}
-	err = pipeline.MakeSinkJs()
+	sinkjs, err := MakeSinkJs()
 	if err != nil {
 		beego.Error("make sink js err : ", err)
 		return
 	}
-	pipeline.MakeTransPortForm(transportform, transform, params...)
-
-	err = pipeline.MakeTransportJs(schema+"."+table, schema+"."+table)
+	//	pipeline.MakeTransPortForm(transportform, transform, params...)
+	//TODO
+	sourceSchema, sourceTable, err := db.DecodeTableSchema(dbid, SourceTable)
+	if err != nil {
+		return
+	}
+	destSchema, destTable, err := db.DecodeTableSchema(util.BASEDB_CONNID, DestTable)
+	if err != nil {
+		return
+	}
+	transportjs, err := MakeTransportJs(dbid, sourceSchema, sourceTable, destSchema, destTable, script, params...)
 	if err != nil {
 		beego.Error("make transporter js err ", err)
 		return
 	}
-	pipeline.MakeFullJs()
-	beego.Debug("fulljs: ", pipeline.FullJs)
-	runjs := pipeline.MakeRunJs()
+	//	pipeline.MakeFullJs()
+	//	beego.Debug("fulljs: ", pipeline.FullJs)
+	runjs := MakeRunJs(sourcejs, sinkjs, transportjs)
 	beego.Debug("runjs:", runjs)
 	err = DoETL([]byte(runjs))
 	if err != nil {
@@ -251,83 +217,121 @@ func callEtl(dbid string, schema string, table string, transportform string, tra
 	return
 }
 
-func buildEtl(dbid string, schema string, table string, transportform string, transform string, params ...interface{}) (pipeline Pipeline, err error) {
-	pipeline = NewPipeline()
-	err = pipeline.MakeSourceJs(dbid)
+func buildEtl(dbid string, SourceTable string, DestTable string, script string, params ...interface{}) (runjs string, err error) {
+	//	pipeline = NewPipeline()
+	sourcejs, err := MakeSourceJs(dbid)
 	if err != nil {
 		beego.Error("make source js err : ", err)
 		return
 	}
-	err = pipeline.MakeSinkJs()
+	sinkjs, err := MakeSinkJs()
 	if err != nil {
 		beego.Error("make sink js err : ", err)
 		return
 	}
-	pipeline.MakeTransPortForm(transportform, transform, params...)
-
-	err = pipeline.MakeTransportJs(schema+"."+table, schema+"."+table)
+	//	pipeline.MakeTransPortForm(transportform, transform, params...)
+	sourceSchema, sourceTable, err := db.DecodeTableSchema(dbid, SourceTable)
+	if err != nil {
+		return
+	}
+	destSchema, destTable, err := db.DecodeTableSchema(util.BASEDB_CONNID, DestTable)
+	if err != nil {
+		return
+	}
+	transportjs, err := MakeTransportJs(dbid, sourceSchema, sourceTable, destSchema, destTable, script, params...)
 	if err != nil {
 		beego.Error("make transporter js err ", err)
 		return
 	}
-	pipeline.MakeFullJs()
-	beego.Debug("fulljs: ", pipeline.FullJs)
+	//	pipeline.MakeFullJs()
+	//	beego.Debug("fulljs: ", pipeline.FullJs)
 	//	runjs := pipeline.MakeRunJs()
 	//	beego.Debug("runjs:", runjs)
 	//	err = DoETL([]byte(runjs))
 	//	if err != nil {
 	//		return
 	//	}
+	runjs = MakeRunJs(sourcejs, sinkjs, transportjs)
 	return
 }
 
 func SetAndDoEtl(setdata map[string]interface{}) (err error) {
-	syncid := setdata["sync_uuid"]
-	script := setdata["script"]
-	cron := setdata["cron"]
-	documents := setdata["documents"]
+	syncid := setdata["sync_uuid"].(string)
+	script := setdata["script"].(string)
+	alter_script := setdata["alter_script"].(string)
+	cron := setdata["cron"].(string)
+	documents := setdata["documents"].(string)
 	error_limit := setdata["error_limit"]
-	sync, err := models.GetSynchronousByUuid(syncid.(string))
+	param_script := setdata["param_script"].(string)
+
+	sync, err := models.GetSynchronousByUuid(syncid)
 	if err != nil {
 		return
 	}
-	scriptMap, err := DecodeScript(script.(string))
-	fields := strings.Split(scriptMap["paramfields"], ",")
-	var fieldinterfaces []interface{}
-	for _, v := range fields {
-		fieldinterfaces = append(fieldinterfaces, v)
+
+	sourceSchema, sourceTable, err := db.DecodeTableSchema(sync.SourceDbId, sync.SourceTable)
+	if err != nil {
+		return
+	}
+	destSchema, destTable, err := db.DecodeTableSchema(util.BASEDB_CONNID, sync.DestTable)
+	if err != nil {
+		return
+	}
+
+	//alter table
+	if alter_script != "" {
+		alter_script = strings.Replace(alter_script, util.SCRIPT_TABLE, sync.DestTable, -1)
+		alter_script = strings.Replace(alter_script, util.SCRIPT_SCHEMA, destSchema, -1)
+
+		err = db.Exec(util.BASEDB_CONNID, alter_script)
+		if err != nil {
+			beego.Error("alter table err :", err)
+			return fmt.Errorf("alter table error")
+		}
+		sync.CreateScript, err = db.GetTableDesc(util.BASEDB_CONNID, sourceSchema, sourceTable, destSchema, destTable)
+		if err != nil {
+			beego.Error("get new create sql err:", err)
+			return fmt.Errorf("get new create sql error")
+		}
+		sync.CreateScript = strings.Replace(sync.CreateScript, sync.DestTable, util.SCRIPT_TABLE, -1)
+		sync.AlterScript = ""
+
 	}
 	params := [][]interface{}{nil}
-	if scriptMap["paramsql"] != "" {
-		sqlstr := fmt.Sprintf(scriptMap["paramsql"], fieldinterfaces...)
+	if param_script == "" {
+		script = ""
+	} else {
+		sqlstr := strings.Replace(param_script, util.SCRIPT_TABLE, sync.DestTable, -1)
+		sqlstr = strings.Replace(sqlstr, util.SCRIPT_SCHEMA, sync.Owner, -1)
 		params, err = db.QueryDatas(util.BASEDB_CONNID, sqlstr)
 		if err != nil {
 			return err
 		}
 	}
 
-	pipeline, err := callEtl(util.BASEDB_CONNID, sync.Owner, sync.SourceTable, scriptMap["transport"], scriptMap["transform"], params[0])
+	err = callEtl(sync.SourceDbId, sync.SourceTable, sync.DestTable, script, params[0])
 	if err != nil {
 		return
 	}
 
-	pipeline.SetCron(cron.(string))
-	runjs := pipeline.MakeRunJs()
-
-	err = AddCronWithScript(sync.Id, pipeline.Cron, runjs)
+	//	pipeline.SetCron(cron.(string))
+	//TODO runjs
+	runjs, err := buildEtl(sync.SourceDbId, sync.SourceTable, sync.DestTable, script, params[0])
 	if err != nil {
 		return
 	}
 
-	sync = models.Synchronous{
-		Id:         sync.Id,
-		Script:     script.(string),
-		Cron:       cron.(string),
-		Documents:  documents.(string) + "\n Update @ time: " + time.Now().Format("2006-01-02 15:04:05"),
-		ErrorLimit: error_limit.(int),
-		Lasttime:   time.Now(),
-		Status:     util.SYNC_STARTED,
+	err = AddCronWithScript(sync.Id, cron, runjs)
+	if err != nil {
+		return
 	}
-	err = models.UpdateSynchronous(sync, "script", "cron", "documents", "error_limit", "status")
+	sync.Script = script
+	sync.Cron = cron
+	sync.Documents = documents + "\n Update @ time: " + time.Now().Format("2006-01-02 15:04:05")
+	sync.ErrorLimit = error_limit.(int)
+	sync.Lasttime = time.Now()
+	sync.Status = util.SYNC_STARTED
+
+	err = models.UpdateSynchronous(sync, "create_script", "alter_script", "script", "cron", "documents", "error_limit", "status")
 	return
 }

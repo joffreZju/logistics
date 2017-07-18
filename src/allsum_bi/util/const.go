@@ -92,3 +92,7 @@ const REPORTSET_STOP = "stop"
 const TEST_MAX_UPLOAD_IMAGE = 9
 const IS_OPEN = 1
 const IS_CLOSE = 0
+
+//KETTLEJOB
+const KETTLEJOB_RIGHT = 1
+const KETTLEJOB_FAIL = 0

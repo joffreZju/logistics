@@ -27,7 +27,8 @@ func (c *Controller) ShowSycnList() {
 	}
 	var schemaTables []string
 	for _, v := range tableNames {
-		schemaTables = append(schemaTables, schema+"."+v)
+		schema_v, _ := db.EncodeTableSchema(dbid, schema, v)
+		schemaTables = append(schemaTables, schema_v)
 	}
 	sync, err := models.ListSyncInSourceTables(dbid, schemaTables)
 	if err != nil {
@@ -38,7 +39,7 @@ func (c *Controller) ShowSycnList() {
 	var res []map[string]interface{}
 	for _, table := range tableNames {
 		var tableMap map[string]interface{}
-		schema_table := schema + "." + table
+		schema_table, _ := db.EncodeTableSchema(dbid, schema, table)
 		if _, ok := sync[schema_table]; !ok {
 			tableMap = map[string]interface{}{
 				"name":   table,
@@ -53,18 +54,21 @@ func (c *Controller) ShowSycnList() {
 				errornum = 0
 			}
 			tableMap = map[string]interface{}{
-				"name":        table,
-				"status":      sync[schema_table].Status,
-				"syncuuid":    syncuuid,
-				"owner":       sync[schema_table].Owner,
-				"script":      sync[schema_table].Script,
-				"sourcetable": sync[schema_table].SourceTable,
-				"desttable":   sync[schema_table].DestTable,
-				"cron":        sync[schema_table].Cron,
-				"documents":   sync[schema_table].Documents,
-				"errorlimit":  sync[schema_table].ErrorLimit,
-				"errornum":    errornum,
-				"lasttime":    sync[schema_table].Lasttime,
+				"name":          table,
+				"status":        sync[schema_table].Status,
+				"syncuuid":      syncuuid,
+				"owner":         sync[schema_table].Owner,
+				"create_script": sync[schema_table].CreateScript,
+				"alter_script":  sync[schema_table].AlterScript,
+				"param_script":  sync[schema_table].ParamScript,
+				"script":        sync[schema_table].Script,
+				"sourcetable":   sync[schema_table].SourceTable,
+				"desttable":     sync[schema_table].DestTable,
+				"cron":          sync[schema_table].Cron,
+				"documents":     sync[schema_table].Documents,
+				"errorlimit":    sync[schema_table].ErrorLimit,
+				"errornum":      errornum,
+				"lasttime":      sync[schema_table].Lasttime,
 			}
 		}
 		res = append(res, tableMap)
@@ -104,6 +108,9 @@ func (c *Controller) DataCalibration() {
 
 func (c *Controller) SetEtl() {
 	syncUuid := c.GetString("sync_uuid")
+	createScript := c.GetString("create_script")
+	alterScript := c.GetString("alter_script")
+	paramScript := c.GetString("param_script")
 	script := c.GetString("script")
 	cron := c.GetString("cron")
 	documents := c.GetString("documents")
@@ -111,23 +118,27 @@ func (c *Controller) SetEtl() {
 	if err != nil {
 		errorlimit = 10
 	}
-	if syncUuid == "" || script == "" || cron == "" || documents == "" {
+	if syncUuid == "" || cron == "" || documents == "" {
 		c.ReplyErr(errcode.ErrParams)
-		beego.Error("set etl some params is null ")
+		beego.Error("set etl some params is null ", syncUuid, script, cron, documents)
+		return
 	}
 	setdata := map[string]interface{}{
-		"sync_uuid":   syncUuid,
-		"script":      script,
-		"cron":        cron,
-		"documents":   documents,
-		"error_limit": errorlimit,
+		"sync_uuid":     syncUuid,
+		"create_script": createScript,
+		"alter_script":  alterScript,
+		"param_script":  paramScript,
+		"script":        script,
+		"cron":          cron,
+		"documents":     documents,
+		"error_limit":   errorlimit,
 	}
 	//no params check  ,so do once etl befor etl
 	err = etl.SetAndDoEtl(setdata)
 	if err != nil {
 		//because this  action is set, so return params err
-		c.ReplyErr(errcode.ErrServerError)
 		beego.Error("set etl error : ", err)
+		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
 	res := map[string]string{

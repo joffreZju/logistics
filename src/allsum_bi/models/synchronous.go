@@ -14,6 +14,8 @@ type Synchronous struct {
 	Uuid         string
 	Owner        string
 	CreateScript string
+	AlterScript  string
+	ParamScript  string
 	Script       string
 	SourceDbId   string
 	SourceTable  string
@@ -32,9 +34,9 @@ func InsertSynchronous(sync Synchronous) (id int, err error) {
 		return
 	}
 	sync.Uuid = uuid.NewV4().String()
-	exist := db.NewRecord(sync)
-	if !exist {
-		return id, fmt.Errorf("exist")
+	_, err = GetSynchronousByTableName(sync.DestDbId, sync.DestTable)
+	if err == nil {
+		return 0, fmt.Errorf("exist")
 	}
 	err = db.Table(GetSynchronousTableName()).Create(&sync).Error
 	return sync.Id, err
@@ -100,6 +102,15 @@ func UpdateSynchronous(sync Synchronous, params ...string) (err error) {
 		return
 	}
 	err = db.Table(GetSynchronousTableName()).Where("id=?", sync.Id).Updates(sync).Update(params).Error
+	return
+}
+
+func GetSynchronousByTableName(dbid string, tablename string) (sync Synchronous, err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	err = db.Table(GetSynchronousTableName()).Where("source_db_id=? and source_table=?", dbid, tablename).First(&sync).Error
 	return
 }
 
