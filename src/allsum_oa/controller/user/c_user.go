@@ -177,11 +177,14 @@ func (c *Controller) UpdateUserInfo() {
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	e = model.UpdateUser(prefix, user)
-	if e != nil {
-		beego.Error(e)
-		c.ReplyErr(errcode.ErrServerError)
-		return
+	company, e := model.GetCompany(prefix)
+	if company.Status == model.CompanyStatApproveAccessed {
+		e = model.UpdateUser(prefix, user)
+		if e != nil {
+			beego.Error(e)
+			c.ReplyErr(errcode.ErrServerError)
+			return
+		}
 	}
 	c.ReplySucc(nil)
 }
