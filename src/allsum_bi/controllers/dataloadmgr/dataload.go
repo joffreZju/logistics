@@ -19,15 +19,15 @@ type Controller struct {
 }
 
 func (c *Controller) ListDataload() {
-	limit, err := c.GetInt("limit")
-	if err != nil {
-		limit = 20
-	}
-	index, err := c.GetInt("index")
-	if err != nil {
-		index = 0
-	}
-	dataloads, err := models.ListDataLoadByField([]string{}, []interface{}{}, limit, index)
+	//	limit, err := c.GetInt("limit")
+	//	if err != nil {
+	//		limit = 20
+	//	}
+	//	index, err := c.GetInt("index")
+	//	if err != nil {
+	//		index = 0
+	//	}
+	dataloads, err := models.ListDataLoadByField([]string{}, []interface{}{}, 0, 0)
 	if err != nil {
 		beego.Error("list dataload err: ", err)
 		c.ReplyErr(errcode.ErrActionGetDataload)

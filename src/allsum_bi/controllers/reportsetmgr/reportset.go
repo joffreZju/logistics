@@ -16,14 +16,14 @@ type Controller struct {
 }
 
 func (c *Controller) ListReportSet() {
-	limit, err := c.GetInt("limit")
-	if err != nil {
-		limit = 20
-	}
-	index, err := c.GetInt("index")
-	if err != nil {
-		index = 0
-	}
+	//	limit, err := c.GetInt("limit")
+	//	if err != nil {
+	//		limit = 20
+	//	}
+	//	index, err := c.GetInt("index")
+	//	if err != nil {
+	//		index = 0
+	//	}
 	reportuuid := c.GetString("reportuuid")
 	if reportuuid == "" {
 		beego.Error("miss reportuuid")
@@ -36,7 +36,7 @@ func (c *Controller) ListReportSet() {
 		c.ReplyErr(errcode.ErrActionGetReport)
 		return
 	}
-	reportsets, err := models.ListReportSetByField([]string{"reportid"}, []interface{}{report.Id}, limit, index)
+	reportsets, err := models.ListReportSetByField([]string{"reportid"}, []interface{}{report.Id}, 0, 0)
 	if err != nil {
 		beego.Error("list dataload err: ", err)
 		c.ReplyErr(errcode.ErrActionGetReportSet)

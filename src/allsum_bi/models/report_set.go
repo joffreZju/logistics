@@ -2,6 +2,7 @@ package models
 
 import (
 	"allsum_bi/db/conn"
+	"database/sql"
 	"fmt"
 
 	uuid "github.com/satori/go.uuid"
@@ -104,9 +105,14 @@ func ListReportSetByField(fields []string, values []interface{}, limit int, inde
 	for i, v := range fields {
 		condition = condition + fmt.Sprintf(" and %s=%v", v, values[i])
 	}
-	rows, err := db.Table(GetReportSetTableName()).Where(condition).Limit(limit).Rows()
-	if err != nil {
-		return
+	var rows *sql.Rows
+	if limit == 0 {
+		rows, err = db.Table(GetReportSetTableName()).Where(condition).Rows()
+	} else {
+		rows, err = db.Table(GetReportSetTableName()).Where(condition).Limit(limit).Rows()
+		if err != nil {
+			return
+		}
 	}
 	defer rows.Close()
 	for rows.Next() {

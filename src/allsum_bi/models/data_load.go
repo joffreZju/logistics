@@ -2,6 +2,7 @@ package models
 
 import (
 	"allsum_bi/db/conn"
+	"database/sql"
 	"fmt"
 	_ "time"
 
@@ -66,7 +67,13 @@ func ListDataLoadByField(fields []string, values []interface{}, limit int, index
 	for i, v := range fields {
 		condition = condition + fmt.Sprintf(" and %s=%v", v, values[i])
 	}
-	rows, err := db.Table(GetDataLoadTableName()).Where(condition).Limit(limit).Rows()
+	var rows *sql.Rows
+	if limit == 0 {
+		rows, err = db.Table(GetDataLoadTableName()).Where(condition).Rows()
+	} else {
+		rows, err = db.Table(GetDataLoadTableName()).Where(condition).Limit(limit).Rows()
+
+	}
 	if err != nil {
 		return
 	}
