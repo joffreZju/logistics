@@ -166,6 +166,34 @@ func SearchUsersByName(prefix, uname string) (users []*model.User, e error) {
 	return
 }
 
+func LockUser(prefix, tel string) (e error) {
+	user := &model.User{Tel: tel}
+	e = model.NewOrm().Table(prefix + "." + user.TableName()).Where(user).Find(user).Error
+	if e != nil {
+		return
+	}
+	tx := model.NewOrm().Begin()
+	count := tx.Table(prefix+"."+user.TableName()).Model(user).
+		Update("status", model.UserStatusLocked).RowsAffected
+	if count != 1 {
+		tx.Rollback()
+		return errors.New("lock user failed")
+	}
+	e = tx.Table(prefix+"."+model.UserRole{}.TableName()).
+		Delete(&model.UserRole{}, &model.UserRole{UserId: user.Id}).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	e = tx.Table(prefix+"."+model.UserGroup{}.TableName()).
+		Delete(&model.UserGroup{}, &model.UserGroup{UserId: user.Id}).Error
+	if e != nil {
+		tx.Rollback()
+		return
+	}
+	return tx.Commit().Error
+}
+
 func GetUserListByUids(prefix string, uids []int) (users []*model.User, e error) {
 	users = []*model.User{}
 	e = model.NewOrm().Table(prefix+"."+model.User{}.TableName()).

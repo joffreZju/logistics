@@ -104,7 +104,7 @@ func DelRole(prefix string, rid int) (e error) {
 		return
 	}
 	e = tx.Table(prefix+"."+model.RoleFunc{}.TableName()).
-		Delete(&model.RoleFunc{}, "role_id=?", rid).Error
+		Delete(&model.RoleFunc{}, &model.RoleFunc{RoleId: rid}).Error
 	if e != nil {
 		tx.Rollback()
 		return

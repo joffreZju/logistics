@@ -138,16 +138,18 @@ func (c *Controller) FirmAddUser() {
 	c.ReplySucc(nil)
 }
 
+//锁定用户，不能解锁，删除其角色和组织信息
 func (c *Controller) FirmControlUserStatus() {
 	prefix := c.UserComp
 	tel := c.GetString("tel")
 	status, e := c.GetInt("status")
-	if e != nil || (status != model.UserStatusOk && status != model.UserStatusLocked) {
+	//if e != nil || (status != model.UserStatusOk && status != model.UserStatusLocked) {
+	if e != nil || status != model.UserStatusLocked {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
 	}
-	e = model.UpdateUser(prefix, &model.User{Tel: tel, Status: status})
+	e = service.LockUser(prefix, tel)
 	if e != nil {
 		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
