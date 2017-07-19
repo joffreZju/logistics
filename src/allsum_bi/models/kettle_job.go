@@ -15,6 +15,7 @@ type KettleJob struct {
 	Cron    string
 	Kjbpath string
 	Ktrpath string
+	Lock    string
 	Status  int
 }
 

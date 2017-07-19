@@ -3,6 +3,7 @@ package demand
 import (
 	"allsum_bi/controllers/base"
 	"allsum_bi/models"
+	"allsum_bi/services/demandsvs"
 	"allsum_bi/services/oa"
 	"allsum_bi/util"
 	"allsum_bi/util/ossfile"
@@ -35,6 +36,7 @@ func (c *Controller) ListDemand() {
 	if err != nil {
 		index = 0
 	}
+	index = limit * index
 	var fields []string
 	var values []interface{}
 	var action string
@@ -70,7 +72,14 @@ func (c *Controller) ListDemand() {
 		c.ReplyErr(errcode.ErrActionGetDemand)
 		return
 	}
-	var res []map[string]interface{}
+	count, err := models.CountDemandByField(fields, values)
+	if err != nil {
+		beego.Error("list demands error :", err)
+		c.ReplyErr(errcode.ErrActionGetDemand)
+		return
+	}
+	var res map[string]interface{}
+	var data []map[string]interface{}
 	for _, demand := range demands {
 		mapdemand := map[string]interface{}{
 			"index": demand.Id,
@@ -90,7 +99,11 @@ func (c *Controller) ListDemand() {
 			"complettime":   demand.Complettime,
 			"status":        demand.Status,
 		}
-		res = append(res, mapdemand)
+		data = append(data, mapdemand)
+	}
+	res = map[string]interface{}{
+		"count": count,
+		"data":  data,
 	}
 	c.ReplySucc(res)
 	return
@@ -124,6 +137,36 @@ func (c *Controller) AddDemand() {
 	}
 	c.ReplySucc(res)
 	return
+}
+
+//发布需求
+func (c *Controller) PublishDemand() {
+	demanduuid := c.GetString("demanduuid")
+	err := demandsvs.ChangeStatus(demanduuid, util.DEMAND_STATUS_RELEASE, util.REPORT_STATUS_RELEASE)
+	if err != nil {
+		beego.Error("update demand err : ", err)
+		c.ReplyErr(errcode.ErrActionPutReport)
+		return
+	}
+	res := map[string]string{
+		"res": "success",
+	}
+	c.ReplySucc(res)
+}
+
+//提交审核需求 fortest
+func (c *Controller) ReviewDemand() {
+	demanduuid := c.GetString("demanduuid")
+	err := demandsvs.ChangeStatus(demanduuid, util.DEMAND_STATUS_REVIEW, util.REPORT_STATUS_REVIEW)
+	if err != nil {
+		beego.Error("update demand err : ", err)
+		c.ReplyErr(errcode.ErrActionPutReport)
+		return
+	}
+	res := map[string]string{
+		"res": "success",
+	}
+	c.ReplySucc(res)
 }
 
 //需求分析 注: 将生成报表数据
@@ -316,7 +359,7 @@ func (c *Controller) UploadDemandDoc() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	f.Close()
+	defer f.Close()
 	data, err := ioutil.ReadAll(f)
 	if err != nil {
 		beego.Error("read filehandle err : ", err)

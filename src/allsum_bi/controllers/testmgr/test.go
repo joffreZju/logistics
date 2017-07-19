@@ -64,13 +64,13 @@ func (c *Controller) AddTest() {
 			//c.ReplyErr(errcode.ErrParams)
 			continue
 		}
-		f.Close()
 		data, err := ioutil.ReadAll(f)
 		if err != nil {
 			beego.Error("read filehandle err : ", err)
 			//c.ReplyErr(errcode.ErrUploadFileFailed)
 			continue
 		}
+		f.Close()
 		filename := uuid.NewV4().String() + "-" + h.Filename
 		uripath, err := ossfile.PutFile("test_info", filename, data)
 		if err != nil {

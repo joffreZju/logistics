@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego"
+	uuid "github.com/satori/go.uuid"
 )
 
 func Start() {
@@ -40,14 +41,17 @@ func ExecJob(jobfile string) (fmtstr string, err error) {
 }
 
 func AddJobfile(name string, cron string, filename string, filedata []byte) (kettlejob models.KettleJob, err error) {
-	urlpath, err := ossfile.PutFile("kettle", filename, filedata)
+	kjobfile := uuid.NewV4().String() + "-" + filename
+	urlpath, err := ossfile.PutFile("kettle", kjobfile, filedata)
 	if err != nil {
 		return
 	}
+	kjobfile_path := filename + "," + urlpath
+
 	kettlejob = models.KettleJob{
 		Name:    name,
 		Cron:    cron,
-		Kjbpath: urlpath,
+		Kjbpath: kjobfile_path,
 		Status:  util.KETTLEJOB_FAIL,
 	}
 	kettlejob, err = models.InsertKettleJob(kettlejob)

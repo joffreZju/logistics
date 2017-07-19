@@ -34,6 +34,8 @@ func init() {
 	beego.Router(DemandPrefix+"/set_demand", &demand.Controller{}, "post:SetDemand")
 	beego.Router(DemandPrefix+"/get_demand_doc", &demand.Controller{}, "get:GetDemandDoc")
 	beego.Router(DemandPrefix+"/upload_demand_doc", &demand.Controller{}, "post:UploadDemandDoc")
+	beego.Router(DemandPrefix+"/publish_demand", &demand.Controller{}, "*:PublishDemand")
+	beego.Router(DemandPrefix+"/review_demand", &demand.Controller{}, "*:ReviewDemand")
 	beego.Router("/*", &base.Controller{}, "*:Index")
 
 	//ETL

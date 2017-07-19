@@ -3,6 +3,7 @@ package models
 import (
 	"allsum_bi/db/conn"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/satori/go.uuid"
@@ -78,6 +79,21 @@ func ListDemandByField(fields []string, values []interface{}, limit int, index i
 		}
 		demands = append(demands, demand)
 	}
+	return
+}
+
+func CountDemandByField(fields []string, values []interface{}) (count int, err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	var conditions []string
+	for _, c := range fields {
+		c = c + " = ?"
+		conditions = append(conditions, c)
+	}
+	conditionstr := strings.Join(conditions, " and ")
+	err = db.Table(GetDemandTableName()).Where(conditionstr, values...).Count(&count).Error
 	return
 }
 

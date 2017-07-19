@@ -93,6 +93,8 @@ var (
 	ErrActionGetReportData  = &CodeError{20519, "获取报表数据失败"}
 	ErrActionPutTestData    = &CodeError{20520, "添加测试数据失败"}
 	ErrActionGetTestInfo    = &CodeError{20521, "获取测试数据失败"}
+	ErrActionGetJobInfo     = &CodeError{20522, "获取KETTLE任务数据失败"}
+	ErrActionAddJobInfo     = &CodeError{20523, "添加KETTLE任务数据失败"}
 )
 
 func ParseError(err error) (code int, msg string) {
