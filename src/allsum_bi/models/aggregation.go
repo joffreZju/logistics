@@ -2,6 +2,7 @@ package models
 
 import (
 	"allsum_bi/db/conn"
+	"database/sql"
 	"fmt"
 
 	uuid "github.com/satori/go.uuid"
@@ -75,7 +76,12 @@ func ListAggregateOpsByField(fields []string, values []interface{}, limit int, i
 	for i, v := range fields {
 		condition = condition + fmt.Sprintf(" and %s=%v", v, values[i])
 	}
-	rows, err := db.Table(GetAggregateOpsTableName()).Where(condition).Limit(limit).Rows()
+	var rows *sql.Rows
+	if limit == 0 {
+		rows, err = db.Table(GetAggregateOpsTableName()).Where(condition).Rows()
+	} else {
+		rows, err = db.Table(GetAggregateOpsTableName()).Where(condition).Limit(limit).Rows()
+	}
 	if err != nil {
 		return
 	}

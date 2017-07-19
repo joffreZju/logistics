@@ -22,10 +22,10 @@ func (c *Controller) ListAggregate() {
 		c.ReplyErr(errcode.ErrActionGetReport)
 		return
 	}
-	limit, _ := c.GetInt("limit", 10)
-
-	index, _ := c.GetInt("index", 0)
-	aggregates, err := models.ListAggregateOpsByField([]string{"reportid"}, []interface{}{report.Id}, limit, index)
+	//	limit, _ := c.GetInt("limit", 10)
+	//
+	//	index, _ := c.GetInt("index", 0)
+	aggregates, err := models.ListAggregateOpsByField([]string{"reportid"}, []interface{}{report.Id}, 0, 0)
 	if err != nil {
 		beego.Error("list aggregate err", err)
 		c.ReplyErr(errcode.ErrActionGetAggregate)
