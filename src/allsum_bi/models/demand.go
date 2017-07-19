@@ -34,7 +34,7 @@ type Demand struct {
 	Status            int
 }
 
-func InsertDemand(demand Demand) (err error) {
+func InsertDemand(demand Demand) (resdemand Demand, err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
@@ -42,9 +42,10 @@ func InsertDemand(demand Demand) (err error) {
 	demand.Uuid = uuid.NewV4().String()
 	exist := db.NewRecord(demand)
 	if !exist {
-		return fmt.Errorf("exist")
+		return resdemand, fmt.Errorf("exist")
 	}
 	err = db.Table(GetDemandTableName()).Create(&demand).Error
+	resdemand = demand
 	return
 }
 

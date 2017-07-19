@@ -62,3 +62,12 @@ func ListKettleJobByField(fields []string, values []interface{}, limit int, inde
 	}
 	return
 }
+
+func GetKettleJobByUuid(uuid string) (kettle KettleJob, err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	err = db.Table(GetKettleJobTableName()).Where("uuid=?", uuid).First(&kettle).Error
+	return
+}

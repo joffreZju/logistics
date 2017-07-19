@@ -126,12 +126,33 @@ func (c *Controller) AddDemand() {
 		Exhibitor:   exhibitor,
 		Status:      status,
 	}
-	err := models.InsertDemand(demand)
+	demandres, err := models.InsertDemand(demand)
 	if err != nil {
 		beego.Error("insert demand err : ", err)
 		c.ReplyErr(errcode.ErrActionPutDemand)
 		return
 	}
+	report_create := models.Report{
+		Demandid:    demandres.Id,
+		Name:        "",
+		Owner:       demandres.Owner,
+		Status:      util.REPORT_STATUS_ANALYS,
+		Description: demandres.Description,
+	}
+	report, err := models.InsertReport(report_create)
+	if err != nil {
+		beego.Error("insert report err : ", err)
+		c.ReplyErr(errcode.ErrActionGetReport)
+		return
+	}
+	demand.Reportid = report.Id
+	err = models.UpdateDemand(demand, "reportid")
+	if err != nil {
+		beego.Error("update demand err", err)
+		c.ReplyErr(errcode.ErrActionPutDemand)
+		return
+	}
+
 	res := map[string]string{
 		"res": "success",
 	}

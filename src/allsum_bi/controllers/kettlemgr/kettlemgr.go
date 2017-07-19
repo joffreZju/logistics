@@ -6,6 +6,7 @@ import (
 	"allsum_bi/util"
 	"allsum_oa/controller/base"
 	"common/lib/errcode"
+	"encoding/json"
 	"io/ioutil"
 
 	"github.com/astaxie/beego"
@@ -49,15 +50,7 @@ func (c *Controller) AddKJob() {
 }
 
 func (c *Controller) ListKJob() {
-	limit, err := c.GetInt("limit")
-	if err != nil {
-		limit = 10
-	}
-	index, err := c.GetInt("index")
-	if err != nil {
-		index = 0
-	}
-	kettlejobs, err := models.ListKettleJobByField([]string{"status"}, []interface{}{util.KETTLEJOB_RIGHT}, limit, index)
+	kettlejobs, err := models.ListKettleJobByField([]string{"status"}, []interface{}{util.KETTLEJOB_RIGHT}, 0, 0)
 	if err != nil {
 		beego.Error("list kettle job err", err)
 		c.ReplyErr(errcode.ErrActionGetJobInfo)
@@ -65,10 +58,22 @@ func (c *Controller) ListKJob() {
 	}
 	var res []map[string]interface{}
 	for _, kettlejob := range kettlejobs {
+		var kjbmap map[string]string
+		err = json.Unmarshal([]byte(kettlejob.Kjbpath), &kjbmap)
+		if err != nil {
+			kjbmap = map[string]string{}
+		}
+		var ktrmap map[string]interface{}
+		err = json.Unmarshal([]byte(kettlejob.Ktrpath), &ktrmap)
+		if err != nil {
+			ktrmap = map[string]interface{}{}
+		}
 		subres := map[string]interface{}{
 			"uuid":   kettlejob.Uuid,
 			"name":   kettlejob.Name,
 			"cron":   kettlejob.Cron,
+			"kjb":    kjbmap,
+			"ktr":    ktrmap,
 			"lock":   kettlejob.Lock,
 			"status": kettlejob.Status,
 		}

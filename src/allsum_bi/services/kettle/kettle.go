@@ -4,9 +4,11 @@ import (
 	"allsum_bi/models"
 	"allsum_bi/util"
 	"allsum_bi/util/ossfile"
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 
 	"github.com/astaxie/beego"
@@ -46,15 +48,55 @@ func AddJobfile(name string, cron string, filename string, filedata []byte) (ket
 	if err != nil {
 		return
 	}
-	kjobfile_path := filename + "," + urlpath
-
+	kjobfilemap := map[string]string{
+		"filename": filename,
+		"urlpath":  urlpath,
+	}
+	kettleWorkPath := beego.AppConfig.String("kettle::workpath")
+	err = ioutil.WriteFile(kettleWorkPath+path.Base(urlpath), filedata, 0664)
+	if err != nil {
+		return
+	}
+	kjobfilejson, err := json.Marshal(kjobfilemap)
+	if err != nil {
+		return
+	}
 	kettlejob = models.KettleJob{
 		Name:    name,
 		Cron:    cron,
-		Kjbpath: kjobfile_path,
+		Kjbpath: string(kjobfilejson),
 		Status:  util.KETTLEJOB_FAIL,
 	}
 	kettlejob, err = models.InsertKettleJob(kettlejob)
+	return
+}
+
+func AddKtrfile(uuid string, filename string, filedata []byte) (err error) {
+	kettlejob, err := models.GetKettleJobByUuid(uuid)
+	if err != nil {
+		return
+	}
+	var kjbmap map[string]string
+	err = json.Unmarshal([]byte(kettlejob.Kjbpath), &kjbmap)
+	if err != nil {
+		return
+	}
+	kettleWorkPath := beego.AppConfig.String("kettle::workpath")
+	kjbfiledata, err := ioutil.ReadFile(kettleWorkPath + path.Base(kjbmap["urlpath"]))
+	if err != nil {
+		return
+	}
+	if !strings.Contains(string(kjbfiledata), filename) {
+		return
+	}
+	//	json = x2j.XmlToJson(kjbfiledata)
+	//	uuidktrname := uuid.NewV4.String() + "_" + filename
+	//	var ktrmap map[string]string
+	//	err = json.Unmarshal([]byte(kettlejob.Ktrpath), &ktrmap)
+	//	if err != nil {
+	//		return
+	//	}
+	//	ktrmap[filename]
 	return
 }
 

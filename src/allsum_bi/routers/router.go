@@ -29,7 +29,7 @@ func init() {
 	//Demand
 	beego.Router(DemandPrefix+"/list_demand", &demand.Controller{}, "get:ListDemand")
 	beego.Router(DemandPrefix+"/add_demand", &demand.Controller{}, "*:AddDemand")
-	beego.Router(DemandPrefix+"/analyze_demand", &demand.Controller{}, "post:AnalyzeDemand")
+	//	beego.Router(DemandPrefix+"/analyze_demand", &demand.Controller{}, "post:AnalyzeDemand")
 	beego.Router(DemandPrefix+"/get_analyze_report", &demand.Controller{}, "get:GetAnalyzeReport")
 	beego.Router(DemandPrefix+"/set_demand", &demand.Controller{}, "post:SetDemand")
 	beego.Router(DemandPrefix+"/get_demand_doc", &demand.Controller{}, "get:GetDemandDoc")
