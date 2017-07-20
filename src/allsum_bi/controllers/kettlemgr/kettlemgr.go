@@ -19,31 +19,68 @@ type Controller struct {
 func (c *Controller) AddKJob() {
 	Name := c.GetString("name")
 	Cron := c.GetString("cron")
-	f, h, err := c.GetFile("kettlejob")
-	if err != nil {
-		beego.Error("get file err:", err)
-		c.ReplyErr(errcode.ErrUploadFileFailed)
-		return
+	fileform := c.Ctx.Request.MultipartForm
+	filelist := fileform.File
+	var jobfilename string
+	var jobfiledata []byte
+	var ktrdatamap map[string][]byte
+	for k, _ := range filelist {
+		if k == "kettlejob" {
+			f, h, err := c.GetFile("kettlejob")
+			if err != nil {
+				beego.Error("get file err:", err)
+				c.ReplyErr(errcode.ErrUploadFileFailed)
+				return
+			}
+			jobfiledata, err = ioutil.ReadAll(f)
+			if err != nil {
+				beego.Error("ioread file err ", err)
+				c.ReplyErr(errcode.ErrUploadFileFailed)
+				return
+			}
+			jobfilename = h.Filename
+		} else {
+			f, h, err := c.GetFile(k)
+			if err != nil {
+				beego.Error("get ktr file err :", err)
+				c.ReplyErr(errcode.ErrUploadFileFailed)
+				return
+			}
+			ktrdata, err := ioutil.ReadAll(f)
+			if err != nil {
+				beego.Error("ioread file err ", err)
+				c.ReplyErr(errcode.ErrUploadFileFailed)
+				return
+			}
+			kfname := h.Filename
+			ktrdatamap[kfname] = ktrdata
+		}
 	}
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		beego.Error("ioread file err ", err)
-		c.ReplyErr(errcode.ErrUploadFileFailed)
-		return
-	}
-	kettlejob, err := kettle.AddJobfile(Name, Cron, h.Filename, data)
+
+	kettlejob, err := kettle.AddJobKtrfile(Name, Cron, jobfilename, jobfiledata, ktrdatamap)
 	if err != nil {
 		beego.Error("add job file :", err)
 		c.ReplyErr(errcode.ErrUploadFileFailed)
 		return
 	}
-
+	var Kjbpath map[string]string
+	err = json.Unmarshal([]byte(kettlejob.Kjbpath), &Kjbpath)
+	if err != nil {
+		Kjbpath = map[string]string{}
+	}
+	var Ktrpath map[string]string
+	err = json.Unmarshal([]byte(kettlejob.Ktrpath), &Ktrpath)
+	if err != nil {
+		Ktrpath = map[string]string{}
+	}
 	res := map[string]interface{}{
-		"uuid":   kettlejob.Uuid,
-		"name":   Name,
-		"cron":   Cron,
-		"lock":   kettlejob.Lock,
-		"status": kettlejob.Status,
+		"uuid":    kettlejob.Uuid,
+		"name":    Name,
+		"cron":    Cron,
+		"lock":    kettlejob.Lock,
+		"kjbpath": Kjbpath,
+		"ktrpath": Ktrpath,
+		"status":  kettlejob.Status,
 	}
 	c.ReplySucc(res)
 	return
@@ -81,10 +118,6 @@ func (c *Controller) ListKJob() {
 	}
 	c.ReplySucc(res)
 	return
-}
-
-func (c *Controller) AddKtr() {
-
 }
 
 func (c *Controller) SetJobEnable() {

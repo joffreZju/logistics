@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path"
 	"strings"
 
 	"github.com/astaxie/beego"
@@ -42,9 +41,28 @@ func ExecJob(jobfile string) (fmtstr string, err error) {
 	return
 }
 
-func AddJobfile(name string, cron string, filename string, filedata []byte) (kettlejob models.KettleJob, err error) {
+func AddJobKtrfile(name string, cron string, filename string, jobfiledata []byte, ktrdatas map[string][]byte) (kettlejob models.KettleJob, err error) {
+
+	kettleWorkPath := beego.AppConfig.String("kettle::workpath")
+	jobfiledatastr := string(jobfiledata)
+	ktrfilemap := map[string]string{}
+	for k, v := range ktrdatas {
+		uuidktrfile := uuid.NewV4().String() + k
+		ktrurlpath, err := ossfile.PutFile("kettle", uuidktrfile, v)
+		if err != nil {
+			return kettlejob, err
+		}
+		err = ioutil.WriteFile(kettleWorkPath+uuidktrfile, v, 0664)
+		if err != nil {
+			return kettlejob, err
+		}
+		ktrfilemap[k] = ktrurlpath
+		jobfiledatastr = strings.Replace(jobfiledatastr, k, uuidktrfile, -1)
+	}
+
 	kjobfile := uuid.NewV4().String() + "-" + filename
-	urlpath, err := ossfile.PutFile("kettle", kjobfile, filedata)
+	jobfiledata = []byte(jobfiledatastr)
+	urlpath, err := ossfile.PutFile("kettle", kjobfile, jobfiledata)
 	if err != nil {
 		return
 	}
@@ -52,8 +70,7 @@ func AddJobfile(name string, cron string, filename string, filedata []byte) (ket
 		"filename": filename,
 		"urlpath":  urlpath,
 	}
-	kettleWorkPath := beego.AppConfig.String("kettle::workpath")
-	err = ioutil.WriteFile(kettleWorkPath+path.Base(urlpath), filedata, 0664)
+	err = ioutil.WriteFile(kettleWorkPath+kjobfile, jobfiledata, 0664)
 	if err != nil {
 		return
 	}
@@ -61,44 +78,60 @@ func AddJobfile(name string, cron string, filename string, filedata []byte) (ket
 	if err != nil {
 		return
 	}
+	ktrfilejson, err := json.Marshal(ktrfilemap)
+	if err != nil {
+		return
+	}
+
 	kettlejob = models.KettleJob{
 		Name:    name,
 		Cron:    cron,
 		Kjbpath: string(kjobfilejson),
+		Ktrpath: string(ktrfilejson),
 		Status:  util.KETTLEJOB_FAIL,
 	}
 	kettlejob, err = models.InsertKettleJob(kettlejob)
 	return
 }
 
-func AddKtrfile(uuid string, filename string, filedata []byte) (err error) {
-	kettlejob, err := models.GetKettleJobByUuid(uuid)
-	if err != nil {
-		return
-	}
-	var kjbmap map[string]string
-	err = json.Unmarshal([]byte(kettlejob.Kjbpath), &kjbmap)
-	if err != nil {
-		return
-	}
-	kettleWorkPath := beego.AppConfig.String("kettle::workpath")
-	kjbfiledata, err := ioutil.ReadFile(kettleWorkPath + path.Base(kjbmap["urlpath"]))
-	if err != nil {
-		return
-	}
-	if !strings.Contains(string(kjbfiledata), filename) {
-		return
-	}
-	//	json = x2j.XmlToJson(kjbfiledata)
-	//	uuidktrname := uuid.NewV4.String() + "_" + filename
-	//	var ktrmap map[string]string
-	//	err = json.Unmarshal([]byte(kettlejob.Ktrpath), &ktrmap)
-	//	if err != nil {
-	//		return
-	//	}
-	//	ktrmap[filename]
-	return
-}
+//func AddKtrfile(uuid string, filename string, filedata []byte) (err error) {
+//	kettlejob, err := models.GetKettleJobByUuid(uuid)
+//	if err != nil {
+//		return
+//	}
+//	var kjbmap map[string]string
+//	err = json.Unmarshal([]byte(kettlejob.Kjbpath), &kjbmap)
+//	if err != nil {
+//		return
+//	}
+//	kettleWorkPath := beego.AppConfig.String("kettle::workpath")
+//	kjbfiledata, err := ioutil.ReadFile(kettleWorkPath + path.Base(kjbmap["urlpath"]))
+//	if err != nil {
+//		return
+//	}
+//	if !strings.Contains(string(kjbfiledata), filename) {
+//		return fmt.Error("jobfile have not this ktr")
+//	}
+//	uuidktrname := uuid.NewV4.String() + "_" + filename
+//	urlpath, err := ossfile.PutFile("kettle", kjobfile, filedata)
+//	if err != nil {
+//		return
+//	}
+//
+//	var ktrmap map[string]string
+//	err = json.Unmarshal([]byte(kettlejob.Ktrpath), &ktrmap)
+//	if err != nil {
+//		return
+//	}
+//	ktrmap[filename] = urlpath
+//
+//	kjbfiledatastr := string(kjbfiledata)
+//	for k, v := range ktrmap {
+//		kjbfiledatastr := strings.Replace(kjbfiledatastr, filename, path.Base(v), -1)
+//	}
+//
+//	return
+//}
 
 //need in go func
 func ReloadJobPath() (err error) {
