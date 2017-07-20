@@ -1,0 +1,379 @@
+2017/07/07 18:17:12 [I] [asm_amd64.s:2197] http server Running on http://:9001
+2017/07/10 11:00:12 [I] [asm_amd64.s:2197] http server Running on http://:9001
+2017/07/10 11:38:00 [I] [asm_amd64.s:2197] http server Running on http://:9001
+2017/07/14 16:44:33 [I] [asm_amd64.s:2197] http server Running on http://:9001
+2017/07/14 17:07:55 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502615156} 
+2017/07/14 17:07:55 [I] [check_request.go:139] reqeust url: /v1/etl/show_sycn_list?dbid=6af073b5-8cab-4a43-8107-b73b5ac63d83&schema=public 
+2017/07/14 17:07:55 [I] [check_request.go:142] request body string:  
+2017/07/14 17:07:55 [I] [check_request.go:152] get request form data: map[] 
+2017/07/14 17:07:55 [I] [check_request.go:167] request params: map[] 
+2017/07/14 17:07:55 [I] [check_request.go:169] request all params json string: {} 
+2017/07/14 17:07:55 [D] [etl.go:21] schema  6af073b5-8cab-4a43-8107-b73b5ac63d83 public 
+2017/07/14 17:07:55 [D] [synchronous.go:130] sourcetable public.truck_template 
+2017/07/14 17:07:55 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m| 111.166389ms|   match|[44m GET     [0m /v1/etl/show_sycn_list   r:/v1/etl/show_sycn_list
+2017/07/14 17:10:22 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502615275} 
+2017/07/14 17:10:22 [I] [check_request.go:139] reqeust url: /v1/etl/show_sycn_list?dbid=6af073b5-8cab-4a43-8107-b73b5ac63d83&schema=public 
+2017/07/14 17:10:22 [I] [check_request.go:142] request body string:  
+2017/07/14 17:10:22 [I] [check_request.go:152] get request form data: map[] 
+2017/07/14 17:10:22 [I] [check_request.go:167] request params: map[] 
+2017/07/14 17:10:22 [I] [check_request.go:169] request all params json string: {} 
+2017/07/14 17:10:22 [D] [etl.go:21] schema  6af073b5-8cab-4a43-8107-b73b5ac63d83 public 
+2017/07/14 17:10:22 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m|  53.217571ms|   match|[44m GET     [0m /v1/etl/show_sycn_list   r:/v1/etl/show_sycn_list
+2017/07/14 17:12:03 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502615422} 
+2017/07/14 17:12:03 [I] [check_request.go:139] reqeust url: /v1/etl/data_calibration 
+2017/07/14 17:12:03 [I] [check_request.go:142] request body string: {
+	"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83",
+	"schema":"public",
+	"table": "truck_template"
+} 
+2017/07/14 17:12:03 [I] [check_request.go:147] post request postform data: map[] 
+2017/07/14 17:12:03 [I] [check_request.go:167] request params: map[schema:public table:truck_template dbid:6af073b5-8cab-4a43-8107-b73b5ac63d83] 
+2017/07/14 17:12:03 [I] [check_request.go:169] request all params json string: {"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83","schema":"public","table":"truck_template"} 
+2017/07/14 17:12:03 [D] [table.go:162] table count 0 public.truck_template 
+2017/07/14 17:12:03 [D] [etl.go:91] checkres false 
+2017/07/14 17:12:03 [D] [etl.go:112] create sql: create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null) 
+2017/07/14 17:12:03 [D] [etl.go:265] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).%!(EXTRA string=)Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 17:12:03 [E] [etl.go:123] call etl SyntaxError: (anonymous): Line 3:49 Unexpected token % 
+2017/07/14 17:15:03 [E] [etl.go:133] timeout 
+2017/07/14 17:15:03 [E] [response.go:37] &{10003 服务器繁忙，请稍后重试 <nil>} 
+2017/07/14 17:15:03 [E] [log.go:70] do etl err:  SyntaxError: (anonymous): Line 3:49 Unexpected token % 
+2017/07/14 17:15:03 [D] [router.go:879] |      127.0.0.1|[42m 200 [0m|3m0.13976692s|   match|[46m POST    [0m /v1/etl/data_calibration   r:/v1/etl/data_calibration
+2017/07/14 17:38:02 [I] [asm_amd64.s:2197] http server Running on http://:9001
+2017/07/14 17:39:06 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502615523} 
+2017/07/14 17:39:06 [I] [check_request.go:139] reqeust url: /v1/etl/data_calibration 
+2017/07/14 17:39:06 [I] [check_request.go:142] request body string: {
+	"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83",
+	"schema":"public",
+	"table": "truck_template"
+} 
+2017/07/14 17:39:06 [I] [check_request.go:147] post request postform data: map[] 
+2017/07/14 17:39:06 [I] [check_request.go:167] request params: map[schema:public table:truck_template dbid:6af073b5-8cab-4a43-8107-b73b5ac63d83] 
+2017/07/14 17:39:06 [I] [check_request.go:169] request all params json string: {"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83","schema":"public","table":"truck_template"} 
+2017/07/14 17:39:06 [D] [table.go:162] table count 0 public.truck_template 
+2017/07/14 17:39:06 [D] [etl.go:91] checkres false 
+2017/07/14 17:39:06 [D] [etl.go:112] create sql: create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null) 
+2017/07/14 17:39:06 [D] [etl.go:265] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 17:39:11 [D] [etl.go:131] etl done 
+2017/07/14 17:39:11 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m| 4.660082324s|   match|[46m POST    [0m /v1/etl/data_calibration   r:/v1/etl/data_calibration
+2017/07/14 17:39:17 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502617146} 
+2017/07/14 17:39:17 [I] [check_request.go:139] reqeust url: /v1/etl/data_calibration 
+2017/07/14 17:39:17 [I] [check_request.go:142] request body string: {
+	"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83",
+	"schema":"public",
+	"table": "truck_template"
+} 
+2017/07/14 17:39:17 [I] [check_request.go:147] post request postform data: map[] 
+2017/07/14 17:39:17 [I] [check_request.go:167] request params: map[dbid:6af073b5-8cab-4a43-8107-b73b5ac63d83 schema:public table:truck_template] 
+2017/07/14 17:39:17 [I] [check_request.go:169] request all params json string: {"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83","schema":"public","table":"truck_template"} 
+2017/07/14 17:39:17 [D] [table.go:162] table count 1 public.truck_template 
+2017/07/14 17:39:17 [D] [etl.go:91] checkres true 
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] the request url is  /v1/etl/data_calibration
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] Handler crashed with error runtime error: index out of range
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/runtime/asm_amd64.s:514
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/runtime/panic.go:489
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/runtime/panic.go:28
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /Users/hebaoliang/go/src/logistics/src/allsum_bi/db/table.go:222
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /Users/hebaoliang/go/src/logistics/src/allsum_bi/services/etl/etl.go:253
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /Users/hebaoliang/go/src/logistics/src/allsum_bi/services/etl/etl.go:193
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /Users/hebaoliang/go/src/logistics/src/allsum_bi/controllers/etlmgr/etl.go:94
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/runtime/asm_amd64.s:514
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/reflect/value.go:434
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/reflect/value.go:302
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /Users/hebaoliang/go/src/logistics/src/github.com/astaxie/beego/router.go:809
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/net/http/server.go:2568
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/net/http/server.go:1825
+2017/07/14 17:39:17 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/runtime/asm_amd64.s:2197
+2017/07/14 18:06:31 [I] [asm_amd64.s:2197] http server Running on http://:9001
+2017/07/14 18:07:14 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502617157} 
+2017/07/14 18:07:14 [I] [check_request.go:139] reqeust url: /v1/etl/data_calibration 
+2017/07/14 18:07:14 [I] [check_request.go:142] request body string: {
+	"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83",
+	"schema":"public",
+	"table": "truck_template"
+} 
+2017/07/14 18:07:14 [I] [check_request.go:147] post request postform data: map[] 
+2017/07/14 18:07:14 [I] [check_request.go:167] request params: map[dbid:6af073b5-8cab-4a43-8107-b73b5ac63d83 schema:public table:truck_template] 
+2017/07/14 18:07:14 [I] [check_request.go:169] request all params json string: {"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83","schema":"public","table":"truck_template"} 
+2017/07/14 18:07:14 [D] [table.go:162] table count 0 public.truck_template 
+2017/07/14 18:07:14 [D] [etl.go:91] checkres false 
+2017/07/14 18:07:14 [D] [etl.go:112] create sql: create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null) 
+2017/07/14 18:07:14 [D] [etl.go:266] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 18:07:19 [D] [etl.go:131] etl done 
+2017/07/14 18:07:19 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m| 4.673439253s|   match|[46m POST    [0m /v1/etl/data_calibration   r:/v1/etl/data_calibration
+2017/07/14 18:37:56 [I] [asm_amd64.s:2197] http server Running on http://:9001
+2017/07/14 18:38:39 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502618834} 
+2017/07/14 18:38:39 [I] [check_request.go:139] reqeust url: /v1/etl/data_calibration 
+2017/07/14 18:38:39 [I] [check_request.go:142] request body string: {
+	"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83",
+	"schema":"public",
+	"table": "truck_template"
+} 
+2017/07/14 18:38:39 [I] [check_request.go:147] post request postform data: map[] 
+2017/07/14 18:38:39 [I] [check_request.go:167] request params: map[dbid:6af073b5-8cab-4a43-8107-b73b5ac63d83 schema:public table:truck_template] 
+2017/07/14 18:38:39 [I] [check_request.go:169] request all params json string: {"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83","schema":"public","table":"truck_template"} 
+2017/07/14 18:38:39 [D] [table.go:162] table count 1 public.truck_template 
+2017/07/14 18:38:39 [D] [etl.go:91] checkres true 
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] the request url is  /v1/etl/data_calibration
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] Handler crashed with error runtime error: index out of range
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/runtime/asm_amd64.s:514
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/runtime/panic.go:489
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/runtime/panic.go:28
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /Users/hebaoliang/go/src/logistics/src/allsum_bi/db/table.go:222
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /Users/hebaoliang/go/src/logistics/src/allsum_bi/services/etl/etl.go:254
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /Users/hebaoliang/go/src/logistics/src/allsum_bi/services/etl/etl.go:194
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /Users/hebaoliang/go/src/logistics/src/allsum_bi/controllers/etlmgr/etl.go:94
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/runtime/asm_amd64.s:514
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/reflect/value.go:434
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/reflect/value.go:302
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /Users/hebaoliang/go/src/logistics/src/github.com/astaxie/beego/router.go:809
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/net/http/server.go:2568
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/net/http/server.go:1825
+2017/07/14 18:38:39 [C] [asm_amd64.s:514] /usr/local/Cellar/go/1.8/libexec/src/runtime/asm_amd64.s:2197
+2017/07/14 18:39:50 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502620719} 
+2017/07/14 18:39:50 [I] [check_request.go:139] reqeust url: /v1/etl/show_sycn_list?dbid=6af073b5-8cab-4a43-8107-b73b5ac63d83&schema=public 
+2017/07/14 18:39:50 [I] [check_request.go:142] request body string:  
+2017/07/14 18:39:50 [I] [check_request.go:152] get request form data: map[] 
+2017/07/14 18:39:50 [I] [check_request.go:167] request params: map[] 
+2017/07/14 18:39:50 [I] [check_request.go:169] request all params json string: {} 
+2017/07/14 18:39:50 [D] [etl.go:21] schema  6af073b5-8cab-4a43-8107-b73b5ac63d83 public 
+2017/07/14 18:39:50 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m|  64.144059ms|   match|[44m GET     [0m /v1/etl/show_sycn_list   r:/v1/etl/show_sycn_list
+2017/07/14 18:39:57 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502620790} 
+2017/07/14 18:39:57 [I] [check_request.go:139] reqeust url: /v1/etl/data_calibration 
+2017/07/14 18:39:57 [I] [check_request.go:142] request body string: {
+	"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83",
+	"schema":"public",
+	"table": "truck_template"
+} 
+2017/07/14 18:39:57 [I] [check_request.go:147] post request postform data: map[] 
+2017/07/14 18:39:57 [I] [check_request.go:167] request params: map[dbid:6af073b5-8cab-4a43-8107-b73b5ac63d83 schema:public table:truck_template] 
+2017/07/14 18:39:57 [I] [check_request.go:169] request all params json string: {"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83","schema":"public","table":"truck_template"} 
+2017/07/14 18:39:57 [D] [table.go:162] table count 0 public.truck_template 
+2017/07/14 18:39:57 [D] [etl.go:91] checkres false 
+2017/07/14 18:39:57 [D] [etl.go:112] create sql: create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null) 
+2017/07/14 18:39:57 [D] [etl.go:266] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 18:40:02 [D] [etl.go:131] etl done 
+2017/07/14 18:40:02 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m| 4.921422568s|   match|[46m POST    [0m /v1/etl/data_calibration   r:/v1/etl/data_calibration
+2017/07/14 18:40:14 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502620797} 
+2017/07/14 18:40:14 [I] [check_request.go:139] reqeust url: /v1/etl/data_calibration 
+2017/07/14 18:40:14 [I] [check_request.go:142] request body string: {
+	"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83",
+	"schema":"public",
+	"table": "truck_template"
+} 
+2017/07/14 18:40:14 [I] [check_request.go:147] post request postform data: map[] 
+2017/07/14 18:40:14 [I] [check_request.go:167] request params: map[dbid:6af073b5-8cab-4a43-8107-b73b5ac63d83 schema:public table:truck_template] 
+2017/07/14 18:40:14 [I] [check_request.go:169] request all params json string: {"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83","schema":"public","table":"truck_template"} 
+2017/07/14 18:40:15 [D] [table.go:162] table count 0 public.truck_template 
+2017/07/14 18:40:15 [D] [etl.go:91] checkres false 
+2017/07/14 18:40:15 [D] [etl.go:112] create sql: create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null) 
+2017/07/14 18:40:15 [D] [etl.go:266] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 18:40:46 [D] [etl.go:131] etl done 
+2017/07/14 18:40:46 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m|31.586708473s|   match|[46m POST    [0m /v1/etl/data_calibration   r:/v1/etl/data_calibration
+2017/07/14 18:41:43 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502620814} 
+2017/07/14 18:41:43 [I] [check_request.go:139] reqeust url: /v1/etl/data_calibration 
+2017/07/14 18:41:43 [I] [check_request.go:142] request body string: {
+	"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83",
+	"schema":"public",
+	"table": "truck_template"
+} 
+2017/07/14 18:41:43 [I] [check_request.go:147] post request postform data: map[] 
+2017/07/14 18:41:43 [I] [check_request.go:167] request params: map[dbid:6af073b5-8cab-4a43-8107-b73b5ac63d83 schema:public table:truck_template] 
+2017/07/14 18:41:43 [I] [check_request.go:169] request all params json string: {"dbid":"6af073b5-8cab-4a43-8107-b73b5ac63d83","schema":"public","table":"truck_template"} 
+2017/07/14 18:41:43 [D] [table.go:162] table count 1 public.truck_template 
+2017/07/14 18:41:43 [D] [etl.go:91] checkres true 
+2017/07/14 18:41:43 [D] [etl.go:266] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 18:41:47 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m| 4.474387759s|   match|[46m POST    [0m /v1/etl/data_calibration   r:/v1/etl/data_calibration
+2017/07/14 18:41:57 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502620903} 
+2017/07/14 18:41:57 [I] [check_request.go:139] reqeust url: /v1/etl/show_sycn_list?dbid=6af073b5-8cab-4a43-8107-b73b5ac63d83&schema=public 
+2017/07/14 18:41:57 [I] [check_request.go:142] request body string:  
+2017/07/14 18:41:57 [I] [check_request.go:152] get request form data: map[] 
+2017/07/14 18:41:57 [I] [check_request.go:167] request params: map[] 
+2017/07/14 18:41:57 [I] [check_request.go:169] request all params json string: {} 
+2017/07/14 18:41:57 [D] [etl.go:21] schema  6af073b5-8cab-4a43-8107-b73b5ac63d83 public 
+2017/07/14 18:41:57 [D] [synchronous.go:130] sourcetable public.truck_template 
+2017/07/14 18:41:57 [D] [server.go:2568] |      127.0.0.1|[42m 200 [0m|  84.843124ms|   match|[44m GET     [0m /v1/etl/show_sycn_list   r:/v1/etl/show_sycn_list
+2017/07/14 18:57:02 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502620917} 
+2017/07/14 18:57:02 [I] [check_request.go:139] reqeust url: /v1/etl/set_etl 
+2017/07/14 18:57:02 [I] [check_request.go:142] request body string: {
+	"sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3",
+	"script":"",
+	"create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)",
+	"alter_script":"",
+	"param_script":"",
+	"cron": "0 * * * * *",
+	"documents": "我这次就是啥都没有动",
+	"error_limit": 10
+} 
+2017/07/14 18:57:02 [I] [check_request.go:147] post request postform data: map[] 
+2017/07/14 18:57:02 [I] [check_request.go:167] request params: map[documents:我这次就是啥都没有动 error_limit:10 sync_uuid:569e89e4-e491-4678-aa75-e299a63596b3 script: create_script:create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null) alter_script: param_script: cron:0 * * * * *] 
+2017/07/14 18:57:02 [I] [check_request.go:169] request all params json string: {"alter_script":"","create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)","cron":"0 * * * * *","documents":"我这次就是啥都没有动","error_limit":10,"param_script":"","script":"","sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3"} 
+2017/07/14 18:57:02 [E] [response.go:37] &{10000 参数错误 <nil>} 
+2017/07/14 18:57:02 [E] [log.go:70] set etl some params is null  
+2017/07/14 18:57:02 [C] [config.go:165] the request url is  /v1/etl/set_etl
+2017/07/14 18:57:02 [C] [config.go:166] Handler crashed with error interface conversion: interface {} is nil, not string
+2017/07/14 18:57:02 [C] [config.go:172] /usr/local/Cellar/go/1.8/libexec/src/runtime/asm_amd64.s:514
+2017/07/14 18:57:02 [C] [config.go:172] /usr/local/Cellar/go/1.8/libexec/src/runtime/panic.go:489
+2017/07/14 18:57:02 [C] [config.go:172] /usr/local/Cellar/go/1.8/libexec/src/runtime/iface.go:172
+2017/07/14 18:57:02 [C] [config.go:172] /Users/hebaoliang/go/src/logistics/src/allsum_bi/services/etl/etl.go:315
+2017/07/14 18:57:02 [C] [config.go:172] /Users/hebaoliang/go/src/logistics/src/allsum_bi/controllers/etlmgr/etl.go:136
+2017/07/14 18:57:02 [C] [config.go:172] /usr/local/Cellar/go/1.8/libexec/src/runtime/asm_amd64.s:514
+2017/07/14 18:57:02 [C] [config.go:172] /usr/local/Cellar/go/1.8/libexec/src/reflect/value.go:434
+2017/07/14 18:57:02 [C] [config.go:172] /usr/local/Cellar/go/1.8/libexec/src/reflect/value.go:302
+2017/07/14 18:57:02 [C] [config.go:172] /Users/hebaoliang/go/src/logistics/src/github.com/astaxie/beego/router.go:809
+2017/07/14 18:57:02 [C] [config.go:172] /usr/local/Cellar/go/1.8/libexec/src/net/http/server.go:2568
+2017/07/14 18:57:02 [C] [config.go:172] /usr/local/Cellar/go/1.8/libexec/src/net/http/server.go:1825
+2017/07/14 18:57:02 [C] [config.go:172] /usr/local/Cellar/go/1.8/libexec/src/runtime/asm_amd64.s:2197
+2017/07/14 18:57:02 [log.go:175] [HTTP] http: multiple response.WriteHeader calls
+2017/07/14 18:59:59 [I] [asm_amd64.s:2197] http server Running on http://:9001
+2017/07/14 19:00:04 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502621822} 
+2017/07/14 19:00:04 [I] [check_request.go:139] reqeust url: /v1/etl/set_etl 
+2017/07/14 19:00:04 [I] [check_request.go:142] request body string: {
+	"sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3",
+	"script":"",
+	"create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)",
+	"alter_script":"",
+	"param_script":"",
+	"cron": "0 * * * * *",
+	"documents": "我这次就是啥都没有动",
+	"error_limit": 10
+} 
+2017/07/14 19:00:04 [I] [check_request.go:147] post request postform data: map[] 
+2017/07/14 19:00:04 [I] [check_request.go:167] request params: map[error_limit:10 sync_uuid:569e89e4-e491-4678-aa75-e299a63596b3 script: create_script:create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null) alter_script: param_script: cron:0 * * * * * documents:我这次就是啥都没有动] 
+2017/07/14 19:00:04 [I] [check_request.go:169] request all params json string: {"alter_script":"","create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)","cron":"0 * * * * *","documents":"我这次就是啥都没有动","error_limit":10,"param_script":"","script":"","sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3"} 
+2017/07/14 19:00:04 [E] [response.go:37] &{10000 参数错误 <nil>} 
+2017/07/14 19:00:04 [E] [log.go:70] set etl some params is null  
+2017/07/14 19:00:04 [D] [log.go:100] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 19:00:09 [D] [router.go:879] |      127.0.0.1|[42m 200 [0m| 4.608607712s|   match|[46m POST    [0m /v1/etl/set_etl   r:/v1/etl/set_etl
+2017/07/14 19:00:17 [D] [log.go:100] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502622004} 
+2017/07/14 19:00:17 [I] [log.go:95] reqeust url: /v1/etl/set_etl 
+2017/07/14 19:00:17 [I] [log.go:95] request body string: {
+	"sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3",
+	"script":"",
+	"create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)",
+	"alter_script":"",
+	"param_script":"",
+	"cron": "0 * * * * *",
+	"documents": "我这次就是啥都没有动",
+	"error_limit": 10
+} 
+2017/07/14 19:00:17 [I] [log.go:95] post request postform data: map[] 
+2017/07/14 19:00:17 [I] [log.go:95] request params: map[error_limit:10 sync_uuid:569e89e4-e491-4678-aa75-e299a63596b3 script: create_script:create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null) alter_script: param_script: cron:0 * * * * * documents:我这次就是啥都没有动] 
+2017/07/14 19:00:17 [I] [log.go:95] request all params json string: {"alter_script":"","create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)","cron":"0 * * * * *","documents":"我这次就是啥都没有动","error_limit":10,"param_script":"","script":"","sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3"} 
+2017/07/14 19:00:17 [E] [response.go:37] &{10000 参数错误 <nil>} 
+2017/07/14 19:00:17 [E] [log.go:70] set etl some params is null  
+2017/07/14 19:00:17 [D] [log.go:100] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 19:00:21 [D] [router.go:879] |      127.0.0.1|[42m 200 [0m| 4.501731652s|   match|[46m POST    [0m /v1/etl/set_etl   r:/v1/etl/set_etl
+2017/07/14 19:00:45 [D] [log.go:100] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502622017} 
+2017/07/14 19:00:45 [I] [log.go:95] reqeust url: /v1/etl/set_etl 
+2017/07/14 19:00:45 [I] [log.go:95] request body string: {
+	"sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3",
+	"script":"",
+	"create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)",
+	"alter_script":"",
+	"param_script":"",
+	"cron": "0 * * * * *",
+	"documents": "我这次就是啥都没有动",
+	"error_limit": 10
+} 
+2017/07/14 19:00:45 [I] [log.go:95] post request postform data: map[] 
+2017/07/14 19:00:45 [I] [log.go:95] request params: map[alter_script: param_script: cron:0 * * * * * documents:我这次就是啥都没有动 error_limit:10 sync_uuid:569e89e4-e491-4678-aa75-e299a63596b3 script: create_script:create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)] 
+2017/07/14 19:00:45 [I] [log.go:95] request all params json string: {"alter_script":"","create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)","cron":"0 * * * * *","documents":"我这次就是啥都没有动","error_limit":10,"param_script":"","script":"","sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3"} 
+2017/07/14 19:00:45 [E] [response.go:37] &{10000 参数错误 <nil>} 
+2017/07/14 19:00:45 [E] [log.go:70] set etl some params is null  
+2017/07/14 19:00:45 [D] [log.go:100] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 19:00:49 [D] [router.go:879] |      127.0.0.1|[42m 200 [0m|  4.26362537s|   match|[46m POST    [0m /v1/etl/set_etl   r:/v1/etl/set_etl
+2017/07/14 19:01:20 [D] [log.go:100] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502622045} 
+2017/07/14 19:01:20 [I] [log.go:95] reqeust url: /v1/etl/set_etl 
+2017/07/14 19:01:20 [I] [log.go:95] request body string: {
+	"sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3",
+	"script":"",
+	"create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)",
+	"alter_script":"",
+	"param_script":"",
+	"cron": "0 * * * * *",
+	"documents": "我这次就是啥都没有动",
+	"error_limit": 10
+} 
+2017/07/14 19:01:20 [I] [log.go:95] post request postform data: map[] 
+2017/07/14 19:01:20 [I] [log.go:95] request params: map[alter_script: param_script: cron:0 * * * * * documents:我这次就是啥都没有动 error_limit:10 sync_uuid:569e89e4-e491-4678-aa75-e299a63596b3 script: create_script:create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)] 
+2017/07/14 19:01:20 [I] [log.go:95] request all params json string: {"alter_script":"","create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)","cron":"0 * * * * *","documents":"我这次就是啥都没有动","error_limit":10,"param_script":"","script":"","sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3"} 
+2017/07/14 19:01:20 [E] [response.go:37] &{10000 参数错误 <nil>} 
+2017/07/14 19:01:20 [E] [log.go:70] set etl some params is null  
+2017/07/14 19:01:20 [D] [log.go:100] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 19:01:25 [D] [router.go:879] |      127.0.0.1|[42m 200 [0m| 4.661764021s|   match|[46m POST    [0m /v1/etl/set_etl   r:/v1/etl/set_etl
+2017/07/14 19:03:47 [I] [asm_amd64.s:2197] http server Running on http://:9001
+2017/07/14 19:04:12 [I] [asm_amd64.s:2197] http server Running on http://:9001
+2017/07/14 19:04:19 [D] [check_auth.go:88] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502622080} 
+2017/07/14 19:04:19 [I] [check_request.go:139] reqeust url: /v1/etl/set_etl 
+2017/07/14 19:04:19 [I] [check_request.go:142] request body string: {
+	"sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3",
+	"script":"",
+	"create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)",
+	"alter_script":"",
+	"param_script":"",
+	"cron": "0 * * * * *",
+	"documents": "我这次就是啥都没有动",
+	"error_limit": 10
+} 
+2017/07/14 19:04:19 [I] [check_request.go:147] post request postform data: map[] 
+2017/07/14 19:04:19 [I] [check_request.go:167] request params: map[param_script: cron:0 * * * * * documents:我这次就是啥都没有动 error_limit:10 sync_uuid:569e89e4-e491-4678-aa75-e299a63596b3 script: create_script:create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null) alter_script:] 
+2017/07/14 19:04:19 [I] [check_request.go:169] request all params json string: {"alter_script":"","create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)","cron":"0 * * * * *","documents":"我这次就是啥都没有动","error_limit":10,"param_script":"","script":"","sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3"} 
+2017/07/14 19:04:19 [E] [response.go:37] &{10000 参数错误 <nil>} 
+2017/07/14 19:04:19 [E] [log.go:70] set etl some params is null  
+2017/07/14 19:04:19 [D] [log.go:100] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 19:04:23 [D] [router.go:879] |      127.0.0.1|[42m 200 [0m| 4.340296575s|   match|[46m POST    [0m /v1/etl/set_etl   r:/v1/etl/set_etl
+2017/07/14 19:06:48 [D] [log.go:100] CheckAuthFilter token &{stowage_user 33  TAEHZBW/w4LGZ7afXtm6l7jvYB3UwnWqJybJdhLmWLI=  1502622259} 
+2017/07/14 19:06:48 [I] [log.go:95] reqeust url: /v1/etl/set_etl 
+2017/07/14 19:06:48 [I] [log.go:95] request body string: {
+	"sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3",
+	"script":"",
+	"create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)",
+	"alter_script":"",
+	"param_script":"",
+	"cron": "0 * * * * *",
+	"documents": "我这次就是啥都没有动",
+	"error_limit": 10
+} 
+2017/07/14 19:06:48 [I] [log.go:95] post request postform data: map[] 
+2017/07/14 19:06:48 [I] [log.go:95] request params: map[create_script:create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null) alter_script: param_script: cron:0 * * * * * documents:我这次就是啥都没有动 error_limit:10 sync_uuid:569e89e4-e491-4678-aa75-e299a63596b3 script:] 
+2017/07/14 19:06:48 [I] [log.go:95] request all params json string: {"alter_script":"","create_script":"create table public.truck_template (id integer not null,name character varying(128) not null,rand_id character varying(128) not null,combined_city_level character varying(10) not null,length double precision not null,width double precision not null,height double precision not null,carry_capacity double precision not null,is_back boolean null,price_per_km double precision not null,factor_per_km double precision not null)","cron":"0 * * * * *","documents":"我这次就是啥都没有动","error_limit":10,"param_script":"","script":"","sync_uuid":"569e89e4-e491-4678-aa75-e299a63596b3"} 
+2017/07/14 19:06:48 [E] [response.go:37] &{10000 参数错误 <nil>} 
+2017/07/14 19:06:48 [E] [log.go:70] set etl some params is null  
+2017/07/14 19:06:48 [D] [log.go:100] runjs: var source = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/db_logistic?sslmode=disable&user=user_logistic&password=AllSum123"})
+var sink = postgres({"uri": "postgres://rm-uf6q1kk0byn74g70zo.pg.rds.aliyuncs.com:3432/allsum_bi?sslmode=disable&user=user_logistic&password=AllSum123"})
+t.Source( source, "/^public.truck_template\/" ).Save( sink, "/public.truck_template/" )
+ 
+2017/07/14 19:06:53 [D] [router.go:879] |      127.0.0.1|[42m 200 [0m| 4.862945374s|   match|[46m POST    [0m /v1/etl/set_etl   r:/v1/etl/set_etl

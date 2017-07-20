@@ -22,7 +22,7 @@ type Demand struct {
 	HandlerName       string
 	Assignerid        int
 	AssignerName      string
-	Price             float32
+	Price             float64
 	Deadline          time.Time
 	Resultcode        string
 	Inittime          time.Time

@@ -296,7 +296,7 @@ func (c *Controller) SetDemand() {
 	//	reportuuid := reqbody["reportuuid"].(string)
 	demanduuid := reqbody["demanduuid"].(string)
 	description := reqbody["description"].(string)
-	price := reqbody["price"].(float32)
+	price := reqbody["price"].(float64)
 	report_type := int(reqbody["report_type"].(float64))
 	handlerid := int(reqbody["handlerid"].(float64))
 	var deadline time.Time
@@ -319,7 +319,7 @@ func (c *Controller) SetDemand() {
 		c.ReplyErr(errcode.ErrActionGetDemand)
 		return
 	}
-	report, err := models.GetReport(demand.Id)
+	report, err := models.GetReport(demand.Reportid)
 	if err != nil {
 		beego.Error("get report err : ", err)
 		c.ReplyErr(errcode.ErrActionGetReport)
