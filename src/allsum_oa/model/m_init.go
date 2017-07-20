@@ -111,7 +111,7 @@ func InitSchemaModel(prefix string) (e error) {
 	db := ormer.db
 	prefix += "."
 	e = db.Table(prefix + Group{}.TableName()).AutoMigrate(new(Group)).Error
-	if e != nil && (strings.Contains(e.Error(), "already exists") ||
+	if e != nil && (strings.Contains(e.Error(), DBErrStrAlreadyExists) ||
 		strings.Contains(e.Error(), "已经存在")) {
 		beego.Info(e)
 		return nil

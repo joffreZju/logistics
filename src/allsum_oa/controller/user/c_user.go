@@ -16,6 +16,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/ysqi/tokenauth"
 	"github.com/ysqi/tokenauth2beego/o2o"
+	"strings"
 )
 
 const commonErr = 99999
@@ -94,8 +95,11 @@ func (c *Controller) UserRegister() {
 	err := model.CreateUser("public", &u)
 	if err != nil {
 		beego.Error(err)
-		err = errcode.ErrUserCreateFailed
-		c.ReplyErr(err)
+		if strings.Contains(err.Error(), model.DBErrStrDuplicateKey) {
+			c.ReplyErr(errcode.ErrUserAlreadyExisted)
+		} else {
+			c.ReplyErr(errcode.ErrUserCreateFailed)
+		}
 		return
 	}
 	comp := model.Company{
@@ -112,7 +116,7 @@ func (c *Controller) UserRegister() {
 		c.ReplyErr(errcode.ErrFirmCreateFailed)
 		return
 	}
-	model.AddUserToCompany(comp.No, u.Id)
+	err = model.AddUserToCompany(comp.No, u.Id)
 	if err != nil {
 		beego.Error(err)
 		c.ReplyErr(errcode.ErrFirmCreateFailed)

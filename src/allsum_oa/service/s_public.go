@@ -223,7 +223,7 @@ func GetCompanyList() (interface{}, error) {
 func createSchema(schema string) (e error) {
 	sql := fmt.Sprintf(`create schema "%s"`, schema)
 	e = model.NewOrm().Exec(sql).Error
-	if e != nil && (strings.Contains(e.Error(), "already exists") ||
+	if e != nil && (strings.Contains(e.Error(), model.DBErrStrAlreadyExists) ||
 		strings.Contains(e.Error(), "已经存在")) {
 		return nil
 	}

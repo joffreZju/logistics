@@ -9,6 +9,11 @@ import (
 	"strings"
 )
 
+const (
+	DBErrStrDuplicateKey  = "duplicate key value violates unique constraint"
+	DBErrStrAlreadyExists = "already exists"
+)
+
 type JsonMap map[string]interface{}
 
 func (m JsonMap) Value() (driver.Value, error) {
