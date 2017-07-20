@@ -145,8 +145,8 @@ func (c *Controller) AddDemand() {
 		c.ReplyErr(errcode.ErrActionGetReport)
 		return
 	}
-	demand.Reportid = report.Id
-	err = models.UpdateDemand(demand, "reportid")
+	demandres.Reportid = report.Id
+	err = models.UpdateDemand(demandres, "reportid")
 	if err != nil {
 		beego.Error("update demand err", err)
 		c.ReplyErr(errcode.ErrActionPutDemand)
