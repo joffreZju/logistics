@@ -272,6 +272,7 @@ func (c *Controller) GetAnalyzeReport() {
 		"contactid":          demand.Contactid,
 		"description":        demand.Description,
 		"inittime":           demand.Inittime,
+		"price":              demand.Price,
 		"report_type":        report.Reporttype,
 		"doc_name":           demand.DocName,
 		"assignetime":        demand.Assignetime,
@@ -295,6 +296,7 @@ func (c *Controller) SetDemand() {
 	//	reportuuid := reqbody["reportuuid"].(string)
 	demanduuid := reqbody["demanduuid"].(string)
 	description := reqbody["description"].(string)
+	price := reqbody["price"].(float32)
 	report_type := int(reqbody["report_type"].(float64))
 	handlerid := int(reqbody["handlerid"].(float64))
 	var deadline time.Time
@@ -328,8 +330,9 @@ func (c *Controller) SetDemand() {
 	demand.Deadline = deadline
 	demand.AssignerAuthority = assigner_authority
 	demand.Status = util.DEMAND_STATUS_BUILDING
+	demand.Price = price
 
-	err = models.UpdateDemand(demand, "description", "handleid", "deadline", "assigner_authority", "status")
+	err = models.UpdateDemand(demand, "description", "price", "handleid", "deadline", "assigner_authority", "status")
 	if err != nil {
 		beego.Error("update demand err :", err)
 		c.ReplyErr(errcode.ErrActionPutDemand)
