@@ -6,7 +6,6 @@ import (
 	"allsum_bi/util"
 	"allsum_bi/util/ossfile"
 	"common/lib/errcode"
-	"fmt"
 	"io/ioutil"
 
 	"github.com/astaxie/beego"
@@ -53,11 +52,10 @@ func (c *Controller) AddTest() {
 		c.ReplyErr(errcode.ErrActionGetReport)
 		return
 	}
-	i := 0
 	var uripaths []string
-	for i <= util.TEST_MAX_UPLOAD_IMAGE {
-		uploadkey := fmt.Sprintf("file_%d", i)
-		i += 1
+	fileform := c.Ctx.Request.MultipartForm
+	filelist := fileform.File
+	for uploadkey, _ := range filelist {
 		f, h, err := c.GetFile(uploadkey)
 		if err != nil {
 			beego.Error("get file err :", err)
