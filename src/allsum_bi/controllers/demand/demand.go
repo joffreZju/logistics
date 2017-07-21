@@ -81,9 +81,14 @@ func (c *Controller) ListDemand() {
 	var res map[string]interface{}
 	var data []map[string]interface{}
 	for _, demand := range demands {
+		report, err := models.GetReport(demand.Reportid)
+		if err != nil {
+			continue
+		}
 		mapdemand := map[string]interface{}{
-			"index": demand.Id,
-			"uuid":  demand.Uuid,
+			"index":      demand.Id,
+			"uuid":       demand.Uuid,
+			"reportuuid": report.Uuid,
 			//			"owner":             demand.Owner,
 			"owner_name": demand.OwnerName,
 			"exhibitor":  demand.Exhibitor,
