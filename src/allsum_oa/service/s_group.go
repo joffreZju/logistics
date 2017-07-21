@@ -365,13 +365,12 @@ func GetGroupOpDetail(prefix string, id int) (groups []*model.Group, e error) {
 	return
 }
 
-func CancelGroupOp(prefix string, beginTime time.Time) (e error) {
+func CancelGroupOp(prefix string, opId int) (e error) {
 	op := &model.GroupOperation{
-		BeginTime: beginTime,
-		Status:    model.GroupOpStatFuture,
+		Id:     opId,
+		Status: model.GroupOpStatFuture,
 	}
-	e = model.NewOrm().Table(prefix + "." + op.TableName()).
-		Where(op).Delete(op).Error
+	e = model.NewOrm().Table(prefix+"."+op.TableName()).Delete(op, op).Error
 	return
 }
 

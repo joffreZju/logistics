@@ -376,14 +376,20 @@ func (c *Controller) GetGroupOpDetail() {
 //取消未生效的组织树操作记录
 func (c *Controller) CancelGroupOp() {
 	prefix := c.UserComp
-	t, e := time.ParseInLocation(model.TimeFormatWithLocal, c.GetString("beginTime"), time.Local)
+	//t, e := time.ParseInLocation(model.TimeFormatWithLocal, c.GetString("beginTime"), time.Local)
+	//if e != nil {
+	//	c.ReplyErr(errcode.ErrParams)
+	//	beego.Error(e)
+	//	return
+	//}
+	//t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	opId, e := c.GetInt("opId")
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
 		return
 	}
-	t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-	e = service.CancelGroupOp(prefix, t)
+	e = service.CancelGroupOp(prefix, opId)
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))
 		beego.Error(e)
