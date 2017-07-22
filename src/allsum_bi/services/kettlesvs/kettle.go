@@ -1,4 +1,4 @@
-package kettle
+package kettlesvs
 
 import (
 	"allsum_bi/models"

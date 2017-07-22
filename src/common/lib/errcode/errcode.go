@@ -95,6 +95,7 @@ var (
 	ErrActionGetTestInfo    = &CodeError{20521, "获取测试数据失败"}
 	ErrActionGetJobInfo     = &CodeError{20522, "获取KETTLE任务数据失败"}
 	ErrActionAddJobInfo     = &CodeError{20523, "添加KETTLE任务数据失败"}
+	ErrActionSetJobNum      = &CodeError{20524, "设置KETTLEJOB数据出错"}
 )
 
 func ParseError(err error) (code int, msg string) {

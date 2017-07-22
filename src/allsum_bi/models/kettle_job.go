@@ -4,6 +4,7 @@ import (
 	"allsum_bi/db/conn"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -63,11 +64,43 @@ func ListKettleJobByField(fields []string, values []interface{}, limit int, inde
 	return
 }
 
+func CountKettleJobByField(fields []string, values []interface{}) (count int, err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	var conditions []string
+	for _, v := range fields {
+		conditions = append(conditions, fmt.Sprintf("%s=?", v))
+	}
+	conditionstr := strings.Join(conditions, " and ")
+	err = db.Table(GetKettleJobTableName()).Where(conditionstr, values...).Count(&count).Error
+	return
+}
+
 func GetKettleJobByUuid(uuid string) (kettle KettleJob, err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
 	}
 	err = db.Table(GetKettleJobTableName()).Where("uuid=?", uuid).First(&kettle).Error
+	return
+}
+
+func UpdateKettleJob(kettle KettleJob, fields ...string) (err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	err = db.Table(GetKettleJobTableName()).Where("id=?", kettle.Id).Updates(kettle).Update(fields).Error
+	return
+}
+
+func DeleteKettleJobByUuid(uuid string) (err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	err = db.Exec("delete from "+GetKettleJobTableName()+"where uuid = ?", uuid).Error
 	return
 }

@@ -1,4 +1,4 @@
-package kettle
+package kettlesvs
 
 import (
 	"allsum_bi/models"
@@ -55,5 +55,12 @@ func AddCron(jobid int, cronstr string, jobfilepath string) (err error) {
 			return
 		}
 	})
+	return
+}
+
+func StopCron(jobid int) (err error) {
+	if jobc, ok := CronJobs[jobid]; ok {
+		jobc.Stop()
+	}
 	return
 }

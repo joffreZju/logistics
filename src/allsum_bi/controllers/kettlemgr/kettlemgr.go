@@ -2,12 +2,15 @@ package kettlemgr
 
 import (
 	"allsum_bi/models"
-	"allsum_bi/services/kettle"
+	"allsum_bi/services/kettlesvs"
 	"allsum_bi/util"
+	"allsum_bi/util/ossfile"
 	"allsum_oa/controller/base"
 	"common/lib/errcode"
 	"encoding/json"
 	"io/ioutil"
+	"path"
+	"strings"
 
 	"github.com/astaxie/beego"
 )
@@ -53,11 +56,16 @@ func (c *Controller) AddKJob() {
 				return
 			}
 			kfname := h.Filename
+			if !strings.Contains(kfname, ".ktr") {
+				beego.Error("must ktr file :", kfname)
+				c.ReplyErr(errcode.ErrUploadFileFailed)
+				return
+			}
 			ktrdatamap[kfname] = ktrdata
 		}
 	}
 
-	kettlejob, err := kettle.AddJobKtrfile(Name, Cron, jobfilename, jobfiledata, ktrdatamap)
+	kettlejob, err := kettlesvs.AddJobKtrfile(Name, Cron, jobfilename, jobfiledata, ktrdatamap)
 	if err != nil {
 		beego.Error("add job file :", err)
 		c.ReplyErr(errcode.ErrUploadFileFailed)
@@ -120,10 +128,136 @@ func (c *Controller) ListKJob() {
 	return
 }
 
-func (c *Controller) SetJobEnable() {
+func (c *Controller) DownloadKJob() {
+	uuid := c.GetString("uuid")
+	kettlejob, err := models.GetKettleJobByUuid(uuid)
+	if err != nil {
+		return
+	}
+	//jobfile
+	Kjbpath := kettlejob.Kjbpath
+	var JobMap map[string][]byte
+	var kettlejobmap map[string]string
+	err = json.Unmarshal([]byte(Kjbpath), &kettlejobmap)
+	if err != nil {
+		beego.Error("unmarshall json err: ", err)
+		c.ReplyErr(errcode.ErrActionGetJobInfo)
+		return
+	}
+	urlpath := kettlejobmap["urlpath"]
+	jobfilename := path.Base(urlpath)
+	filedata, err := ossfile.GetFile(urlpath)
+	if err != nil {
+		beego.Error("get oss file err ", err)
+		c.ReplyErr(errcode.ErrDownloadFileFailed)
+		return
+	}
+	JobMap[jobfilename] = filedata
+	//ktrfile
+	var ktrmap map[string]string
+	err = json.Unmarshal([]byte(kettlejob.Ktrpath), &ktrmap)
+	if err != nil {
+		beego.Error("json unmarshal err: ", err)
+		c.ReplyErr(errcode.ErrDownloadFileFailed)
+		return
+	}
+	for _, ktrurl := range ktrmap {
+		ktrfilename := path.Base(ktrurl)
+		ktrdata, err := ossfile.GetFile(ktrurl)
+		if err != nil {
+			beego.Error("this url cant load :", ktrurl, err)
+			c.ReplyErr(errcode.ErrDownloadFileFailed)
+			return
+		}
+		JobMap[ktrfilename] = ktrdata
+	}
+	zipdata, err := util.Zip(JobMap)
+	if err != nil {
+		beego.Error("zip err :", err)
+		c.ReplyErr(errcode.ErrDownloadFileFailed)
+		return
+	}
+	c.ReplyFile("application/octet-stream", "kettle.zip", zipdata)
+	return
 
 }
 
-func (c *Controller) DeleteKJob() {
+func (c *Controller) SetJobEnable() {
+	kettleJoblimit, err := beego.AppConfig.Int("kettle::joblimit")
+	if err != nil {
+		kettleJoblimit = 5
+	}
+	var reqmap map[string]int
+	reqbody := c.Ctx.Request.Body
+	body, err := ioutil.ReadAll(reqbody)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(body, &reqmap)
+	if err != nil {
+		beego.Error("unmarshal json err", err)
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	setRunNum := 0
+	for _, status := range reqmap {
+		if status == util.KETTLEJOB_RIGHT {
+			setRunNum += 1
+		}
+	}
+	if setRunNum > kettleJoblimit {
+		beego.Error("run num err", setRunNum, kettleJoblimit)
+		c.ReplyErr(errcode.ErrActionSetJobNum)
+		return
+	}
+	kettlejobs, err := models.ListKettleJobByField([]string{}, []interface{}{}, 0, 0)
+	if err != nil {
+		beego.Error("list kettle job err:", err)
+		c.ReplyErr(errcode.ErrActionGetJobInfo)
+		return
+	}
+	for _, job := range kettlejobs {
+		status := reqmap[job.Uuid]
+		job.Status = status
+		if status == util.KETTLEJOB_RIGHT {
+			var kjbmap map[string]string
+			err = json.Unmarshal([]byte(job.Kjbpath), &kjbmap)
+			if err != nil {
+				beego.Error(" err: ", err)
+				c.ReplyErr(errcode.ErrActionSetJobNum)
+				return
+			}
+			kettleWorkPath := beego.AppConfig.String("kettle::workpath")
+			kettlesvs.AddCron(job.Id, job.Cron, kettleWorkPath+path.Base(kjbmap["urlpath"]))
+			err = models.UpdateKettleJob(job, "status")
+			if err != nil {
+				beego.Error(" err: ", err)
+				c.ReplyErr(errcode.ErrActionSetJobNum)
+				return
+			}
 
+		} else if status == util.KETTLEJOB_FAIL {
+			kettlesvs.StopCron(job.Id)
+			err = models.UpdateKettleJob(job, "status")
+			if err != nil {
+				beego.Error(" err: ", err)
+				c.ReplyErr(errcode.ErrActionSetJobNum)
+				return
+			}
+		}
+	}
+}
+
+func (c *Controller) DeleteKJob() {
+	uuid := c.GetString("uuid")
+	err := models.DeleteKettleJobByUuid(uuid)
+	if err != nil {
+		beego.Error(" err: ", err)
+		c.ReplyErr(errcode.ErrActionGetJobInfo)
+		return
+	}
+	res := map[string]string{
+		"res": "success",
+	}
+	c.ReplySucc(res)
 }
