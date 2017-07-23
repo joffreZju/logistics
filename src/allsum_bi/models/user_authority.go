@@ -2,6 +2,8 @@ package models
 
 import (
 	"allsum_bi/db/conn"
+	"database/sql"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -140,6 +142,37 @@ func CheckAuthorityReportSet(companyid string, roleid int, reportsetid int) (che
 		}
 	}
 	return false
+}
+
+func ListUserAuthority(companyid string, fields []string, values []interface{}, limit int, index int) (userauthoritys []UserAuthority, err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	condition := fmt.Sprintf("companyid=%s and id>%d", companyid, index)
+	for i, v := range fields {
+		condition = condition + fmt.Sprintf(" and %s=%v", v, values[i])
+	}
+	var rows *sql.Rows
+	if limit == 0 {
+		rows, err = db.Table(GetUserAuthorityTableName(companyid)).Where(condition).Rows()
+	} else {
+		rows, err = db.Table(GetUserAuthorityTableName(companyid)).Where(condition).Limit(limit).Rows()
+	}
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var userauthority UserAuthority
+		err = db.ScanRows(rows, &userauthority)
+		if err != nil {
+			return userauthoritys, err
+		}
+		userauthoritys = append(userauthoritys, userauthority)
+	}
+	return
 }
 
 func UpdateUserAuthority(companyid string, userauth UserAuthority, fields ...string) (err error) {
