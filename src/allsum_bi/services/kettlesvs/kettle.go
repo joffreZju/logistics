@@ -35,7 +35,7 @@ func ExecJob(jobfile string) (fmtstr string, err error) {
 	fmtbytes, err := cmd.Output()
 	if err != nil {
 		fmtstr = string(fmtbytes)
-		beego.Error("error format:", fmtstr)
+		//		beego.Error("error format:", fmtstr)
 		return fmtstr, err
 	}
 	return
@@ -84,11 +84,11 @@ func AddJobKtrfile(name string, cron string, filename string, jobfiledata []byte
 	}
 
 	kettlejob = models.KettleJob{
-		Name:    name,
-		Cron:    cron,
-		Kjbpath: string(kjobfilejson),
-		Ktrpath: string(ktrfilejson),
-		Status:  util.KETTLEJOB_FAIL,
+		Name:     name,
+		Cron:     cron,
+		Kjbpath:  string(kjobfilejson),
+		Ktrpaths: string(ktrfilejson),
+		Status:   util.KETTLEJOB_FAIL,
 	}
 	kettlejob, err = models.InsertKettleJob(kettlejob)
 	return
@@ -154,7 +154,7 @@ func ReloadJobPath() (err error) {
 		if err != nil {
 			return err
 		}
-		ktrpaths := strings.Split(kettlejob.Ktrpath, "_")
+		ktrpaths := strings.Split(kettlejob.Ktrpaths, "_")
 		for _, ktrpath := range ktrpaths {
 			filedata, err := ossfile.GetFile(ktrpath)
 			if err != nil {

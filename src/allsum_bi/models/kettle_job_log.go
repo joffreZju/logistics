@@ -18,7 +18,7 @@ func InsertKettleJobLog(kettlejoblog KettleJobLog) (err error) {
 		return
 	}
 
-	err = db.Table(GetKettleJobLogTableName()).Create(kettlejoblog).Error
+	err = db.Table(GetKettleJobLogTableName()).Create(&kettlejoblog).Error
 	return
 }
 

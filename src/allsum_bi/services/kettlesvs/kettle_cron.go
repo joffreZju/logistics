@@ -3,6 +3,9 @@ package kettlesvs
 import (
 	"allsum_bi/models"
 	"allsum_bi/util"
+	"encoding/json"
+	"path"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/robfig/cron"
@@ -26,9 +29,17 @@ func StartJobCron() (err error) {
 	for _, job := range jobs {
 		jobnum += 1
 		if jobnum > joblimit {
-			return nil
+			job.Status = util.KETTLEJOB_FAIL
+			models.UpdateKettleJob(job, "status")
+			continue
 		}
-		err := AddCron(job.Id, job.Cron, job.Kjbpath)
+		var kjbmap map[string]string
+		err = json.Unmarshal([]byte(job.Kjbpath), &kjbmap)
+		if err != nil {
+			beego.Error("err: ", err)
+			return
+		}
+		err := AddCron(job.Id, job.Cron, path.Base(kjbmap["urlpath"]))
 		if err != nil {
 			return err
 		}
@@ -43,8 +54,8 @@ func AddCron(jobid int, cronstr string, jobfilepath string) (err error) {
 	CronJobs[jobid] = cron.New()
 	CronJobs[jobid].Start()
 	err = CronJobs[jobid].AddFunc(cronstr, func() {
-		fmtstr, err := ExecJob(jobfilepath)
-		if err != nil {
+		fmtstr, _ := ExecJob(jobfilepath)
+		if strings.Contains(fmtstr, "ERROR") {
 			beego.Error("ExecJob fail :", fmtstr)
 			kettlelog := models.KettleJobLog{
 				KettleJobId: jobid,

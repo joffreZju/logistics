@@ -10,14 +10,14 @@ import (
 )
 
 type KettleJob struct {
-	Id      int
-	Uuid    string
-	Name    string
-	Cron    string
-	Kjbpath string
-	Ktrpath string
-	Lock    string
-	Status  int
+	Id       int
+	Uuid     string
+	Name     string
+	Cron     string
+	Kjbpath  string
+	Ktrpaths string
+	Lock     string
+	Status   int
 }
 
 func InsertKettleJob(kettlejob KettleJob) (kettlejobres KettleJob, err error) {
@@ -101,6 +101,6 @@ func DeleteKettleJobByUuid(uuid string) (err error) {
 	if err != nil {
 		return
 	}
-	err = db.Exec("delete from "+GetKettleJobTableName()+"where uuid = ?", uuid).Error
+	err = db.Exec("delete from "+GetKettleJobTableName()+" where uuid = ?", uuid).Error
 	return
 }

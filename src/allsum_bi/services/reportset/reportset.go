@@ -20,7 +20,7 @@ func GetData(uuid string, conditions []map[string]interface{}) (datas [][]interf
 	for _, conditionMap := range conditions {
 		field := conditionMap["field"].(string)
 		value := conditionMap["value"]
-		sqlstr = strings.Replace(sqlstr, "{"+field+"}", value.(string), 1)
+		sqlstr = strings.Replace(sqlstr, "{"+field+"}", value.(string), -1)
 	}
 	datas, err = db.QueryDatas(reportset.Dbid, sqlstr)
 	return

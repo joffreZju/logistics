@@ -7,6 +7,7 @@ import (
 	"allsum_bi/controllers/dbmgr"
 	"allsum_bi/controllers/demand"
 	"allsum_bi/controllers/etlmgr"
+	"allsum_bi/controllers/kettlemgr"
 	"allsum_bi/controllers/reportsetmgr"
 	"allsum_bi/controllers/testmgr"
 	"common/filter"
@@ -23,6 +24,7 @@ const (
 	ReportSetPrefix string = "/v1/reportset"
 	DbPrefix        string = "/v1/dbmgr"
 	TestPrefix      string = "/v1/testmgr"
+	KettlePrefix    string = "/v1/kettle"
 )
 
 func init() {
@@ -86,6 +88,13 @@ func init() {
 	beego.Router(TestPrefix+"/get", &testmgr.Controller{}, "get:GetTestInfo")
 	beego.Router(TestPrefix+"/add", &testmgr.Controller{}, "post:AddTest")
 	beego.Router(TestPrefix+"/get_image", &testmgr.Controller{}, "get:GetTestFile")
+
+	//kettlemgr
+	beego.Router(KettlePrefix+"/add_kettle_job", &kettlemgr.Controller{}, "post:AddKJob")
+	beego.Router(KettlePrefix+"/list_kettle_job", &kettlemgr.Controller{}, "get:ListKJob")
+	beego.Router(KettlePrefix+"/download_kettle_job", &kettlemgr.Controller{}, "get:DownloadKJob")
+	beego.Router(KettlePrefix+"/set_kettle_job_enable", &kettlemgr.Controller{}, "post:SetJobEnable")
+	beego.Router(KettlePrefix+"/delete_kettle_job", &kettlemgr.Controller{}, "delete:DeleteKJob")
 
 	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
 		//AllowOrigins:     []string{"http://localhost:8090", "http://www.suanpeizaix.comw", "http://www.suanpeizaix.com:8090"},

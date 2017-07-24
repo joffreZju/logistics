@@ -857,6 +857,69 @@ ALTER TABLE ONLY database_manager
     ADD CONSTRAINT database_manager_pkey PRIMARY KEY (dbid);
 
 
+
+--
+--kettle_job
+--
+-- ---------------------
+CREATE TABLE "bi_system"."kettle_job" (
+	"id" int4 NOT NULL DEFAULT nextval('kettle_job_id_seq'::regclass),
+	"name" varchar(256) NOT NULL COLLATE "default",
+	"cron" varchar(64) COLLATE "default",
+	"kjbpath" varchar(256) COLLATE "default",
+	"ktrpaths" varchar(256) COLLATE "default",
+	"status" int2 NOT NULL,
+	"uuid" varchar(128) NOT NULL COLLATE "default",
+	"lock" varchar(512) COLLATE "default"
+)
+WITH (OIDS=FALSE);
+ALTER TABLE "bi_system"."kettle_job" OWNER TO "user_logistic";
+
+-- ----------------------------
+--  Primary key structure for table kettle_job
+-- ----------------------------
+ALTER TABLE "bi_system"."kettle_job" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+CREATE SEQUENCE "bi_system"."kettle_job_id_seq"  
+START WITH 1  
+INCREMENT BY 1  
+NO MINVALUE  
+NO MAXVALUE  
+CACHE 1;
+
+alter table "bi_system"."kettle_job" alter column id set default nextval('kettle_job_id_seq' );
+
+
+--
+--
+--kettle_job_log
+--
+-- --------------------------------
+CREATE TABLE "bi_system"."kettle_job_log" (
+	"id" int8 NOT NULL DEFAULT nextval('kettle_job_log_id_seq'::regclass),
+	"kettle_job_id" int8 NOT NULL,
+	"error_info" text,
+	"status" int2 NOT NULL
+)
+WITH (OIDS=FALSE);
+ALTER TABLE "bi_system"."kettle_job_log" OWNER TO "user_logistic";
+
+-- ----------------------------
+--  Primary key structure for table kettle_job_log
+-- ----------------------------
+ALTER TABLE "bi_system"."kettle_job_log" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+CREATE SEQUENCE "bi_system"."kettle_job_log_id_seq"  
+START WITH 1  
+INCREMENT BY 1  
+NO MINVALUE  
+NO MAXVALUE  
+CACHE 1;
+
+alter table "bi_system"."kettle_job_log" alter column id set default nextval('kettle_job_log_id_seq' );
+
+
+
 --
 -- PostgreSQL database dump complete
 --
