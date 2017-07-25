@@ -9,6 +9,7 @@ import (
 	"allsum_oa/controller/user"
 	"common/filter"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/plugins/cors"
 )
 
 const (
@@ -117,18 +118,27 @@ func LoadRouter() {
 	beego.Router(ApprovalPrefix+"/to_me/get", &form.Controller{}, "*:GetApprovalsToMe")
 	beego.Router(ApprovalPrefix+"/detail", &form.Controller{}, "*:GetApprovalDetail")
 
+	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
+		//AllowOrigins:     []string{"http://localhost:8090", "http://www.suanpeizaix.comw", "http://www.suanpeizaix.com:8090"},
+		AllowAllOrigins:  true,
+		AllowHeaders:     []string{"access_token", "Authorization", "X-Requested-With", "Content-Type", "Origin", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers"},
+		AllowMethods:     []string{"GET", "DELETE", "PUT", "PATCH", "POST", "OPTIONS"},
+		ExposeHeaders:    []string{"Authorization", "Content-Type", "Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers"},
+		AllowCredentials: true,
+	}))
+
 	// 非登录态列表
 	notNeedAuthList := []string{
-		// aliyun check
-		//"/",
-		// user
-		ExemptPrefix + "/user/getcode", ExemptPrefix + "/user/register",
-		ExemptPrefix + "/user/login", ExemptPrefix + "/user/login_phone",
-		ExemptPrefix + "/user/login_out", ExemptPrefix + "/test",
-		ExemptPrefix + "/get_functions",
+		ExemptPrefix + PublicPrefix + "/appversion/latest/get",
+		ExemptPrefix + PublicPrefix + "/functions/get",
+		ExemptPrefix + PublicPrefix + "/smscode",
+		ExemptPrefix + UserPrefix + "/register",
+		ExemptPrefix + UserPrefix + "/login",
+		ExemptPrefix + UserPrefix + "/login_phone",
+		ExemptPrefix + UserPrefix + "/login_out",
+		ExemptPrefix + UserPrefix + "/forgetpwd",
 	}
 
-	// add filter
 	// 请求合法性验证 这个要放在第一个
 	//beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckRequestFilter())
 	//filter.AddURLCheckSeed("wxapp", "bFvKYrlnHdtSaaGk7B1t") // 添加URLCheckSeed

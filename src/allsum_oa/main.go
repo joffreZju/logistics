@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/plugins/cors"
 )
 
 var (
@@ -36,27 +35,9 @@ func main() {
 		panic(err)
 	}
 
-
-	//beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
-	//	//AllowOrigins:     []string{"http://localhost:8090", "http://www.suanpeizaix.comw", "http://www.suanpeizaix.com:8090"},
-	//	AllowOrigins:     []string{"*"},
-	//	AllowMethods:     []string{"GET", "DELETE", "PUT", "PATCH", "POST", "OPTIONS"},
-	//	AllowHeaders:     []string{"Origin", "Access-Control-Allow-Origin"},
-	//	ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin"},
-	//	AllowCredentials: true,
-	//}))
-	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
-		//AllowOrigins:     []string{"http://localhost:8090", "http://www.suanpeizaix.comw", "http://www.suanpeizaix.com:8090"},
-		AllowAllOrigins:  true,
-		AllowHeaders:     []string{"uid", "cno", "access_token", "Authorization", "X-Requested-With", "Content-Type", "Origin", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers"},
-		AllowMethods:     []string{"GET", "DELETE", "PUT", "PATCH", "POST", "OPTIONS"},
-		ExposeHeaders:    []string{"Authorization", "Content-Type", "Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers"},
-		AllowCredentials: true,
-	}))
-
-  	// load router
+	// load router
 	LoadRouter()
-  	
+
 	beego.Info("Init Server Begin..")
 	beego.Run()
 	beego.Info("Init Server End..")

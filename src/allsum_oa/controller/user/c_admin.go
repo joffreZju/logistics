@@ -33,7 +33,7 @@ func (c *Controller) AdminFirmAudit() {
 	cno := c.GetString("cno")
 	msg := c.GetString("msg")
 	status, err := c.GetInt("status")
-	if err != nil {
+	if err != nil || (status != model.CompanyStatApproveAccessed && status != model.CompanyStatApproveNotAccessed) {
 		beego.Error(err)
 		c.ReplyErr(errcode.ErrParams)
 		return
