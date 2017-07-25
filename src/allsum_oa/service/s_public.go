@@ -207,7 +207,7 @@ func GetCompanyList() (interface{}, error) {
 		CreateUser model.User
 	}
 	list := []*CompanyDetail{}
-	e := model.NewOrm().Table(model.Company{}.TableName()).Find(&list).Error
+	e := model.NewOrm().Table(model.Company{}.TableName()).Order("status, ctime desc").Find(&list).Error
 	if e != nil {
 		return nil, e
 	}
