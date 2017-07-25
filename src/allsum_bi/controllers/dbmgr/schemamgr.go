@@ -2,6 +2,7 @@ package dbmgr
 
 import (
 	"allsum_bi/db"
+	"allsum_bi/models"
 	"common/lib/errcode"
 
 	"github.com/astaxie/beego"
@@ -34,4 +35,29 @@ func (c *Controller) ListSchemaTable() {
 		"tableNames": tableNames,
 	}
 	c.ReplySucc(res)
+}
+
+func (c *Controller) ListAllDbSchema() {
+	databases, err := models.ListDatabaseManager()
+	if err != nil {
+		beego.Error("list db err :", err)
+		c.ReplyErr(errcode.ErrActionGetDbMgr)
+		return
+	}
+	schemadata := []map[string]interface{}{}
+	for _, database := range databases {
+		schemas, err := db.ListSchema(database.Dbid)
+		if err != nil {
+			beego.Error("list schema err:", err)
+			c.ReplyErr(errcode.ErrActionGetDbMgr)
+			return
+		}
+		databaseschema := map[string]interface{}{
+			"name":   database.Name,
+			"dbid":   database.Dbid,
+			"schema": schemas,
+		}
+		schemadata = append(schemadata, databaseschema)
+	}
+	c.ReplySucc(schemadata)
 }
