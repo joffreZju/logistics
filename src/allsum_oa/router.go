@@ -13,83 +13,86 @@ import (
 
 const (
 	ExemptPrefix      string = "/exempt"
-	UserPrefix        string = "/v2/user"
-	FirmPrefix        string = "/v2/firm"
 	FilePrefix        string = "/v2/file"
-	AdminPrefix       string = "/v2/admin"
+	PublicPrefix      string = "/v2/public"
+	UserPrefix        string = "/v2/user"
+	FirmInfoPrefix    string = "/v2/firm/info"
+	FirmUserPrefix    string = "/v2/firm/user"
+	FirmGroupPrefix   string = "/v2/firm/group"
+	FirmRolePrefix    string = "/v2/firm/role"
 	FormtplPrefix     string = "/v2/firm/formtpl"
 	ApprovaltplPrefix string = "/v2/firm/approvaltpl"
 	ApprovalPrefix    string = "/v2/firm/approval"
+
+	AdminPrefix string = "/v2/admin"
 )
 
 func LoadRouter() {
 	//文件上传下载
 	beego.Router(FilePrefix+"/upload", &file.Controller{}, "Post:UploadFile")
-	//beego.Router(FilePrefix+"/download", &file.Controller{}, "*:DownloadFile")
 
 	// user相关
-	beego.Router(ExemptPrefix+"/test", &user.Controller{}, "*:Test")
-	beego.Router(ExemptPrefix+"/get_functions", &user.Controller{}, "*:GetFunctionsTree")
-	beego.Router(ExemptPrefix+"/user/getcode", &user.Controller{}, "*:GetCode")
-	beego.Router(ExemptPrefix+"/user/register", &user.Controller{}, "*:UserRegister")
-	beego.Router(ExemptPrefix+"/user/login", &user.Controller{}, "*:UserLogin")
-	beego.Router(ExemptPrefix+"/user/login_phone", &user.Controller{}, "*:UserLoginPhone")
-	beego.Router(ExemptPrefix+"/user/login_out", &user.Controller{}, "*:LoginOut")
-	beego.Router(ExemptPrefix+"/user/forgetpwd", &user.Controller{}, "*:Forgetpwd")
-	beego.Router(UserPrefix+"/info", &user.Controller{}, "*:GetUserInfo")
-	beego.Router(UserPrefix+"/update_info", &user.Controller{}, "*:UpdateUserInfo")
-	beego.Router(UserPrefix+"/resetpwd", &user.Controller{}, "*:Resetpwd")
-	beego.Router(UserPrefix+"/switch_company", &user.Controller{}, "*:SwitchCurrentFirm")
-	beego.Router(UserPrefix+"/msg/get_history_msgs", &msg.Controller{}, "*:GetHistoryMsg")
-	beego.Router(UserPrefix+"/msg/get_latest_msgs", &msg.Controller{}, "*:GetLatestMsg")
-	beego.Router(UserPrefix+"/msg/del_msg_byid", &msg.Controller{}, "*:DelMsgById")
-	beego.Router(UserPrefix+"/msg/get_msgs_bypage", &msg.Controller{}, "*:GetMsgsByPage")
+	//beego.Router(ExemptPrefix+"/test", &user.Controller{}, "*:Test")
+	beego.Router(ExemptPrefix+PublicPrefix+"/appversion/latest/get", &user.Controller{}, "*:GetLatestAppVersion")
+	beego.Router(ExemptPrefix+PublicPrefix+"/functions/get", &user.Controller{}, "*:GetFunctionsTree")
+	beego.Router(ExemptPrefix+PublicPrefix+"/smscode", &user.Controller{}, "*:GetCode")
+	beego.Router(ExemptPrefix+UserPrefix+"/register", &user.Controller{}, "*:UserRegister")
+	beego.Router(ExemptPrefix+UserPrefix+"/login", &user.Controller{}, "*:UserLogin")
+	beego.Router(ExemptPrefix+UserPrefix+"/login_phone", &user.Controller{}, "*:UserLoginPhone")
+	beego.Router(ExemptPrefix+UserPrefix+"/login_out", &user.Controller{}, "*:LoginOut")
+	beego.Router(ExemptPrefix+UserPrefix+"/forgetpwd", &user.Controller{}, "*:Forgetpwd")
+	beego.Router(UserPrefix+"/info/get", &user.Controller{}, "*:GetUserInfo")
+	beego.Router(UserPrefix+"/info/update", &user.Controller{}, "*:UpdateUserInfo")
+	beego.Router(UserPrefix+"/pwd/reset", &user.Controller{}, "*:Resetpwd")
+	beego.Router(UserPrefix+"/company/switch", &user.Controller{}, "*:SwitchCurrentFirm")
+	beego.Router(UserPrefix+"/msg/history/get", &msg.Controller{}, "*:GetHistoryMsg")
+	beego.Router(UserPrefix+"/msg/latest/get", &msg.Controller{}, "*:GetLatestMsg")
+	beego.Router(UserPrefix+"/msg/page/get", &msg.Controller{}, "*:GetMsgsByPage")
+	beego.Router(UserPrefix+"/msg/del", &msg.Controller{}, "*:DelMsgById")
 
 	//allsum管理员审核公司
-	//beego.Router(AdminPrefix+"/firm_info", &user.Controller{}, "*:AdminGetFirmInfo")
-	beego.Router(AdminPrefix+"/firm_list", &user.Controller{}, "*:AdminGetFirmList")
-	beego.Router(AdminPrefix+"/firm_audit", &user.Controller{}, "*:AdminFirmAudit")
-	beego.Router(AdminPrefix+"/add_function", &user.Controller{}, "Post:AdminAddFunction")
-	beego.Router(AdminPrefix+"/update_function", &user.Controller{}, "Post:AdminUpdateFunction")
-	beego.Router(AdminPrefix+"/del_function", &user.Controller{}, "*:AdminDelFunction")
-	beego.Router(AdminPrefix+"/get_appversions", &user.Controller{}, "*:GetAppVersionList")
-	beego.Router(AdminPrefix+"/add_appversion", &user.Controller{}, "*:AddAppVersion")
-	beego.Router(ExemptPrefix+"/get_latest_appversion", &user.Controller{}, "*:GetLatestAppVersion")
+	beego.Router(AdminPrefix+"/firms/get", &user.Controller{}, "*:AdminGetFirmList")
+	beego.Router(AdminPrefix+"/firm/audit", &user.Controller{}, "*:AdminFirmAudit")
+	beego.Router(AdminPrefix+"/function/add", &user.Controller{}, "Post:AdminAddFunction")
+	beego.Router(AdminPrefix+"/function/update", &user.Controller{}, "Post:AdminUpdateFunction")
+	beego.Router(AdminPrefix+"/function/del", &user.Controller{}, "*:AdminDelFunction")
+	beego.Router(AdminPrefix+"/appversion/list/get", &user.Controller{}, "*:GetAppVersionList")
+	beego.Router(AdminPrefix+"/appversion/add", &user.Controller{}, "*:AddAppVersion")
 
 	//公司管理员相关
-	beego.Router(FirmPrefix+"/update_firm_info", &user.Controller{}, "*:UpdateFirmInfo")
-	beego.Router(FirmPrefix+"/getusers_ofcompany", &user.Controller{}, "*:FirmGetUserList")
-	beego.Router(FirmPrefix+"/search_users_byname", &user.Controller{}, "*:FirmSearchUsersByName")
-	beego.Router(FirmPrefix+"/add_user", &user.Controller{}, "Post:FirmAddUser")
-	beego.Router(FirmPrefix+"/update_user_profile", &user.Controller{}, "Post:FirmUpdateUserProfile")
-	beego.Router(FirmPrefix+"/update_rolegroup_ofuser", &user.Controller{}, "Post:FirmUpdateUserRoleAndGroup")
-	beego.Router(FirmPrefix+"/control_user", &user.Controller{}, "Post:FirmControlUserStatus")
+	beego.Router(FirmInfoPrefix+"/update", &user.Controller{}, "*:UpdateFirmInfo")
+	beego.Router(FirmUserPrefix+"/list/get", &user.Controller{}, "*:FirmGetUserList")
+	beego.Router(FirmUserPrefix+"/search", &user.Controller{}, "*:FirmSearchUsersByName")
+	beego.Router(FirmUserPrefix+"/add", &user.Controller{}, "Post:FirmAddUser")
+	beego.Router(FirmUserPrefix+"/profile/update", &user.Controller{}, "Post:FirmUpdateUserProfile")
+	beego.Router(FirmUserPrefix+"/rolegroup/update", &user.Controller{}, "Post:FirmUpdateUserRoleAndGroup")
+	beego.Router(FirmUserPrefix+"/control", &user.Controller{}, "Post:FirmControlUserStatus")
 	//管理组织树
-	beego.Router(FirmPrefix+"/add_attr", &group.Controller{}, "*:AddAttr")
-	beego.Router(FirmPrefix+"/get_attrs", &group.Controller{}, "*:GetAttrList")
-	beego.Router(FirmPrefix+"/update_attr", &group.Controller{}, "*:UpdateAttr")
-	beego.Router(FirmPrefix+"/del_attr", &group.Controller{}, "*:DelAttr")
-	beego.Router(FirmPrefix+"/add_group", &group.Controller{}, "Post:AddGroup")
-	beego.Router(FirmPrefix+"/merge_groups", &group.Controller{}, "Post:MergeGroups")
-	beego.Router(FirmPrefix+"/move_group", &group.Controller{}, "*:MoveGroup")
-	beego.Router(FirmPrefix+"/del_group", &group.Controller{}, "*:DelGroup")
-	beego.Router(FirmPrefix+"/update_group", &group.Controller{}, "Post:UpdateGroup")
-	beego.Router(FirmPrefix+"/get_group_ops", &group.Controller{}, "*:GetGroupOpList")
-	beego.Router(FirmPrefix+"/search_group_ops_bytime", &group.Controller{}, "*:SearchGroupOpsByTime")
-	beego.Router(FirmPrefix+"/get_group_op_detail", &group.Controller{}, "*:GetGroupOpDetail")
-	beego.Router(FirmPrefix+"/cancel_group_op", &group.Controller{}, "*:CancelGroupOp")
-	beego.Router(FirmPrefix+"/get_groups", &group.Controller{}, "*:GetGroupList")
-	beego.Router(FirmPrefix+"/getusers_ofgroup", &group.Controller{}, "*:GetUsersOfGroup")
-	beego.Router(FirmPrefix+"/addusers_togroup", &group.Controller{}, "Post:AddUsersToGroup")
-	beego.Router(FirmPrefix+"/delusers_fromgroup", &group.Controller{}, "Post:DelUsersFromGroup")
+	beego.Router(FirmGroupPrefix+"/attr/add", &group.Controller{}, "*:AddAttr")
+	beego.Router(FirmGroupPrefix+"/attr/list/get", &group.Controller{}, "*:GetAttrList")
+	beego.Router(FirmGroupPrefix+"/attr/update", &group.Controller{}, "*:UpdateAttr")
+	beego.Router(FirmGroupPrefix+"/attr/del", &group.Controller{}, "*:DelAttr")
+	beego.Router(FirmGroupPrefix+"/add", &group.Controller{}, "Post:AddGroup")
+	beego.Router(FirmGroupPrefix+"/merge", &group.Controller{}, "Post:MergeGroups")
+	beego.Router(FirmGroupPrefix+"/move", &group.Controller{}, "*:MoveGroup")
+	beego.Router(FirmGroupPrefix+"/del", &group.Controller{}, "*:DelGroup")
+	beego.Router(FirmGroupPrefix+"/update", &group.Controller{}, "Post:UpdateGroup")
+	beego.Router(FirmGroupPrefix+"/list/get", &group.Controller{}, "*:GetGroupList")
+	beego.Router(FirmGroupPrefix+"/operation/list/get", &group.Controller{}, "*:GetGroupOpList")
+	beego.Router(FirmGroupPrefix+"/operation/search", &group.Controller{}, "*:SearchGroupOpsByTime")
+	beego.Router(FirmGroupPrefix+"/operation/detail/get", &group.Controller{}, "*:GetGroupOpDetail")
+	beego.Router(FirmGroupPrefix+"/operation/cancel", &group.Controller{}, "*:CancelGroupOp")
+	beego.Router(FirmGroupPrefix+"/users/get", &group.Controller{}, "*:GetUsersOfGroup")
+	beego.Router(FirmGroupPrefix+"/users/add", &group.Controller{}, "Post:AddUsersToGroup")
+	beego.Router(FirmGroupPrefix+"/users/del", &group.Controller{}, "Post:DelUsersFromGroup")
 	//管理角色
-	beego.Router(FirmPrefix+"/get_roles", &role.Controller{}, "*:GetRoleList")
-	beego.Router(FirmPrefix+"/add_role", &role.Controller{}, "Post:AddRole")
-	beego.Router(FirmPrefix+"/update_role", &role.Controller{}, "Post:UpdateRole")
-	beego.Router(FirmPrefix+"/del_role", &role.Controller{}, "*:DelRole")
-	beego.Router(FirmPrefix+"/getusers_ofrole", &role.Controller{}, "*:GetUsersOfRole")
-	beego.Router(FirmPrefix+"/addusers_torole", &role.Controller{}, "Post:AddUsersToRole")
-	beego.Router(FirmPrefix+"/delusers_fromrole", &role.Controller{}, "Post:DelUsersFromRole")
+	beego.Router(FirmRolePrefix+"/list/get", &role.Controller{}, "*:GetRoleList")
+	beego.Router(FirmRolePrefix+"/add", &role.Controller{}, "Post:AddRole")
+	beego.Router(FirmRolePrefix+"/update", &role.Controller{}, "Post:UpdateRole")
+	beego.Router(FirmRolePrefix+"/del", &role.Controller{}, "*:DelRole")
+	beego.Router(FirmRolePrefix+"/users/get", &role.Controller{}, "*:GetUsersOfRole")
+	beego.Router(FirmRolePrefix+"/users/add", &role.Controller{}, "Post:AddUsersToRole")
+	beego.Router(FirmRolePrefix+"/users/del", &role.Controller{}, "Post:DelUsersFromRole")
 
 	//审批相关
 	//管理表单模板
