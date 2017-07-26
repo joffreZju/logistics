@@ -151,9 +151,12 @@ func (c *Controller) UpdateUserInfo() {
 	uid := c.UserID
 	uname := c.GetString("username")
 	icon := c.GetString("icon")
-	gendr, _ := c.GetInt("gender")
 	mail := c.GetString("mail")
 	address := c.GetString("address")
+	gender, e := c.GetInt("gender")
+	if e != nil {
+		gender = 1
+	}
 	user, e := service.GetUserById("public", uid)
 	if e != nil {
 		beego.Error(e)
@@ -166,8 +169,8 @@ func (c *Controller) UpdateUserInfo() {
 	if len(icon) != 0 {
 		user.Icon = icon
 	}
-	if gendr != 0 {
-		user.Gender = gendr
+	if gender != 0 {
+		user.Gender = gender
 	}
 	if len(mail) != 0 {
 		user.Mail = mail
