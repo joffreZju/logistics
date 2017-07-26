@@ -259,9 +259,9 @@ func (c *Controller) GetAnalyzeReport() {
 		beego.Error("get report err :", err)
 		c.ReplyErr(errcode.ErrActionGetReport)
 	}
-	var assigner_authority map[string][]string
+	var assigner_authority []map[string]string
 	if demand.AssignerAuthority == "" {
-		assigner_authority = map[string][]string{}
+		assigner_authority = []map[string]string{}
 	} else {
 		err = json.Unmarshal([]byte(demand.AssignerAuthority), &assigner_authority)
 		if err != nil {
@@ -269,6 +269,28 @@ func (c *Controller) GetAnalyzeReport() {
 			c.ReplyErr(errcode.ErrServerError)
 		}
 	}
+
+	beego.Debug("authority: ", assigner_authority)
+	authoritymap := map[string]interface{}{}
+	for _, v := range assigner_authority {
+		dbid := v["dbid"]
+		dbname := v["dbname"]
+		data, ok := authoritymap[dbid]
+		if !ok {
+			data = map[string]interface{}{
+				"dbid":    dbid,
+				"dbname":  dbname,
+				"schemas": []interface{}{v["schema"]},
+			}
+		} else {
+			datamap := data.(map[string]interface{})
+			datamap["schemas"] = append(datamap["schemas"].([]interface{}), v["schema"])
+			data = datamap
+		}
+		authoritymap[dbid] = data
+	}
+	beego.Debug("authoritymap:", authoritymap)
+
 	res := map[string]interface{}{
 		"reportuuid":         report.Uuid,
 		"demanduuid":         demand.Uuid,
@@ -283,7 +305,7 @@ func (c *Controller) GetAnalyzeReport() {
 		"assignetime":        demand.Assignetime,
 		"handler_name":       demand.HandlerName,
 		"deadline":           demand.Deadline,
-		"assigner_authority": assigner_authority,
+		"assigner_authority": authoritymap,
 	}
 	c.ReplySucc(res)
 }
