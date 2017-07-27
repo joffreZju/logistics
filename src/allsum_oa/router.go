@@ -33,7 +33,7 @@ func LoadRouter() {
 	beego.Router(FilePrefix+"/upload", &file.Controller{}, "Post:UploadFile")
 
 	// user相关
-	//beego.Router(ExemptPrefix+"/test", &user.Controller{}, "*:Test")
+	beego.Router("/test", &user.Controller{}, "*:Test")
 	beego.Router(ExemptPrefix+PublicPrefix+"/appversion/latest/get", &user.Controller{}, "*:GetLatestAppVersion")
 	beego.Router(ExemptPrefix+PublicPrefix+"/functions/get", &user.Controller{}, "*:GetFunctionsTree")
 	beego.Router(ExemptPrefix+PublicPrefix+"/smscode", &user.Controller{}, "*:GetCode")

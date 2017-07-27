@@ -6,7 +6,9 @@ import (
 	"common/lib/errcode"
 	"common/lib/keycrypt"
 	"encoding/json"
+	"fmt"
 	"github.com/astaxie/beego"
+	"strings"
 )
 
 //注册之后修改公司信息
@@ -138,10 +140,10 @@ func (c *Controller) FirmAddUser() {
 	c.ReplySucc(nil)
 }
 
-//锁定用户，不能解锁，删除其角色和组织信息
+//锁定用户，不能解锁，删除其角色和组织信息,同时删除该用户在redis存在的token
 func (c *Controller) FirmControlUserStatus() {
 	prefix := c.UserComp
-	uid := c.UserID
+	currentUid := c.UserID
 	tel := c.GetString("tel")
 	status, e := c.GetInt("status")
 	if e != nil || status != model.UserStatusLocked {
@@ -149,23 +151,36 @@ func (c *Controller) FirmControlUserStatus() {
 		beego.Error(e)
 		return
 	}
-	user, e := service.GetUserById(model.Public, uid)
+	user, e := service.GetUserByTel(model.Public, tel)
 	if e != nil {
 		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
 		return
 	}
-	if tel == user.Tel {
+	if currentUid == user.Id {
 		c.ReplyErr(errcode.ErrLockUserFailed)
 		return
 	}
-	e = service.LockUser(prefix, tel)
+	e = service.LockUser(prefix, user)
 	if e != nil {
 		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
 		return
 	}
 	c.ReplySucc(nil)
+	infoKeys, e := c.RedisClient.Keys(fmt.Sprintf("%d-*", user.Id))
+	if e != nil {
+		beego.Error(e)
+	}
+	for _, v := range infoKeys {
+		index := strings.Index(v, "-")
+		if index == -1 {
+			beego.Error("拼接符错误，未能删除用户token")
+		}
+		c.RedisClient.Del(v)
+		c.RedisClient.Del(v[index+1:])
+		beego.Info("锁定用户成功,id:", user.Id)
+	}
 }
 
 func (c *Controller) FirmUpdateUserProfile() {

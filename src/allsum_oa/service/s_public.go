@@ -171,12 +171,7 @@ func SearchUsersByName(prefix, uname string) (users []*model.User, e error) {
 	return
 }
 
-func LockUser(prefix, tel string) (e error) {
-	user := &model.User{Tel: tel}
-	e = model.NewOrm().Table(prefix + "." + user.TableName()).Where(user).Find(user).Error
-	if e != nil {
-		return
-	}
+func LockUser(prefix string, user *model.User) (e error) {
 	tx := model.NewOrm().Begin()
 	count := tx.Table(prefix+"."+user.TableName()).Model(user).
 		Update("status", model.UserStatusLocked).RowsAffected
