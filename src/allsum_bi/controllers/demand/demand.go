@@ -289,6 +289,10 @@ func (c *Controller) GetAnalyzeReport() {
 		}
 		authoritymap[dbid] = data
 	}
+	var authorityArray []interface{}
+	for _, v := range authoritymap {
+		authorityArray = append(authorityArray, v)
+	}
 	beego.Debug("authoritymap:", authoritymap)
 
 	res := map[string]interface{}{
@@ -305,7 +309,7 @@ func (c *Controller) GetAnalyzeReport() {
 		"assignetime":        demand.Assignetime,
 		"handler_name":       demand.HandlerName,
 		"deadline":           demand.Deadline,
-		"assigner_authority": authoritymap,
+		"assigner_authority": authorityArray,
 	}
 	c.ReplySucc(res)
 }
