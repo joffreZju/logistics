@@ -33,6 +33,13 @@ AppVersion{
     UpgradeType: 1:透明2:友好提示3:强制升级
 }
 ```
+### 部分errcode定义
+```
+ERR_InvalidateToken = ValidationError{Code: 40001, Msg: "Invalid token"}
+ERR_TokenEmpty      = ValidationError{Code: 41001, Msg: "Token is empty"}
+ERR_TokenExpired    = ValidationError{Code: 42001, Msg: "Token is expired"}
+
+```
 
 ### 接口修改 2017-07-17
 

@@ -107,18 +107,23 @@ func GetGroupsOfUser(prefix string, uid int) (groups []model.Group, e error) {
 func GetFuncIdsOfUser(prefix string, uid int) (fids []int, e error) {
 	db := model.NewOrm()
 	rids := []int{}
-	sql := fmt.Sprintf(`select distinct(role_id) from "%s".user_role where user_id = %d`, prefix, uid)
+	sql := fmt.Sprintf(`SELECT DISTINCT (role_id) FROM "%s".user_role WHERE user_id = %d`, prefix, uid)
 	e = db.Raw(sql).Pluck("role_id", &rids).Error
-	//e = db.Table(prefix + "." + model.UserRole{}.TableName()).Where("user_id=?", uid).Pluck("role_id", &rids).Error
 	if e != nil {
 		return
 	}
 	fids = []int{}
-	sql = fmt.Sprintf(`select t1.func_id from "%s".role_func as t1 INNER JOIN "public"."function" as t2
-		on t1.func_id = t2."id"
-		where role_id in (?)
-		ORDER BY t2.pid`, prefix)
-	//sql = fmt.Sprintf(`select distinct(func_id) from "%s".role_func where role_id in (?)`, prefix)
+	sql = fmt.Sprintf(`
+		SELECT t3.func_id
+		FROM (
+			   SELECT DISTINCT
+				 (t1.func_id),
+				 t2.pid
+			   FROM "%s".role_func AS t1 INNER JOIN "public"."function" AS t2
+				   ON t1.func_id = t2."id"
+			   WHERE role_id IN (?)
+			   ORDER BY t2.pid
+			 ) AS t3`, prefix)
 	e = db.Raw(sql, rids).Pluck("func_id", &fids).Error
 	if e != nil {
 		return
@@ -242,6 +247,7 @@ func createCreatorRole(prefix string) (e error) {
 		return
 	}
 	funcs := []*model.Function{}
+	//todo 菜单是否可以分配，在这里要体现出来，只把开放给其他公司的菜单全部分配给创始人
 	e = tx.Find(&funcs).Error
 	if e != nil {
 		tx.Rollback()
@@ -285,13 +291,14 @@ func AuditCompany(cno string, approver *model.User, status int, msg string) (err
 			Approver:     approver.Id,
 			ApproverName: approver.UserName,
 			Status:       status,
-			ApproveMsg:   msg}).RowsAffected
+			ApproveMsg:   msg,
+			ApproveTime:  time.Now()}).RowsAffected
 	if c != 1 {
 		err = errors.New("approve compony failed")
 		tx.Rollback()
 		return
 	}
-	tx.Model(&model.Company{}).Where("no=?", cno).Updates(&model.Company{ApproveTime: time.Now()})
+	//tx.Model(&model.Company{}).Where("no=?", cno).Updates(&model.Company{ApproveTime: time.Now()})
 	if status == model.CompanyStatApproveAccessed {
 		//创建schema，直接提交
 		err = createSchema(cno)
