@@ -42,8 +42,11 @@ func (c *Controller) ShowSycnList() {
 		schema_table, _ := db.EncodeTableSchema(dbid, schema, table)
 		if _, ok := sync[schema_table]; !ok {
 			tableMap = map[string]interface{}{
-				"name":   table,
-				"status": util.SYNC_NONE,
+				"name":       table,
+				"errorlimit": 0,
+				"errornum":   0,
+				"lasttime":   "null",
+				"status":     util.SYNC_NONE,
 			}
 		} else {
 			syncuuid := sync[schema_table].Uuid
