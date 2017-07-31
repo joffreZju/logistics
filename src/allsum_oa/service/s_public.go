@@ -346,8 +346,9 @@ func AddFunction(f *model.Function) (e error) {
 	db := model.NewOrm()
 	ffather := &model.Function{}
 	e = db.Find(ffather, f.Pid).Error
-	if e != nil || strings.Count(ffather.Path, "-") > 2 {
-		return errors.New("父节点选取有误")
+	if e != nil || strings.Count(ffather.Path, "-") > 1 {
+		//菜单最多三级
+		return errors.New("父节点选取有误，菜单最多三级")
 	}
 	tx := db.Begin()
 	e = tx.Create(f).Error

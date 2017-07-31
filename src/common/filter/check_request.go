@@ -131,25 +131,21 @@ func SortAndConcat(param map[string]string) string {
 
 func RequestFilter() beego.FilterFunc {
 	return func(ctx *context.Context) {
-		// beego.Debug("request path : " + ctx.Request.URL.Path)
-		// 上传文件不做md5校验
-		if strings.Index(ctx.Request.URL.Path, "file_add") >= 0 {
-			return
-		}
 		beego.Info("reqeust url:", ctx.Input.URI()) //for test
 		params := make(map[string]interface{})
 		body, _ := ioutil.ReadAll(ctx.Request.Body)
-		beego.Info("request body string:", string(body)) //for test
+		//beego.Info("request body string:", string(body)) //for test
 		ctx.Request.Body.Close()
 		json.Unmarshal(body, &params)
 
+		_ = ctx.Request.ParseForm()
 		if ctx.Request.Method == "POST" {
-			beego.Info("post request postform data:", ctx.Request.PostForm) //for test
+			//beego.Info("post request postform data:", ctx.Request.PostForm) //for test
 			for k := range ctx.Request.PostForm {
 				params[k] = ctx.Request.PostForm[k][0]
 			}
 		} else {
-			beego.Info("get request form data:", ctx.Request.Form) //for test
+			//beego.Info("get request form data:", ctx.Request.Form) //for test
 			for k := range ctx.Request.Form {
 				params[k] = ctx.Request.Form[k][0]
 			}
@@ -163,8 +159,6 @@ func RequestFilter() beego.FilterFunc {
 				ctx.Request.Form.Add(k, string(b))
 			}
 		}
-		//ctx.Request.Form.Add("body",string(body))
-		beego.Info("request params:", params)
 		bbb, _ := json.Marshal(params)
 		beego.Info("request all params json string:", string(bbb)) //for test
 	}

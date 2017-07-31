@@ -1,6 +1,7 @@
 package main
 
 import (
+	"allsum_oa/controller/api"
 	"allsum_oa/controller/file"
 	"allsum_oa/controller/form"
 	"allsum_oa/controller/group"
@@ -25,10 +26,14 @@ const (
 	ApprovaltplPrefix string = "/v2/firm/approvaltpl"
 	ApprovalPrefix    string = "/v2/firm/approval"
 
-	AdminPrefix string = "/v2/admin"
+	AdminPrefix   string = "/v2/admin"
+	OpenApiPrefix string = "/api"
 )
 
 func LoadRouter() {
+	// openApi
+	beego.Router(OpenApiPrefix+"/schema/list/get", &api.Controller{}, "Get:GetSchemaList")
+
 	//文件上传下载
 	beego.Router(FilePrefix+"/upload", &file.Controller{}, "Post:UploadFile")
 
@@ -137,6 +142,7 @@ func LoadRouter() {
 		ExemptPrefix + UserPrefix + "/login_phone",
 		ExemptPrefix + UserPrefix + "/login_out",
 		ExemptPrefix + UserPrefix + "/forgetpwd",
+		OpenApiPrefix + "/schema/list/get",
 	}
 
 	// 请求合法性验证 这个要放在第一个
