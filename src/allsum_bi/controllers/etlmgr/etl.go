@@ -52,6 +52,10 @@ func (c *Controller) ShowSycnList() {
 				"errorlimit":    0,
 				"errornum":      0,
 				"lasttime":      "",
+				"desttable":     "",
+				"sourcetable":   "",
+				"owner":         "",
+				"syncuuid":      "",
 				"status":        util.SYNC_NONE,
 			}
 		} else {
