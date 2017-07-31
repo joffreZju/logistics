@@ -12,9 +12,11 @@ import (
 )
 
 var CronAggregate map[int]*cron.Cron
+var AggregateLock map[int]bool
 
 func init() {
 	CronAggregate = map[int]*cron.Cron{}
+	AggregateLock = map[int]bool{}
 }
 
 func StartAggregateCron() (err error) {
@@ -47,6 +49,10 @@ func AddCronWithFlushScript(id int, cronstr string, flushscript string) (err err
 }
 
 func DoAggregate(id int, flushsqlscript string) (err error) {
+	if lock, ok := AggregateLock[id]; ok && lock {
+		beego.Info("aggregate locked wait to Next round")
+		return
+	}
 	aggregate, err := models.GetAggregateOps(id)
 	if err != nil {
 		return
@@ -58,8 +64,11 @@ func DoAggregate(id int, flushsqlscript string) (err error) {
 	schema := db.GetCompanySchema(demand.Owner)
 	flush_script_real := strings.Replace(aggregate.Script, util.SCRIPT_TABLE, aggregate.DestTable, util.SCRIPT_LIMIT)
 	flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, util.SCRIPT_LIMIT)
+	AggregateLock[id] = true
 
 	err = db.Exec(util.BASEDB_CONNID, flushsqlscript)
+	AggregateLock[id] = false
+
 	if err != nil {
 		return
 		aggregates := models.AggregateLog{
