@@ -7,12 +7,12 @@ import (
 	"github.com/robfig/cron"
 )
 
+//var CronEtls map[int]*cron.Cron
 var CronEtls map[int]*cron.Cron
 
 func init() {
 	CronEtls = map[int]*cron.Cron{}
 }
-
 func StartEtlCron() (err error) {
 	etlRecords, err := models.ListSynchronous()
 	if err != nil {
@@ -22,7 +22,7 @@ func StartEtlCron() (err error) {
 		if etlrecord.Status != util.SYNC_STARTED {
 			continue
 		}
-		err = StartEtl(etlrecord.Uuid)
+		err = StartEtl(etlrecord)
 		if err != nil {
 			etlrecord.Status = util.SYNC_ERROR
 			models.UpdateSynchronous(etlrecord, "status")
@@ -39,11 +39,16 @@ func AddCronWithFullScript(id int, cronstr string, fullscript string) (err error
 	CronEtls[id] = cron.New()
 	CronEtls[id].Start()
 	err = CronEtls[id].AddFunc(cronstr, func() {
+		if p, ok := etltaskmap[id]; ok {
+			p.Stop()
+		}
 		script, err := MakeRunScript(fullscript)
 		if err != nil {
 			return
 		}
-		DoETL([]byte(script))
+		go func() {
+			DoETL(id, []byte(script))
+		}()
 	})
 	if err != nil {
 		return
@@ -57,7 +62,12 @@ func AddCronWithScript(id int, cronstr string, script string) (err error) {
 	}
 	CronEtls[id] = cron.New()
 	CronEtls[id].Start()
-	err = CronEtls[id].AddFunc(cronstr, func() { DoETL([]byte(script)) })
+	err = CronEtls[id].AddFunc(cronstr, func() {
+		if p, ok := etltaskmap[id]; ok {
+			p.Stop()
+		}
+		DoETL(id, []byte(script))
+	})
 	return
 }
 
@@ -74,10 +84,14 @@ func StopCronBySyncUuid(uuid string) (err error) {
 
 func StopCronById(id int) {
 	CronEtls[id].Stop()
+	p := etltaskmap[id]
+	p.Stop()
 }
 
 func StopAll() {
-	for _, v := range CronEtls {
+	for id, v := range CronEtls {
 		v.Stop()
+		p := etltaskmap[id]
+		p.Stop()
 	}
 }

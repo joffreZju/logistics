@@ -5,6 +5,7 @@ import (
 	"allsum_bi/models"
 	"allsum_bi/util"
 	"strings"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/robfig/cron"
@@ -61,6 +62,15 @@ func DoAggregate(id int, flushsqlscript string) (err error) {
 	err = db.Exec(util.BASEDB_CONNID, flushsqlscript)
 	if err != nil {
 		return
+		aggregates := models.AggregateLog{
+			Aggregateid: id,
+			Reportid:    aggregate.Reportid,
+			Error:       err.Error(),
+			Res:         "",
+			Timestamp:   time.Now(),
+			Status:      util.IS_OPEN,
+		}
+		models.InsertAggregateLog(aggregates)
 	}
 	return
 }

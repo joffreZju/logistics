@@ -64,6 +64,7 @@ const REPORT_TYPE_PRIVATE = 1 //个性化报表类型
 //script
 const SCRIPT_TABLE = "{TABLE_NAME}"
 const SCRIPT_SCHEMA = "{SCHEMA_NAME}"
+const SCRIPT_OWNER = "{OWNER}"
 const SCRIPT_LIMIT = 50
 
 //dataload
@@ -80,6 +81,7 @@ const AGGREGATE_STARTED = "started"
 const AGGREGATE_ERROR = "error"
 const AGGREGATE_STOP = "stop"
 
+
 //reportset
 //aggregate
 const REPORTSET_NONE = "none"
@@ -90,6 +92,7 @@ const REPORTSET_STOP = "stop"
 
 //test
 const TEST_MAX_UPLOAD_IMAGE = 9
+
 const IS_OPEN = 1
 const IS_CLOSE = 0
 

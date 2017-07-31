@@ -32,6 +32,10 @@ func GetAggregateOpsTableName() string {
 	return util.BI_SCHEMA + ".aggregate_ops"
 }
 
+func GetAggregateLogTableName() string {
+	return util.BI_SCHEMA + ".aggregate_log"
+}
+
 func GetReportSetTableName() string {
 	return util.BI_SCHEMA + ".report_set"
 }

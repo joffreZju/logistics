@@ -16,6 +16,8 @@ import (
 
 	_ "allsum_bi/models"
 
+	_ "net/http/pprof"
+
 	"github.com/astaxie/beego"
 	"github.com/ysqi/tokenauth2beego"
 )

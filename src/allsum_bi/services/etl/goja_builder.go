@@ -13,15 +13,17 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Sirupsen/logrus"
+	"github.com/astaxie/beego"
 	"github.com/compose/transporter/adaptor"
 	"github.com/compose/transporter/commitlog"
 	"github.com/compose/transporter/events"
 	"github.com/compose/transporter/function"
+	"github.com/compose/transporter/log"
 	"github.com/compose/transporter/offset"
 	"github.com/compose/transporter/pipeline"
 	"github.com/dop251/goja"
 	uuid "github.com/nu7hatch/gouuid"
-	"github.com/oklog/oklog/pkg/group"
 )
 
 const (
@@ -107,28 +109,38 @@ type Adaptor struct {
 	a    adaptor.Adaptor
 }
 
-func (t *Transporter) run() error {
-	var g group.Group
+func (t *Transporter) run(id int) (outfmt string, err error) {
+	var buf bytes.Buffer
+	log.Orig().Out = &buf
+	log.Orig().Level = logrus.WarnLevel
+	//	var g group.Group
 	p, err := pipeline.NewPipeline("0.1", t.sourceNode, events.LogEmitter(), 5*time.Second)
 	if err != nil {
-		return err
+		return
 	}
-	{
-		g.Add(func() error {
-			return p.Run()
-		}, func(error) {
-			p.Stop()
-		})
-	}
-	{
-		cancel := make(chan struct{})
-		g.Add(func() error {
-			return interrupt(cancel)
-		}, func(error) {
-			close(cancel)
-		})
-	}
-	return g.Run()
+	etltaskmap[id] = p
+	beego.Debug("run etl begin!~", id)
+	err = p.Run()
+	//	{
+	//		g.Add(func() error {
+	//			return p.Run()
+	//		}, func(error) {
+	//			p.Stop()
+	//		})
+	//	}
+	//	{
+	//		cancel := make(chan struct{})
+	//		g.Add(func() error {
+	//			return interrupt(cancel)
+	//		}, func(error) {
+	//			close(cancel)
+	//		})
+	//	}
+	//  err = g.Run()
+	beego.Debug("run etl stop!~ ", id)
+
+	outfmt = buf.String()
+	return
 }
 
 func interrupt(cancel <-chan struct{}) error {

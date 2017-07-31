@@ -5,10 +5,13 @@ import (
 	"allsum_bi/util"
 	"allsum_bi/util/ossfile"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/astaxie/beego"
 	uuid "github.com/satori/go.uuid"
@@ -31,12 +34,37 @@ func ExecJob(jobfile string) (fmtstr string, err error) {
 	kettleHomePath := beego.AppConfig.String("kettle::homepath")
 	kettleWorkPath := beego.AppConfig.String("kettle::workpath")
 	kettlejobpath := kettleWorkPath + jobfile
+	beego.Info("start--job: ", jobfile)
 	cmd := exec.Command(kettleHomePath+"kitchen.sh", "-file="+kettlejobpath)
-	fmtbytes, err := cmd.Output()
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	stdout, err := cmd.StdoutPipe()
+	err = cmd.Start()
 	if err != nil {
-		fmtstr = string(fmtbytes)
-		//		beego.Error("error format:", fmtstr)
-		return fmtstr, err
+		return
+	}
+
+	beego.Info("running--job: ", jobfile)
+	signal := make(chan int)
+	go func() {
+		err = cmd.Wait()
+		content, err := ioutil.ReadAll(stdout)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmtstr = string(content)
+		signal <- 1
+	}()
+	select {
+	case <-signal:
+		beego.Info("stoped--job: ", jobfile)
+	case <-time.After(2 * time.Minute):
+		beego.Info("time out two minutes jobfile:", jobfile)
+		err = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		if err != nil {
+			beego.Error("syscall.Kill err: ", err)
+		}
+		cmd.Process.Release()
+		fmtstr = jobfile + "ERROR: TIMEOUT"
 	}
 	return
 }

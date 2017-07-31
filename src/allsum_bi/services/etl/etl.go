@@ -12,7 +12,14 @@ import (
 	"github.com/astaxie/beego"
 	_ "github.com/compose/transporter/adaptor/all"
 	_ "github.com/compose/transporter/function/all"
+	"github.com/compose/transporter/pipeline"
 )
+
+var etltaskmap map[int]*pipeline.Pipeline
+
+func init() {
+	etltaskmap = map[int]*pipeline.Pipeline{}
+}
 
 func Start() {
 	err := createTransformPath()
@@ -23,12 +30,27 @@ func Start() {
 	StartEtlCron()
 }
 
-func DoETL(scriptbuff []byte) (err error) {
+func DoETL(syncid int, scriptbuff []byte) (err error) {
+	if p, ok := etltaskmap[syncid]; ok {
+		p.Stop()
+	}
 	transporter, err := newBuilder(scriptbuff)
 	if err != nil {
 		return
 	}
-	err = transporter.run()
+	defer func() {
+		if r := recover(); r != nil {
+			beego.Error("do etl crash ", r)
+		}
+	}()
+	fmtstr, err := transporter.run(syncid)
+
+	beego.Debug("etl fmt: ", fmtstr)
+	if err != nil || strings.Contains(fmtstr, "ERROR") || strings.Contains(fmtstr, "Error") || strings.Contains(fmtstr, "error") {
+		SetEtlError(syncid, err.Error()+"|"+fmtstr)
+	} else {
+		CleanEtlError(syncid)
+	}
 	return
 }
 
@@ -61,34 +83,6 @@ func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
 		return
 	}
 
-	calletl := make(chan string)
-	defer close(calletl)
-	go func() {
-		err = callEtl(dbid, sourceTable, destTable, "", "")
-		if err != nil {
-			beego.Error("call etl", err)
-			db.DeleteTable(util.BASEDB_CONNID, schema, table)
-			return
-		}
-		calletl <- "end"
-	}()
-	select {
-	case <-calletl:
-		beego.Debug("etl done")
-	case <-time.After(time.Minute * 3):
-		beego.Error("timeout")
-		return
-	}
-	//createscript, err := pipeline.MakeFullCreateScript(createsql)
-	//	if err != nil {
-	//		db.DeleteTable(util.BASEDB_CONNID, schema, table)
-	//		return
-	//	}
-	//	script, err := pipeline.MakeDefaultTransPortScript(util.BASEDB_CONNID)
-	//	if err != nil {
-	//		db.DeleteTable(util.BASEDB_CONNID, schema, table)
-	//		return
-	//	}
 	sync_res := models.Synchronous{
 		Owner:        schema,
 		CreateScript: createsql,
@@ -104,11 +98,12 @@ func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
 	}
 	fmt.Println("insert res: ", sync_res)
 	if isinsert {
-		_, err = models.InsertSynchronous(sync_res)
+		syncid, err := models.InsertSynchronous(sync_res)
 		if err != nil {
 			db.DeleteTable(util.BASEDB_CONNID, schema, table)
-			return
+			return err
 		}
+		sync_res.Id = syncid
 	} else {
 		sync_res.Id = sync.Id
 		err = models.UpdateSynchronous(sync_res, "owner", "create_script", "alter_script", "script", "source_db_id", "source_table", "dest_db_id", "dest_table", "script", "status", "lasttime")
@@ -116,6 +111,16 @@ func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
 			return
 		}
 	}
+
+	go func() {
+		err = callEtl(sync_res.Id, dbid, sourceTable, destTable, "", "")
+		if err != nil {
+			beego.Error("call etl", err)
+			db.DeleteTable(util.BASEDB_CONNID, schema, table)
+			return
+		}
+	}()
+
 	return
 }
 
@@ -136,11 +141,12 @@ func DoEtlCalibration(dbid string, schema string, table string) (err error) {
 			return err
 		}
 	}
-
-	err = callEtl(dbid, sourceTable, sync.DestTable, sync.Script, params[0])
-	if err != nil {
-		return
-	}
+	go func() {
+		err = callEtl(sync.Id, dbid, sourceTable, sync.DestTable, sync.Script, params[0])
+		if err != nil {
+			return
+		}
+	}()
 	sync.Lasttime = time.Now()
 	err = models.UpdateSynchronous(sync, "lasttime")
 	if err != nil {
@@ -149,11 +155,7 @@ func DoEtlCalibration(dbid string, schema string, table string) (err error) {
 	return
 }
 
-func StartEtl(uuid string) (err error) {
-	sync, err := models.GetSynchronousByUuid(uuid)
-	if err != nil {
-		return
-	}
+func StartEtl(sync models.Synchronous) (err error) {
 	params := [][]interface{}{nil}
 	if sync.ParamScript == "" {
 		sync.Script = ""
@@ -179,7 +181,7 @@ func StartEtl(uuid string) (err error) {
 	return
 }
 
-func callEtl(dbid string, SourceTable string, DestTable string, script string, params ...interface{}) (err error) {
+func callEtl(syncid int, dbid string, SourceTable string, DestTable string, script string, params ...interface{}) (err error) {
 	//	pipeline = NewPipeline()
 	sourcejs, err := MakeSourceJs(dbid)
 	if err != nil {
@@ -210,7 +212,7 @@ func callEtl(dbid string, SourceTable string, DestTable string, script string, p
 	//	beego.Debug("fulljs: ", pipeline.FullJs)
 	runjs := MakeRunJs(sourcejs, sinkjs, transportjs)
 	beego.Debug("runjs:", runjs)
-	err = DoETL([]byte(runjs))
+	err = DoETL(syncid, []byte(runjs))
 	if err != nil {
 		return
 	}
@@ -243,14 +245,6 @@ func buildEtl(dbid string, SourceTable string, DestTable string, script string, 
 		beego.Error("make transporter js err ", err)
 		return
 	}
-	//	pipeline.MakeFullJs()
-	//	beego.Debug("fulljs: ", pipeline.FullJs)
-	//	runjs := pipeline.MakeRunJs()
-	//	beego.Debug("runjs:", runjs)
-	//	err = DoETL([]byte(runjs))
-	//	if err != nil {
-	//		return
-	//	}
 	runjs = MakeRunJs(sourcejs, sinkjs, transportjs)
 	return
 }
@@ -308,8 +302,7 @@ func SetAndDoEtl(setdata map[string]interface{}) (err error) {
 			return err
 		}
 	}
-
-	err = callEtl(sync.SourceDbId, sync.SourceTable, sync.DestTable, script, params[0])
+	err = callEtl(sync.Id, sync.SourceDbId, sync.SourceTable, sync.DestTable, script, params[0])
 	if err != nil {
 		return
 	}

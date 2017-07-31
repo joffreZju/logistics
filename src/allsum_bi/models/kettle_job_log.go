@@ -3,12 +3,14 @@ package models
 import (
 	"allsum_bi/db/conn"
 	"fmt"
+	"time"
 )
 
 type KettleJobLog struct {
 	Id          int
 	KettleJobId int
 	ErrorInfo   string
+	Timestamp   time.Time
 	Status      int
 }
 
