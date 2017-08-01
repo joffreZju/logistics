@@ -102,6 +102,8 @@ func AddCron(jobid int, cronstr string, jobfilepath string) (err error) {
 		}
 		beego.Info("running--job: ", jobfilepath)
 		cmd.Wait()
+		delete(CronJobs[jobid], "cmd")
+		delete(CronJobs[jobid], "stdout")
 		beego.Info("stoped--job: ", jobfilepath)
 		content, err := ioutil.ReadAll(stdout)
 		if err != nil {
