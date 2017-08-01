@@ -104,7 +104,7 @@ func GetGroupsOfUser(prefix string, uid int) (groups []model.Group, e error) {
 	return
 }
 
-func GetFuncIdsOfUser(prefix string, uid int) (fids []int, e error) {
+func GetFuncIdsOfUser(prefix string, uid int) (functions []model.Function, e error) {
 	db := model.NewOrm()
 	rids := []int{}
 	sql := fmt.Sprintf(`SELECT DISTINCT (role_id) FROM "%s".user_role WHERE user_id = %d`, prefix, uid)
@@ -112,22 +112,14 @@ func GetFuncIdsOfUser(prefix string, uid int) (fids []int, e error) {
 	if e != nil {
 		return
 	}
-	fids = []int{}
+	functions = []model.Function{}
 	sql = fmt.Sprintf(`
-		SELECT t3.func_id
-		FROM (
-			   SELECT DISTINCT
-				 (t1.func_id),
-				 t2.pid
-			   FROM "%s".role_func AS t1 INNER JOIN "public"."function" AS t2
-				   ON t1.func_id = t2."id"
-			   WHERE role_id IN (?)
-			   ORDER BY t2.pid
-			 ) AS t3`, prefix)
-	e = db.Raw(sql, rids).Pluck("func_id", &fids).Error
-	if e != nil {
-		return
-	}
+		SELECT DISTINCT(t2.*)
+		FROM "%s".role_func AS t1 INNER JOIN "public"."function" AS t2
+			ON t1.func_id = t2."id"
+		WHERE role_id IN (?)
+		ORDER BY t2.pid`, prefix)
+	e = db.Raw(sql, rids).Scan(&functions).Error
 	return
 }
 
@@ -242,24 +234,24 @@ func createCreatorRole(prefix string) (e error) {
 		return
 	}
 	funcs := []*model.Function{}
-	//todo 菜单是否可以分配，在这里要体现出来，只把开放给其他公司的菜单全部分配给创始人
+	//todo 菜单是否可以分配，是否要在这里要体现出来，只把开放给其他公司的菜单全部分配给创始人？
 	e = tx.Find(&funcs).Error
 	if e != nil {
 		tx.Rollback()
 		return
 	}
 	for _, v := range funcs {
-		if len(strings.Split(v.Path, "-")) > 2 {
-			rf := &model.RoleFunc{
-				RoleId: r.Id,
-				FuncId: v.Id,
-			}
-			e = tx.Table(prefix + "." + rf.TableName()).Create(rf).Error
-			if e != nil {
-				tx.Rollback()
-				return
-			}
+		//if len(strings.Split(v.Path, "-")) > 2 {
+		rf := &model.RoleFunc{
+			RoleId: r.Id,
+			FuncId: v.Id,
 		}
+		e = tx.Table(prefix + "." + rf.TableName()).Create(rf).Error
+		if e != nil {
+			tx.Rollback()
+			return
+		}
+		//}
 	}
 	comp := &model.Company{}
 	e = tx.Find(comp, "no=?", prefix).Error
@@ -346,9 +338,9 @@ func AddFunction(f *model.Function) (e error) {
 	db := model.NewOrm()
 	ffather := &model.Function{}
 	e = db.Find(ffather, f.Pid).Error
-	if e != nil || strings.Count(ffather.Path, "-") > 1 {
-		//菜单最多三级
-		return errors.New("父节点选取有误，菜单最多三级")
+	if e != nil || strings.Count(ffather.Path, "-") > 5 {
+		//菜单最多五级
+		return errors.New("父节点选取有误，菜单最多五级")
 	}
 	tx := db.Begin()
 	e = tx.Create(f).Error

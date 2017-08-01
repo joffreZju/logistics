@@ -274,7 +274,7 @@ func (c *Controller) saveUserInfoToRedis(key, cno string, u *model.User) (e erro
 		groups += fmt.Sprintf("%d-", v.Id)
 	}
 	for _, v := range u.Funcs {
-		funcs += fmt.Sprintf("%d-", v)
+		funcs += fmt.Sprintf("%d-", v.Id)
 	}
 	_, e = c.RedisClient.Hmset(key, map[string]interface{}{
 		"company":   cno,

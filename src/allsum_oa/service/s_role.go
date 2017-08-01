@@ -92,7 +92,7 @@ func UpdateRole(prefix string, r *model.Role, fids []int) (e error) {
 func DelRole(prefix string, rid int) (e error) {
 	tx := model.NewOrm().Begin()
 	count := 0
-	e = tx.Table(prefix+"."+model.UserRole{}.TableName()).
+	e = model.NewOrm().Table(prefix+"."+model.UserRole{}.TableName()).
 		Where("role_id = ?", rid).Count(&count).Error
 	if e != nil || count != 0 {
 		return fmt.Errorf("there some users in this role!%v", e)

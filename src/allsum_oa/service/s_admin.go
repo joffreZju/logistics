@@ -24,6 +24,7 @@ func GetLatestAppVersion() (app *model.AppVersion, e error) {
 }
 
 func UpdateDB() {
+	//更新数据库中的_ 为 -
 	tx := model.NewOrm().Begin()
 	funcs := []*model.Function{}
 	e := tx.Find(&funcs).Error

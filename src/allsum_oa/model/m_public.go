@@ -40,17 +40,17 @@ type User struct {
 	UserName  string `gorm:""`
 	Icon      string `gorm:""`
 	Descrp    string
-	Gender    int       // 1:男 2:女
-	Address   string    `gorm:"size:64"`
-	Ctime     time.Time `gorm:"default:current_timestamp"`
-	LoginTime time.Time `gorm:"timestamp"`
-	Mail      string    `gorm:"size:64"`
-	Status    int       `gorm:"not null"`
-	UserType  int       `gorm:"default:1"` //1 普通用户
-	Companys  []Company `gorm:"-"`
-	Groups    []Group   `gorm:"-"`
-	Roles     []Role    `gorm:"-"`
-	Funcs     []int     `gorm:"-"`
+	Gender    int        // 1:男 2:女
+	Address   string     `gorm:"size:64"`
+	Ctime     time.Time  `gorm:"default:current_timestamp"`
+	LoginTime time.Time  `gorm:"timestamp"`
+	Mail      string     `gorm:"size:64"`
+	Status    int        `gorm:"not null"`
+	UserType  int        `gorm:"default:1"` //1 普通用户
+	Companys  []Company  `gorm:"-"`
+	Groups    []Group    `gorm:"-"`
+	Roles     []Role     `gorm:"-"`
+	Funcs     []Function `gorm:"-"`
 }
 
 func (User) TableName() string {
