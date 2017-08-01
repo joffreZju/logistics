@@ -127,7 +127,11 @@ func (c *Controller) SetEtl() {
 	script := c.GetString("script")
 	cron := c.GetString("cron")
 	documents := c.GetString("documents")
-	errorlimit, err := c.GetInt("error_limit")
+	is_all_schema, err := c.GetBool("is_all_schema")
+	if err != nil {
+		is_all_schema = false
+	}
+	errorlimit, err := c.GetInt("errorlimit")
 	if err != nil {
 		errorlimit = 10
 	}
@@ -144,6 +148,7 @@ func (c *Controller) SetEtl() {
 		"script":        script,
 		"cron":          cron,
 		"documents":     documents,
+		"is_all_schema": is_all_schema,
 		"error_limit":   errorlimit,
 	}
 	//no params check  ,so do once etl befor etl
