@@ -55,7 +55,7 @@ func (c *Controller) ShowSycnList() {
 				"desttable":     "",
 				"sourcetable":   "",
 				"owner":         "",
-				"syncuuid":      "",
+				"sync_uuid":     "",
 				"status":        util.SYNC_NONE,
 			}
 		} else {
@@ -69,7 +69,7 @@ func (c *Controller) ShowSycnList() {
 			tableMap = map[string]interface{}{
 				"name":          table,
 				"status":        sync[schema_table].Status,
-				"syncuuid":      syncuuid,
+				"sync_uuid":     syncuuid,
 				"owner":         sync[schema_table].Owner,
 				"create_script": sync[schema_table].CreateScript,
 				"alter_script":  sync[schema_table].AlterScript,
@@ -166,7 +166,7 @@ func (c *Controller) SetEtl() {
 }
 
 func (c *Controller) StopEtl() {
-	uuid := c.GetString("uuid")
+	uuid := c.GetString("sync_uuid")
 	err := etl.StopCronBySyncUuid(uuid)
 	if err != nil {
 		beego.Error("stop etl err", err)
