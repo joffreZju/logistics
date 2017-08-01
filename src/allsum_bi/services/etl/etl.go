@@ -4,6 +4,7 @@ import (
 	"allsum_bi/db"
 	"allsum_bi/models"
 	"allsum_bi/util"
+	"common/lib/service_client/oaclient"
 	"fmt"
 	_ "io/ioutil"
 	"strings"
@@ -250,6 +251,7 @@ func buildEtl(dbid string, SourceTable string, DestTable string, script string, 
 }
 
 func SetAndDoEtl(setdata map[string]interface{}) (err error) {
+	is_all_schema := setdata["is_all_schema"].(bool)
 	syncid := setdata["sync_uuid"].(string)
 	script := setdata["script"].(string)
 	alter_script := setdata["alter_script"].(string)
@@ -326,5 +328,138 @@ func SetAndDoEtl(setdata map[string]interface{}) (err error) {
 	sync.Status = util.SYNC_STARTED
 
 	err = models.UpdateSynchronous(sync, "create_script", "alter_script", "script", "cron", "documents", "error_limit", "status")
+	if err != nil && is_all_schema {
+		go SetALLSchema(setdata, destSchema)
+	}
+	return
+}
+
+func SetALLSchema(setdata map[string]interface{}, trigger_schema string) (err error) {
+	syncuuid := setdata["sync_uuid"].(string)
+	script := setdata["script"].(string)
+	alter_script := setdata["alter_script"].(string)
+	cron := setdata["cron"].(string)
+	documents := setdata["documents"].(string)
+	error_limit := setdata["error_limit"].(int)
+	param_script := setdata["param_script"].(string)
+
+	sync, err := models.GetSynchronousByUuid(syncuuid)
+	if err != nil {
+		return
+	}
+
+	_, sourceTable, err := db.DecodeTableSchema(sync.SourceDbId, sync.SourceTable)
+	if err != nil {
+		return
+	}
+	_, destTable, err := db.DecodeTableSchema(util.BASEDB_CONNID, sync.DestTable)
+	if err != nil {
+		return
+	}
+	allschemas, err := oaclient.GetAllCompanySchema()
+	if err != nil {
+		return
+	}
+	for _, schema := range allschemas {
+		if schema == trigger_schema {
+			continue
+		}
+		db.CreateSchema(schema)
+		TableName, _ := db.EncodeTableSchema(util.BASEDB_CONNID, schema, destTable)
+		if !db.CheckTableExist(util.BASEDB_CONNID, TableName) {
+			createsql := strings.Replace(sync.CreateScript, util.SCRIPT_TABLE, TableName, -1)
+			createsql = strings.Replace(createsql, util.SCRIPT_SCHEMA, schema, -1)
+			err := db.Exec(util.BASEDB_CONNID, createsql)
+			if err != nil {
+				//TODO in log
+				continue
+			}
+		}
+
+		//alter table
+		if alter_script != "" {
+			alter_script = strings.Replace(alter_script, util.SCRIPT_TABLE, TableName, -1)
+			alter_script = strings.Replace(alter_script, util.SCRIPT_SCHEMA, schema, -1)
+
+			err = db.Exec(util.BASEDB_CONNID, alter_script)
+			if err != nil {
+				beego.Error("alter table err :", err)
+				//TODO in log
+				continue
+				//	return fmt.Errorf("alter table error")
+			}
+			sync.CreateScript, err = db.GetTableDesc(util.BASEDB_CONNID, schema, sourceTable, schema, destTable)
+			if err != nil {
+				beego.Error("get new create sql err:", err)
+				//TODO in log
+				continue
+				//	return fmt.Errorf("get new create sql error")
+			}
+			sync.CreateScript = strings.Replace(sync.CreateScript, TableName, util.SCRIPT_TABLE, -1)
+			sync.AlterScript = ""
+		}
+		params := [][]interface{}{nil}
+		if param_script == "" {
+			script = ""
+		} else {
+			sqlstr := strings.Replace(param_script, util.SCRIPT_TABLE, TableName, -1)
+			sqlstr = strings.Replace(sqlstr, util.SCRIPT_SCHEMA, schema, -1)
+			params, err = db.QueryDatas(util.BASEDB_CONNID, sqlstr)
+			if err != nil {
+				//TODO in log
+				continue
+				//	return err
+			}
+		}
+		runjs, err := buildEtl(sync.SourceDbId, TableName, TableName, script, params[0])
+		if err != nil {
+			//TODO in log
+			continue
+			//return
+		}
+		syncres, err := models.GetSynchronousByTableName(sync.SourceDbId, TableName)
+		if err == nil {
+			syncres.CreateScript = sync.CreateScript
+			syncres.AlterScript = sync.AlterScript
+			syncres.ParamScript = sync.ParamScript
+			syncres.Script = script
+			syncres.Cron = cron
+			syncres.ErrorLimit = error_limit
+			syncres.Documents = documents
+			err = models.UpdateSynchronous(syncres, "create_script", "alter_script", "param_script", "script", "cron", "error_limit", "documents")
+			if err != nil {
+				beego.Error("update err sync :", err)
+				//TODO in log
+				continue
+			}
+
+		} else {
+			syncres = models.Synchronous{
+				CreateScript: sync.CreateScript,
+				AlterScript:  sync.AlterScript,
+				ParamScript:  param_script,
+				Script:       script,
+				Cron:         cron,
+				ErrorLimit:   error_limit,
+				Documents:    documents,
+				SourceDbId:   sync.SourceDbId,
+				SourceTable:  TableName,
+				DestTable:    TableName,
+				Owner:        schema,
+			}
+			syncres.Id, err = models.InsertSynchronous(syncres)
+			if err != nil {
+				beego.Error("insert err sync :", err)
+				//TODO in log
+				continue
+			}
+		}
+		err = AddCronWithScript(syncres.Id, cron, runjs)
+		if err != nil {
+			//TODO in log
+			continue
+		}
+	}
+
 	return
 }

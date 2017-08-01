@@ -57,6 +57,7 @@ func StartJobCron() (err error) {
 func AddCron(jobid int, cronstr string, jobfilepath string) (err error) {
 	if jobc, ok := CronJobs[jobid]; ok {
 		jobc["cron"].(*cron.Cron).Stop()
+		delete(CronJobs, jobid)
 
 	}
 	CronJobs[jobid] = map[string]interface{}{
@@ -83,6 +84,7 @@ func AddCron(jobid int, cronstr string, jobfilepath string) (err error) {
 			}
 			cmdi.(*exec.Cmd).Process.Release()
 			beego.Info("pid:", cmdi.(*exec.Cmd).Process.Pid)
+			delete(CronJobs[jobid], "cmd")
 		}
 		kettleHomePath := beego.AppConfig.String("kettle::homepath")
 		kettleWorkPath := beego.AppConfig.String("kettle::workpath")
@@ -135,6 +137,7 @@ func StopCron(jobid int) (err error) {
 		if err != nil {
 			beego.Error("add cron cmd: ", err)
 		}
+		delete(CronJobs, jobid)
 	}
 	return
 }

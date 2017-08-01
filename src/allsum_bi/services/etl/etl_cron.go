@@ -4,6 +4,7 @@ import (
 	"allsum_bi/models"
 	"allsum_bi/util"
 
+	"github.com/astaxie/beego"
 	"github.com/robfig/cron"
 )
 
@@ -40,6 +41,12 @@ func AddCronWithFullScript(id int, cronstr string, fullscript string) (err error
 	CronEtls[id].Start()
 	err = CronEtls[id].AddFunc(cronstr, func() {
 		if p, ok := etltaskmap[id]; ok {
+			delete(etltaskmap, id)
+			defer func() {
+				if r := recover(); r != nil {
+					beego.Error("do etl crash ", r)
+				}
+			}()
 			p.Stop()
 		}
 		script, err := MakeRunScript(fullscript)
@@ -64,6 +71,12 @@ func AddCronWithScript(id int, cronstr string, script string) (err error) {
 	CronEtls[id].Start()
 	err = CronEtls[id].AddFunc(cronstr, func() {
 		if p, ok := etltaskmap[id]; ok {
+			delete(etltaskmap, id)
+			defer func() {
+				if r := recover(); r != nil {
+					beego.Error("do etl crash ", r)
+				}
+			}()
 			p.Stop()
 		}
 		DoETL(id, []byte(script))
@@ -85,13 +98,25 @@ func StopCronBySyncUuid(uuid string) (err error) {
 func StopCronById(id int) {
 	CronEtls[id].Stop()
 	p := etltaskmap[id]
+	delete(etltaskmap, id)
+	defer func() {
+		if r := recover(); r != nil {
+			beego.Error("do etl crash ", r)
+		}
+	}()
 	p.Stop()
 }
 
 func StopAll() {
+	defer func() {
+		if r := recover(); r != nil {
+			beego.Error("do etl crash ", r)
+		}
+	}()
 	for id, v := range CronEtls {
 		v.Stop()
 		p := etltaskmap[id]
+		delete(etltaskmap, id)
 		p.Stop()
 	}
 }

@@ -39,6 +39,8 @@ func AddAggregate(uuid string, table_name string, create_script string, alter_sc
 	if err != nil {
 		return
 	}
+	//TODO add common report check
+
 	schema := db.GetCompanySchema(demand.Owner)
 	schema_table := schema + "." + table_name
 	isexsit := db.CheckTableExist(util.BASEDB_CONNID, schema_table)

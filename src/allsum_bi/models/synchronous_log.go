@@ -84,6 +84,6 @@ func UpdateSynchronousLogBySyncId(synclog SynchronousLog, params ...string) (err
 	if err != nil {
 		return
 	}
-	err = db.Table(GetSynchronousTableName()).Where("syncid=?", synclog.Syncid).Updates(synclog).Update(params).Error
+	err = db.Table(GetSynchronousLogTableName()).Where("syncid=?", synclog.Syncid).Updates(synclog).Update(params).Error
 	return
 }
