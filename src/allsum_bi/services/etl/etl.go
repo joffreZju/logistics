@@ -7,10 +7,12 @@ import (
 	"common/lib/service_client/oaclient"
 	"fmt"
 	_ "io/ioutil"
+	"runtime"
 	"strings"
 	"time"
 
 	"github.com/astaxie/beego"
+	"github.com/bbjj040471/tunny"
 	_ "github.com/compose/transporter/adaptor/all"
 	_ "github.com/compose/transporter/function/all"
 	"github.com/compose/transporter/pipeline"
@@ -18,8 +20,14 @@ import (
 
 var etltaskmap map[int]*pipeline.Pipeline
 
+var EtlPool *tunny.WorkPool
+
 func init() {
 	etltaskmap = map[int]*pipeline.Pipeline{}
+	numCPUs := runtime.NumCPU()
+	runtime.GOMAXPROCS(numCPUs + 1)
+
+	EtlPool, _ = tunny.CreatePoolGeneric(numCPUs).Open()
 }
 
 func Start() {
@@ -32,6 +40,7 @@ func Start() {
 }
 
 func DoETL(syncid int, scriptbuff []byte) (err error) {
+	beego.Debug("script : ", scriptbuff)
 	if p, ok := etltaskmap[syncid]; ok {
 		p.Stop()
 	}
@@ -39,19 +48,23 @@ func DoETL(syncid int, scriptbuff []byte) (err error) {
 	if err != nil {
 		return
 	}
-	defer func() {
-		if r := recover(); r != nil {
-			beego.Error("do etl crash ", r)
-		}
-	}()
-	fmtstr, err := transporter.run(syncid)
 
-	beego.Debug("etl fmt: ", fmtstr)
-	if err != nil || strings.Contains(fmtstr, "ERROR") || strings.Contains(fmtstr, "Error") || strings.Contains(fmtstr, "error") {
-		SetEtlError(syncid, err.Error()+"|"+fmtstr)
-	} else {
-		CleanEtlError(syncid)
-	}
+	EtlPool.SendWork(func() {
+		defer func() {
+			if r := recover(); r != nil {
+				beego.Error("do etl crash ", r)
+			}
+		}()
+		fmtstr, err := transporter.run(syncid)
+
+		beego.Debug("etl fmt: ", fmtstr)
+		if err != nil || strings.Contains(fmtstr, "ERROR") || strings.Contains(fmtstr, "Error") || strings.Contains(fmtstr, "error") {
+			SetEtlError(syncid, err.Error()+"|"+fmtstr)
+		} else {
+			CleanEtlError(syncid)
+		}
+	})
+
 	return
 }
 
