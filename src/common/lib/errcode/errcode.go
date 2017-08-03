@@ -100,6 +100,8 @@ var (
 	ErrActionAddUserAuthority    = &CodeError{20525, "设置用户报表权限错误"}
 	ErrActionGetUserAuthority    = &CodeError{20526, "获取用户报表权限"}
 	ErrActionDeleteUserAuthirity = &CodeError{20527, "删除用户报表权限"}
+	ErrActionAddAuthority        = &CodeError{20528, "添加权限报错"}
+	ErrActionAlterDbPassWd       = &CodeError{20529, "修改密码报错"}
 )
 
 func ParseError(err error) (code int, msg string) {

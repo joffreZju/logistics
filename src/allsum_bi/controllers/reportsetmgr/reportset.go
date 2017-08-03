@@ -124,6 +124,12 @@ func (c *Controller) SaveReportSet() {
 			c.ReplyErr(errcode.ErrParams)
 			return
 		}
+		name, ok := reqbody["name"]
+		if !ok {
+			beego.Error("miss name")
+			c.ReplyErr(errcode.ErrParams)
+			return
+		}
 		report, err := models.GetReportByUuid(reportuuid.(string))
 		if err != nil {
 			beego.Error("get Report by uuid err", err)
@@ -133,6 +139,7 @@ func (c *Controller) SaveReportSet() {
 		}
 		reportsetdb := models.ReportSet{
 			Reportid: report.Id,
+			Name:     name.(string),
 			Status:   util.REPORTSET_BUILDING,
 		}
 		uuidstr, err := models.InsertReportSet(reportsetdb)

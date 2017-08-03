@@ -14,6 +14,9 @@ const BI_SCHEMA = "bi_system"
 const BI_MANAGER = "manager"
 const BI_COMMENT_PREFIX = ""
 
+//dbmgr
+const DEFAULT_PASSWD = "123456"
+
 //ETL
 const TRANSFORM_PATH = "./transform_js/"
 const JS_TEMPLATE = "var %s = postgres({\"uri\": \"postgres://%s:%d/%s?sslmode=disable&user=%s&password=%s\"})"
