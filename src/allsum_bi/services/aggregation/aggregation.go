@@ -42,6 +42,10 @@ func AddAggregate(uuid string, table_name string, create_script string, alter_sc
 	//TODO add common report check
 
 	schema := db.GetCompanySchema(demand.Owner)
+	err = db.CreateSchema(schema)
+	if err != nil {
+		return
+	}
 	schema_table := schema + "." + table_name
 	isexsit := db.CheckTableExist(util.BASEDB_CONNID, schema_table)
 	if !isexsit {
@@ -61,7 +65,7 @@ func AddAggregate(uuid string, table_name string, create_script string, alter_sc
 	if err != nil {
 		return
 	}
-	new_create_sql_format := strings.Replace(new_create_sql, table_name, util.SCRIPT_TABLE, util.SCRIPT_LIMIT)
+	new_create_sql_format := strings.Replace(new_create_sql, schema_table, util.SCRIPT_TABLE, util.SCRIPT_LIMIT)
 
 	flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
 	flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, util.SCRIPT_LIMIT)
