@@ -67,6 +67,7 @@ func init() {
 	beego.Router(AggregatePrefix+"/test_create_script", &aggregatemgr.Controller{}, "post:TestAggregateCreateScript")
 	beego.Router(AggregatePrefix+"/test_alter_script", &aggregatemgr.Controller{}, "post:TestAggregateAlterScript")
 	beego.Router(AggregatePrefix+"/test_flush_script", &aggregatemgr.Controller{}, "post:TestAggregateFlushScript")
+	beego.Router(AggregatePrefix+"/stop", &aggregatemgr.Controller{}, "post:StopAggregate")
 
 	//ReportSet
 	beego.Router(ReportSetPrefix+"/list", &reportsetmgr.Controller{}, "get:ListReportSet")
