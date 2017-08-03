@@ -90,7 +90,7 @@ func (c *Controller) AdminUpdateFunction() {
 	}
 }
 
-func (c *Controller) AdminDelFunction() {
+func (c *Controller) AdminDelFunction() { //todo 如果这个功能还有公司在用的话，那么不能删除
 	fid, e := c.GetInt("id")
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)

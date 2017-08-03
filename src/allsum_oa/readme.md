@@ -35,10 +35,15 @@ AppVersion{
 ```
 ### 部分errcode定义
 ```
+token相关错误码
 ERR_InvalidateToken = ValidationError{Code: 40001, Msg: "Invalid token"}
 ERR_TokenEmpty      = ValidationError{Code: 41001, Msg: "Token is empty"}
 ERR_TokenExpired    = ValidationError{Code: 42001, Msg: "Token is expired"}
 
+验证码相关错误码
+ErrAuthCodeError            = &CodeError{20103, "验证码错误"}
+ErrAuthCodeExpired          = &CodeError{20104, "验证码已经失效"}
+ErrUserCodeHasAlreadyExited = &CodeError{20106, "验证码已经发送，请60秒后重试"}
 ```
 
 ### 接口修改 2017-07-17
