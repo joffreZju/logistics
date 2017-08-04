@@ -114,10 +114,14 @@ func (c *Controller) FirmAddUser() {
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	e = model.FirstOrCreateUser(prefix, user)
+	e = model.CreateUser(prefix, user)
 	if e != nil {
 		beego.Error(e)
-		c.ReplyErr(errcode.ErrServerError)
+		if strings.Contains(e.Error(), model.DBErrStrDuplicateKey) {
+			c.ReplyErr(errcode.ErrUserAlreadyExisted)
+		} else {
+			c.ReplyErr(errcode.ErrServerError)
+		}
 		return
 	}
 	e = model.AddUserToCompany(prefix, user.Id)
