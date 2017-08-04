@@ -106,6 +106,7 @@ func (c *Controller) GetReportSet() {
 		"script":     reportset.Script,
 		"conditions": conditions,
 		"web_path":   reportset.WebPath,
+		"documents":  reportset.Documents,
 		//		"webfile_name": reportset.WebfileName,
 		"status": reportset.Status,
 	}
