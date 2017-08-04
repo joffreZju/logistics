@@ -76,6 +76,7 @@ func init() {
 	beego.Router(ReportSetPrefix+"/upload_reportset_web_file", &reportsetmgr.Controller{}, "post:UploadReportSetWeb")
 	beego.Router(ReportSetPrefix+"/get_data", &reportsetmgr.Controller{}, "post:GetReportData")
 	beego.Router(ReportSetPrefix+"/save", &reportsetmgr.Controller{}, "post:SaveReportSet")
+	beego.Router(ReportSetPrefix+"/publish", &reportsetmgr.Controller{}, "post:PublishReportSet")
 
 	//DBMGR
 	beego.Router(DbPrefix+"/add", &dbmgr.Controller{}, "post:AddDb")
@@ -85,6 +86,7 @@ func init() {
 	beego.Router(DbPrefix+"/list_schema_table", &dbmgr.Controller{}, "get:ListSchemaTable")
 	beego.Router(DbPrefix+"/list_all_db_schema", &dbmgr.Controller{}, "get:ListAllDbSchema")
 	beego.Router(DbPrefix+"/delete", &dbmgr.Controller{}, "delete:DelDb")
+	beego.Router(DbPrefix+"/alterdbpasswd", &dbmgr.Controller{}, "delete:AlterUserPasswd")
 
 	//testmgr
 	beego.Router(TestPrefix+"/get", &testmgr.Controller{}, "get:GetTestInfo")

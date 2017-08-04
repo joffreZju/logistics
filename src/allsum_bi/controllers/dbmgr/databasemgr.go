@@ -2,8 +2,10 @@ package dbmgr
 
 import (
 	"allsum_bi/controllers/base"
+	"allsum_bi/db"
 	"allsum_bi/db/conn"
 	"allsum_bi/models"
+	"allsum_bi/util"
 	"common/lib/errcode"
 	"fmt"
 
@@ -179,6 +181,20 @@ func (c *Controller) DelDb() {
 		beego.Error("delete db err :", err)
 		c.ReplyErr(errcode.ErrActionDeleteDbMgr)
 		return
+	}
+	res := map[string]string{
+		"res": "ok",
+	}
+	c.ReplySucc(res)
+}
+
+func (c *Controller) AlterUserPasswd() {
+	dbusername := fmt.Sprintf("%s_%d", c.UserComp, c.UserID)
+	password := c.GetString("password")
+	err := db.ALterPassWD(util.BASEDB_CONNID, dbusername, password)
+	if err != nil {
+		beego.Error("alter password err :", err)
+		c.ReplyErr(errcode.ErrActionAlterDbPassWd)
 	}
 	res := map[string]string{
 		"res": "ok",
