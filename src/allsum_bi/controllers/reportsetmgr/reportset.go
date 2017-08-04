@@ -44,21 +44,21 @@ func (c *Controller) ListReportSet() {
 	}
 	var reportsetres []map[string]interface{}
 	for _, reportset := range reportsets {
-		var conditions []map[string]interface{}
-		err = json.Unmarshal([]byte(reportset.Conditions), &conditions)
+		//		var conditions []map[string]interface{}
+		//		err = json.Unmarshal([]byte(reportset.Conditions), &conditions)
 
-		if err != nil {
-			beego.Error("unmarshal condition err ", err)
-			c.ReplyErr(errcode.ErrParams)
-			return
-		}
+		//		if err != nil {
+		//			beego.Error("unmarshal condition err ", err)
+		//			c.ReplyErr(errcode.ErrParams)
+		//			return
+		//		}
 		reportmap := map[string]interface{}{
-			"index":      reportset.Id,
-			"uuid":       reportset.Uuid,
-			"name":       reportset.Name,
-			"script":     reportset.Script,
-			"conditions": reportset.Conditions,
-			"webpath":    reportset.WebPath,
+			"index": reportset.Id,
+			"uuid":  reportset.Uuid,
+			"name":  reportset.Name,
+			//			"script":     reportset.Script,
+			//			"conditions": reportset.Conditions,
+			//			"webpath":    reportset.WebPath,
 		}
 		reportsetres = append(reportsetres, reportmap)
 	}
@@ -86,14 +86,19 @@ func (c *Controller) GetReportSet() {
 		c.ReplyErr(errcode.ErrActionGetReportSet)
 		return
 	}
-	var conditions []map[string]interface{}
-	err = json.Unmarshal([]byte(reportset.Conditions), &conditions)
 
-	if err != nil {
-		beego.Error("unmarshal condition err ", err)
-		c.ReplyErr(errcode.ErrParams)
-		return
+	var conditions []map[string]interface{}
+	if reportset.Conditions == "" {
+		conditions = []map[string]interface{}{}
+	} else {
+		err = json.Unmarshal([]byte(reportset.Conditions), &conditions)
+		if err != nil {
+			beego.Error("unmarshal condition err ", err)
+			c.ReplyErr(errcode.ErrParams)
+			return
+		}
 	}
+
 	res := map[string]interface{}{
 		"uuid":       reportset.Uuid,
 		"dbid":       reportset.Dbid,
@@ -135,7 +140,6 @@ func (c *Controller) SaveReportSet() {
 			beego.Error("get Report by uuid err", err)
 			c.ReplyErr(errcode.ErrActionGetReport)
 			return
-
 		}
 		reportsetdb := models.ReportSet{
 			Reportid: report.Id,
