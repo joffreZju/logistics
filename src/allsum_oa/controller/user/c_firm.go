@@ -76,7 +76,8 @@ func (c *Controller) FirmSearchUsersByName() {
 }
 
 func (c *Controller) FirmAddUser() {
-	cno := c.GetString("cno")
+	//cno := c.GetString("cno")
+	prefix := c.UserComp
 	tel := c.GetString("tel")
 	name := c.GetString("name")
 	gender, e := c.GetInt("gender")
@@ -113,25 +114,25 @@ func (c *Controller) FirmAddUser() {
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	e = model.FirstOrCreateUser(cno, user)
+	e = model.FirstOrCreateUser(prefix, user)
 	if e != nil {
 		beego.Error(e)
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	e = model.AddUserToCompany(cno, user.Id)
+	e = model.AddUserToCompany(prefix, user.Id)
 	if e != nil {
 		beego.Error(e)
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	e = service.AddUserToGroups(cno, groups, user.Id)
+	e = service.AddUserToGroups(prefix, groups, user.Id)
 	if e != nil {
 		beego.Error(e)
 		c.ReplyErr(errcode.ErrServerError)
 		return
 	}
-	e = service.AddUserToRoles(cno, roles, user.Id)
+	e = service.AddUserToRoles(prefix, roles, user.Id)
 	if e != nil {
 		beego.Error(e)
 		c.ReplyErr(errcode.ErrServerError)
