@@ -20,6 +20,7 @@ type ReportSet struct {
 	EnableEventTypes string
 	WebPath          string
 	WebfileName      string
+	Documents        string
 	Status           string
 }
 
