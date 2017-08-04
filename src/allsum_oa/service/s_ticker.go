@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	Interval    = 10
-	MaxDistance = 15
+	Interval    = 60
+	MaxDistance = 90
 )
 
 //十分钟Interval扫描一次，如果设置的开始时间小于MaxDistance就执行操作

@@ -58,6 +58,8 @@ func Init() (err error) {
 
 	go service.Ticker()
 
+	go service.InitAllsum()
+
 	beego.Info("init success, start server ...")
 
 	// 生成pprof文件
