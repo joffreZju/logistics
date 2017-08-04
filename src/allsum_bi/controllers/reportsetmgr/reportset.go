@@ -192,11 +192,41 @@ func (c *Controller) SaveReportSet() {
 	if !ok {
 		dbid = util.BASEDB_CONNID
 	}
+
+	documents, ok := reqbody["documents"]
+	if !ok {
+		beego.Error("miss documents")
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	reportsetdb.Documents = documents.(string)
 	reportsetdb.Dbid = dbid.(string)
-	reportsetdb.Status = util.REPORTSET_STARTED
-	err = models.UpdateReportSet(reportsetdb, "dbid", "script", "conditions", "status", "web_path")
+	reportsetdb.Status = util.REPORTSET_BUILDING
+	err = models.UpdateReportSet(reportsetdb, "dbid", "script", "conditions", "status", "web_path", "documents")
 	if err != nil {
 		beego.Error("update report set ")
+		c.ReplyErr(errcode.ErrActionPutReportSet)
+		return
+	}
+	res := map[string]string{
+		"res": "success",
+	}
+	c.ReplySucc(res)
+	return
+}
+
+func (c *Controller) PublishReportSet() {
+	uuid := c.GetString("uuid")
+	reportset, err := models.GetReportSetByUuid(uuid)
+	if err != nil {
+		beego.Error("get reportset err by uuid", err)
+		c.ReplyErr(errcode.ErrActionGetReportSet)
+		return
+	}
+	reportset.Status = util.REPORTSET_STARTED
+	err = models.UpdateReportSet(reportset, "status")
+	if err != nil {
+		beego.Error("update reportset err", err)
 		c.ReplyErr(errcode.ErrActionPutReportSet)
 		return
 	}
