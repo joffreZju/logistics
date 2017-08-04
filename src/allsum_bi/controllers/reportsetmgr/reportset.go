@@ -165,7 +165,7 @@ func (c *Controller) SaveReportSet() {
 		c.ReplyErr(errcode.ErrActionGetReportSet)
 		return
 	}
-	getsql, ok := reqbody["get_script"]
+	getsql, ok := reqbody["script"]
 	if !ok {
 		beego.Error("miss get_script")
 		c.ReplyErr(errcode.ErrParams)
