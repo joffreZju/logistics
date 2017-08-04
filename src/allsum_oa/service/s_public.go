@@ -201,11 +201,13 @@ func GetCompanyList() (interface{}, error) {
 	list := []*CompanyDetail{}
 	e := model.NewOrm().Table(model.Company{}.TableName()).Order("status, ctime desc").Find(&list).Error
 	if e != nil {
+		beego.Error(e)
 		return nil, e
 	}
 	for _, v := range list {
-		e = model.NewOrm().Table(model.User{}.TableName()).First(&v.CreateUser, v.Creator).Error
+		e = model.NewOrm().Table(model.Public+"."+model.User{}.TableName()).Find(&v.CreateUser, v.Creator).Error
 		if e != nil {
+			beego.Error(e)
 			return nil, e
 		}
 	}
