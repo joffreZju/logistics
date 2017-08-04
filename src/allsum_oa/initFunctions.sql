@@ -1,7 +1,7 @@
 -- ----------------------------
--- 插入数据时要先删除id列，让其自增，以保证sequence正常+1。
+-- 重新部署OA应用时，要先初始化public.functions表，使用如下的insert语句。
 -------------------------------
-INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ('根节点', null, 0, '2017-07-10 13:06:36.641041', '1', null, '', null);
+INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ('根节点', null, 0, '2017-07-10 13:06:36.641041', '1', null, 'root', null);
 INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ('组织管理', null, 1, '2017-07-10 13:06:36.697595', '1_2', null, 'oa', null);
 INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ('我的工作', null, 1, '2017-07-10 13:06:36.738168', '1_3', null, 'oa', null);
 INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ('系统设置', null, 1, '2017-07-10 13:06:36.777182', '1_4', null, 'oa', null);
@@ -14,7 +14,7 @@ INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, servi
 INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ( '用户管理', null, 4, '2017-07-10 13:06:37.070101', '1-4-11', null, 'oa', null);
 INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ( '角色管理', null, 4, '2017-07-10 13:06:37.111124', '1_4_12', null, 'oa', null);
 INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ( '审批表单设定', null, 4, '2017-07-10 13:06:37.149684', '1_4_13', null, 'oa', null);
-INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ( '蜂群 BI', '', 1, '2017-07-11 13:01:05.138858', '1_14', '', 'bi_admin', null);
-INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ( '报表管理', '', 14, '2017-07-11 13:02:55.398579', '1_14_15', '', 'bi_admin', null);
-INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ( '报表开发', '', 14, '2017-07-11 13:03:01.767794', '1_14_16', '', 'bi_admin', null);
-INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ( '报表测试', '', 14, '2017-07-11 13:03:11.112201', '1_14_17', '', 'bi_admin', null);
+INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ( '蜂群 BI', null, 1, '2017-07-11 13:01:05.138858', '1_14', null, 'bi_admin', null);
+INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ( '报表管理', null, 14, '2017-07-11 13:02:55.398579', '1_14_15', null, 'bi_admin', null);
+INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ( '报表开发', null, 14, '2017-07-11 13:03:01.767794', '1_14_16', null, 'bi_admin', null);
+INSERT INTO public.function (name, descrp, pid, ctime, path, icon, sys_id, services) VALUES ( '报表测试', null, 14, '2017-07-11 13:03:11.112201', '1_14_17', null, 'bi_admin', null);

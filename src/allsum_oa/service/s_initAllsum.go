@@ -8,9 +8,8 @@ import (
 )
 
 func InitAllsum() {
-	allsumNo := "allsum"
-	allsumAdmin := "18694582678"
-
+	allsumNo := beego.AppConfig.String("allsum::companyNo")
+	allsumAdmin := beego.AppConfig.String("allsum::adminUser")
 	db := model.NewOrm()
 	count := 0
 	e := db.Table(model.Company{}.TableName()).Where("no=?", "allsum").Count(&count).Error
