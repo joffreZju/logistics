@@ -77,7 +77,7 @@ func DelFormtpl(prefix, no string) (e error) {
 }
 
 //审批单模板相关
-func GetApprocvaltplList(prefix string, params ...string) (atpls []*model.Approvaltpl, e error) {
+func GetApprovaltplList(prefix string, params ...string) (atpls []*model.Approvaltpl, e error) {
 	db := model.NewOrm().Table(prefix + "." + model.Approvaltpl{}.TableName()).Order("no desc")
 	atpls = []*model.Approvaltpl{}
 	if len(params) != 0 {
@@ -110,12 +110,13 @@ func GetApprovaltplDetail(prefix, atplno string) (atpl *model.Approvaltpl, e err
 func GetMatchGroupsOfRole(prefix string, rid int) (groups []*model.Group, e error) {
 	sql := fmt.Sprintf(
 		`SELECT *
-		FROM "%s"."group"
+		FROM "%s"."%s"
 		WHERE id IN (SELECT t2.group_id
-					 FROM "%s".user_role AS t1
-					   INNER JOIN "%s".user_group AS t2
+					 FROM "%s"."%s" AS t1
+					   INNER JOIN "%s"."%s" AS t2
 						 ON t1.user_id = t2.user_id
-					 WHERE t1.role_id = ?);`, prefix, prefix, prefix)
+					 WHERE t1.role_id = ?);`,
+		prefix, model.Group{}.TableName(), prefix, model.UserRole{}.TableName(), prefix, model.UserGroup{}.TableName())
 	groups = []*model.Group{}
 	e = model.NewOrm().Raw(sql, rid).Scan(&groups).Error
 	return
@@ -337,25 +338,27 @@ func getMatchUsersOfFlow(prefix string, a *model.Approval, atplFlow *model.Appro
 	if atplFlow.GroupId != 0 {
 		sql := fmt.Sprintf(
 			`SELECT *
-			FROM "%s".allsum_user
+			FROM "%s"."%s"
 			WHERE id IN (SELECT t1.user_id
-						 FROM "%s".user_group AS t1
-						   INNER JOIN "%s".user_role AS t2
+						 FROM "%s"."%s" AS t1
+						   INNER JOIN "%s"."%s" AS t2
 							 ON t1.user_id = t2.user_id
-						 WHERE t2.role_id = ? AND t1.group_id = ?);`, prefix, prefix, prefix)
+						 WHERE t2.role_id = ? AND t1.group_id = ?);`,
+			prefix, model.User{}.TableName(), prefix, model.UserGroup{}.TableName(), prefix, model.UserRole{}.TableName())
 		e = db.Raw(sql, atplFlow.RoleId, atplFlow.GroupId).Scan(&users).Error
 		return
 	}
 	//在发起人所在组织树路径上寻找符合条件的角色,先找上级,再找下级
 	sql := fmt.Sprintf(
 		`SELECT *
-		FROM "%s".allsum_user
+		FROM "%s"."%s"
 		WHERE id IN
 			  (SELECT t1.user_id
-			   FROM "%s".user_group AS t1
-				 INNER JOIN "%s".user_role AS t2
+			   FROM "%s"."%s" AS t1
+				 INNER JOIN "%s"."%s" AS t2
 				   ON t1.user_id = t2.user_id
-			   WHERE t2.role_id =? AND t1.group_id IN (?) )`, prefix, prefix, prefix)
+			   WHERE t2.role_id =? AND t1.group_id IN (?) )`,
+		prefix, model.User{}.TableName(), prefix, model.UserGroup{}.TableName(), prefix, model.UserRole{}.TableName())
 
 	me := &model.Group{}
 	e = db.Table(prefix+"."+me.TableName()).First(me, "id=?", a.GroupId).Error
@@ -509,10 +512,10 @@ func GetApprovalsFromMe(prefix string, uid int, beginTime, condition string) (al
 func GetTodoApprovalsToMe(prefix string, uid int, params ...string) (alist []*model.Approval, e error) {
 	db := model.NewOrm()
 	alist = []*model.Approval{}
-	sql := fmt.Sprintf(`select * from "%s".approval as t1 inner join "%s".approve_flow as t2
+	sql := fmt.Sprintf(`select * from "%s"."%s" as t1 inner join "%s"."%s" as t2
 		on t1.current_flow = t2.id
 		where t1.status=%d and t2.status=%d and t2.match_users like '%%-%d-%%' `,
-		prefix, prefix, model.ApprovalStatWaiting, model.ApprovalStatWaiting, uid)
+		prefix, model.Approval{}.TableName(), prefix, model.ApproveFlow{}.TableName(), model.ApprovalStatWaiting, model.ApprovalStatWaiting, uid)
 
 	if len(params) != 0 && len(params[0]) != 0 {
 		sql += fmt.Sprintf(`and t2.ctime>='%s' `, params[0])
@@ -526,8 +529,9 @@ func GetFinishedApprovalsToMe(prefix string, uid int, params ...string) (alist [
 	db := model.NewOrm()
 	alist = []*model.Approval{}
 	//approve_flow 中user_id有值表示已经审批过
-	sql := fmt.Sprintf(`select * from "%s".approval as t1 inner join "%s".approve_flow as t2
-		on t1.no = t2.approval_no where t2.user_id=%d `, prefix, prefix, uid)
+	sql := fmt.Sprintf(`select * from "%s"."%s" as t1 inner join "%s"."%s" as t2
+		on t1.no = t2.approval_no where t2.user_id=%d `,
+		prefix, model.Approval{}.TableName(), prefix, model.ApproveFlow{}.TableName(), uid)
 	if len(params) != 0 && len(params[0]) != 0 {
 		sql += fmt.Sprintf(`and t2.ctime>='%s' `, params[0])
 	}

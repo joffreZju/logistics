@@ -15,9 +15,9 @@ func GetRoles(prefix string) (roles []*model.Role, e error) {
 	if e != nil {
 		return
 	}
-	sql := fmt.Sprintf(`SELECT * from "public"."function" as t1 inner join "%s".role_func as t2
+	sql := fmt.Sprintf(`SELECT * from "public"."%s" as t1 inner join "%s"."%s" as t2
 		on t1."id" = t2.func_id
-		where t2.role_id = ?`, prefix)
+		where t2.role_id = ?`, model.Function{}.TableName(), prefix, model.RoleFunc{}.TableName())
 	for _, v := range roles {
 		e = db.Raw(sql, v.Id).Scan(&v.Funcs).Error
 		if e != nil {
@@ -30,7 +30,7 @@ func GetRoles(prefix string) (roles []*model.Role, e error) {
 func addFuncsToRole(prefix string, tx *gorm.DB, r *model.Role, fids []int) (e error) {
 	for _, id := range fids {
 		f := model.Function{}
-		e = tx.First(&f, id).Error
+		e = tx.Table(model.Public+"."+model.Function{}.TableName()).First(&f, id).Error
 		if e != nil {
 			return fmt.Errorf("func %d is not found", id)
 		}
@@ -113,8 +113,12 @@ func DelRole(prefix string, rid int) (e error) {
 }
 
 func GetUsersOfRole(prefix string, rid int) (users []*model.User, e error) {
-	sql := fmt.Sprintf(`select * from "%s".allsum_user as t1 inner join "%s".user_role as t2
-		on t1.id = t2.user_id where t2.role_id=%d order by t1.id`, prefix, prefix, rid)
+	sql := fmt.Sprintf(
+		`SELECT *
+		FROM "%s"."%s" AS t1 INNER JOIN "%s"."%s" AS t2
+			ON t1.id = t2.user_id
+		WHERE t2.role_id = %d
+		ORDER BY t1.id`, prefix, model.User{}.TableName(), prefix, model.UserRole{}.TableName(), rid)
 	users = []*model.User{}
 	e = model.NewOrm().Raw(sql).Scan(&users).Error
 	return

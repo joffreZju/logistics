@@ -13,26 +13,29 @@ import (
 )
 
 func CreateMsg(m *model.Message) (err error) {
-	err = model.NewOrm().Create(m).Error
+	err = model.NewOrm().Table(model.Public + "." + model.Message{}.TableName()).Create(m).Error
 	return
 }
 
 func GetHistoryMsg(company string, uid, minId int) (msgs []*model.Message, err error) {
 	msgs = []*model.Message{}
-	err = model.NewOrm().Where("id < ? and user_id = ? and company_no = ?", minId, uid, company).
+	err = model.NewOrm().Table(model.Public+"."+model.Message{}.TableName()).
+		Where("id < ? and user_id = ? and company_no = ?", minId, uid, company).
 		Order("id desc").Limit(500).Find(&msgs).Error
 	return
 }
 
 func GetLatestMsg(company string, uid, maxId int) (msgs []*model.Message, err error) {
 	msgs = []*model.Message{}
-	err = model.NewOrm().Where("id > ? and user_id = ? and company_no = ?", maxId, uid, company).
+	err = model.NewOrm().Table(model.Public+"."+model.Message{}.TableName()).
+		Where("id > ? and user_id = ? and company_no = ?", maxId, uid, company).
 		Order("id desc").Find(&msgs).Error
 	return
 }
 
 func GetMsgsByPage(company string, uid, page, limit int) (sum int, msgs []*model.Message, err error) {
-	db := model.NewOrm().Table(model.Message{}.TableName()).Where("user_id = ? and company_no = ?", uid, company)
+	db := model.NewOrm().Table(model.Public+"."+model.Message{}.TableName()).
+		Where("user_id = ? and company_no = ?", uid, company)
 	err = db.Count(&sum).Error
 	if err != nil {
 		return
@@ -44,7 +47,7 @@ func GetMsgsByPage(company string, uid, page, limit int) (sum int, msgs []*model
 
 func DelMsgById(msgId int) (err error) {
 	m := &model.Message{Id: msgId}
-	err = model.NewOrm().Delete(m).Error
+	err = model.NewOrm().Table(model.Public + "." + model.Message{}.TableName()).Delete(m).Error
 	return nil
 }
 

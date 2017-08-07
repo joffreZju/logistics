@@ -127,9 +127,9 @@ func (c *Controller) GetApprovaltplList() {
 	var atpls []*model.Approvaltpl
 	var e error
 	if len(name) != 0 {
-		atpls, e = service.GetApprocvaltplList(prefix, name)
+		atpls, e = service.GetApprovaltplList(prefix, name)
 	} else {
-		atpls, e = service.GetApprocvaltplList(prefix)
+		atpls, e = service.GetApprovaltplList(prefix)
 	}
 	if e != nil {
 		c.ReplyErr(errcode.New(CommonErr, e.Error()))

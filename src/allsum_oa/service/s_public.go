@@ -72,9 +72,11 @@ func GetUserById(prefix string, uid int) (user *model.User, e error) {
 
 func GetCompanysOfUser(uid int) (comps []model.Company, e error) {
 	db := model.NewOrm()
-	sql := `select * from allsum_company as t1 inner join allsum_user_company as t2
-		on t1.no = t2.cno
-		where t2.user_id = ?`
+	sql := fmt.Sprintf(
+		`SELECT *
+		FROM "public"."%s" AS t1 INNER JOIN "public"."%s" AS t2
+			ON t1.no = t2.cno
+		WHERE t2.user_id = ?`, model.Company{}.TableName(), model.UserCompany{}.TableName())
 	comps = []model.Company{}
 	e = db.Raw(sql, uid).Scan(&comps).Error
 	return
@@ -83,8 +85,11 @@ func GetCompanysOfUser(uid int) (comps []model.Company, e error) {
 func GetRolesOfUser(prefix string, uid int) (roles []model.Role, e error) {
 	db := model.NewOrm()
 	roles = []model.Role{}
-	sql := fmt.Sprintf(`select * from "%s".role as t1 inner join "%s".user_role as t2
-		on t1.id = t2.role_id where t2.user_id = %d`, prefix, prefix, uid)
+	sql := fmt.Sprintf(
+		`SELECT *
+		FROM "%s"."%s" AS t1 INNER JOIN "%s"."%s" AS t2
+			ON t1.id = t2.role_id
+		WHERE t2.user_id = %d`, prefix, model.Role{}.TableName(), prefix, model.UserRole{}.TableName(), uid)
 	e = db.Raw(sql).Scan(&roles).Error
 	if e != nil {
 		return
@@ -95,8 +100,11 @@ func GetRolesOfUser(prefix string, uid int) (roles []model.Role, e error) {
 func GetGroupsOfUser(prefix string, uid int) (groups []model.Group, e error) {
 	db := model.NewOrm()
 	groups = []model.Group{}
-	sql := fmt.Sprintf(`select * from "%s".group as t1 inner join "%s".user_group as t2
-		on t1.id = t2.group_id where t2.user_id = %d`, prefix, prefix, uid)
+	sql := fmt.Sprintf(
+		`SELECT *
+		FROM "%s"."%s" AS t1 INNER JOIN "%s"."%s" AS t2
+			ON t1.id = t2.group_id
+		WHERE t2.user_id = %d`, prefix, model.Group{}.TableName(), prefix, model.UserGroup{}.TableName(), uid)
 	e = db.Raw(sql).Scan(&groups).Error
 	if e != nil {
 		return
@@ -107,7 +115,8 @@ func GetGroupsOfUser(prefix string, uid int) (groups []model.Group, e error) {
 func GetFuncIdsOfUser(prefix string, uid int) (functions []model.Function, e error) {
 	db := model.NewOrm()
 	rids := []int{}
-	sql := fmt.Sprintf(`SELECT DISTINCT (role_id) FROM "%s".user_role WHERE user_id = %d`, prefix, uid)
+	sql := fmt.Sprintf(`SELECT DISTINCT (role_id) FROM "%s"."%s" WHERE user_id = %d`,
+		prefix, model.UserRole{}.TableName(), uid)
 	e = db.Raw(sql).Pluck("role_id", &rids).Error
 	if e != nil {
 		return
@@ -115,10 +124,10 @@ func GetFuncIdsOfUser(prefix string, uid int) (functions []model.Function, e err
 	functions = []model.Function{}
 	sql = fmt.Sprintf(`
 		SELECT DISTINCT(t2.*)
-		FROM "%s".role_func AS t1 INNER JOIN "public"."function" AS t2
+		FROM "%s"."%s" AS t1 INNER JOIN "public"."%s" AS t2
 			ON t1.func_id = t2."id"
 		WHERE role_id IN (?)
-		ORDER BY t2.pid`, prefix)
+		ORDER BY t2.pid`, prefix, model.RoleFunc{}.TableName(), model.Function{}.TableName())
 	e = db.Raw(sql, rids).Scan(&functions).Error
 	return
 }
@@ -199,12 +208,14 @@ func GetCompanyList() (interface{}, error) {
 		CreateUser model.User
 	}
 	list := []*CompanyDetail{}
-	e := model.NewOrm().Table(model.Company{}.TableName()).Order("status, ctime desc").Find(&list).Error
+	e := model.NewOrm().Table(model.Public + "." + model.Company{}.TableName()).
+		Order("status, ctime desc").Find(&list).Error
 	if e != nil {
 		return nil, e
 	}
 	for _, v := range list {
-		e = model.NewOrm().Table(model.User{}.TableName()).First(&v.CreateUser, v.Creator).Error
+		e = model.NewOrm().Table(model.Public+"."+model.User{}.TableName()).
+			First(&v.CreateUser, v.Creator).Error
 		if e != nil {
 			return nil, e
 		}
@@ -235,7 +246,7 @@ func createCreatorRole(prefix string) (e error) {
 	}
 	funcs := []*model.Function{}
 	//todo 菜单是否可以分配，是否要在这里要体现出来，只把开放给其他公司的菜单全部分配给创始人？
-	e = tx.Find(&funcs).Error
+	e = tx.Table(model.Public + "." + model.Function{}.TableName()).Find(&funcs).Error
 	if e != nil {
 		tx.Rollback()
 		return
@@ -254,7 +265,7 @@ func createCreatorRole(prefix string) (e error) {
 		//}
 	}
 	comp := &model.Company{}
-	e = tx.Find(comp, "no=?", prefix).Error
+	e = tx.Table(model.Public+"."+comp.TableName()).Find(comp, "no=?", prefix).Error
 	if e != nil {
 		tx.Rollback()
 		return
@@ -273,7 +284,7 @@ func createCreatorRole(prefix string) (e error) {
 
 func AuditCompany(cno string, approver *model.User, status int, msg string) (err error) {
 	tx := model.NewOrm().Begin()
-	c := tx.Model(&model.Company{}).Where("no=?", cno).
+	c := tx.Table(model.Public+"."+model.Company{}.TableName()).Model(&model.Company{}).Where("no=?", cno).
 		Updates(&model.Company{
 			Approver:     approver.Id,
 			ApproverName: approver.UserName,
@@ -301,7 +312,7 @@ func AuditCompany(cno string, approver *model.User, status int, msg string) (err
 		}
 		//迁移用户
 		uids := []int{}
-		sql := fmt.Sprint(`select user_id from "public".allsum_user_company where cno=?`)
+		sql := fmt.Sprintf(`select user_id from "public"."%s" where cno=?`, model.UserCompany{}.TableName())
 		err = tx.Raw(sql, cno).Pluck("user_id", &uids).Error
 		if err != nil {
 			beego.Error(err)
@@ -337,19 +348,19 @@ func AuditCompany(cno string, approver *model.User, status int, msg string) (err
 func AddFunction(f *model.Function) (e error) {
 	db := model.NewOrm()
 	ffather := &model.Function{}
-	e = db.Find(ffather, f.Pid).Error
+	e = db.Table(model.Public+"."+model.Function{}.TableName()).Find(ffather, f.Pid).Error
 	if e != nil || strings.Count(ffather.Path, "-") > 5 {
 		//菜单最多五级
 		return errors.New("父节点选取有误，菜单最多五级")
 	}
 	tx := db.Begin()
-	e = tx.Create(f).Error
+	e = tx.Table(model.Public + "." + model.Function{}.TableName()).Create(f).Error
 	if e != nil {
 		tx.Rollback()
 		return
 	}
 	f.Path = fmt.Sprintf("%s-%d", ffather.Path, f.Id)
-	count := tx.Model(f).Updates(f).RowsAffected
+	count := tx.Table(model.Public + "." + model.Function{}.TableName()).Updates(f).RowsAffected
 	if count != 1 {
 		tx.Rollback()
 		return
@@ -359,7 +370,7 @@ func AddFunction(f *model.Function) (e error) {
 
 func UpdateFunction(f *model.Function) (e error) {
 	tx := model.NewOrm().Begin()
-	count := tx.Model(f).Updates(f).RowsAffected
+	count := tx.Table(model.Public + "." + model.Function{}.TableName()).Updates(f).RowsAffected
 	if count != 1 {
 		tx.Rollback()
 		return
@@ -370,17 +381,17 @@ func UpdateFunction(f *model.Function) (e error) {
 func DelFunction(fid int) (e error) {
 	db := model.NewOrm()
 	f := &model.Function{}
-	e = db.First(f, fid).Error
+	e = db.Table(model.Public+"."+model.Function{}.TableName()).First(f, fid).Error
 	if e != nil {
 		return
 	}
 	var count int64 = 0
-	e = db.Table(f.TableName()).Where("pid=?", fid).Count(&count).Error
+	e = db.Table(model.Public+"."+model.Function{}.TableName()).Where("pid=?", fid).Count(&count).Error
 	if e != nil || count != 0 {
 		return errors.New("该功能节点不能被删除")
 	}
 	tx := db.Begin()
-	count = tx.Delete(f).RowsAffected
+	count = tx.Table(model.Public + "." + model.Function{}.TableName()).Delete(f).RowsAffected
 	if count != 1 {
 		tx.Rollback()
 		return

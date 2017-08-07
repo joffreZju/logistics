@@ -94,7 +94,7 @@ func initModel() (err error) {
 	}
 	//init schema model
 	comps := []Company{}
-	err = db.Find(&comps, Company{Status: CompanyStatApproveAccessed}).Error
+	err = db.Table(Public+"."+Company{}.TableName()).Find(&comps, Company{Status: CompanyStatApproveAccessed}).Error
 	if err != nil {
 		return
 	}

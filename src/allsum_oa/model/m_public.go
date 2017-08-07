@@ -153,17 +153,17 @@ func (Company) TableName() string {
 
 func GetCompany(cno string) (c *Company, err error) {
 	c = new(Company)
-	err = NewOrm().Where("no=?", cno).First(c).Error
+	err = NewOrm().Table(Public+"."+Company{}.TableName()).Where("no=?", cno).First(c).Error
 	return
 }
 
 func DeleteCompany(cno string) (err error) {
-	err = NewOrm().Table(Company{}.TableName()).Where("no=?", cno).Update("status", CompanyStatDeleted).Error
+	err = NewOrm().Table(Public+"."+Company{}.TableName()).Where("no=?", cno).Update("status", CompanyStatDeleted).Error
 	return
 }
 
 func CreateCompany(c *Company) (err error) {
-	err = NewOrm().Create(c).Error
+	err = NewOrm().Table(Public + "." + Company{}.TableName()).Create(c).Error
 	return
 }
 
@@ -172,7 +172,7 @@ func UpdateCompany(c *Company) (err error) {
 		No:      c.No,
 		AdminId: c.AdminId,
 	}
-	count := NewOrm().Table(c.TableName()).Where(cond).Updates(&c).RowsAffected
+	count := NewOrm().Table(Public + "." + c.TableName()).Where(cond).Updates(&c).RowsAffected
 	if count != 1 {
 		err = errors.New("update company info failed")
 	}
@@ -194,7 +194,7 @@ func AddUserToCompany(cno string, uid int) (err error) {
 		UserId: uid,
 		Cno:    cno,
 	}
-	err = NewOrm().Create(&uc).Error
+	err = NewOrm().Table(Public + "." + uc.TableName()).Create(&uc).Error
 	return
 }
 
@@ -216,7 +216,7 @@ func (Function) TableName() string {
 
 func GetFunctions(sysIds []string) (funcs []*Function, e error) {
 	funcs = []*Function{}
-	e = NewOrm().Order("id").Where("sys_id in (?) or pid='0'", sysIds).Find(&funcs).Error
+	e = NewOrm().Table(Public+"."+Function{}.TableName()).Order("id").Where("sys_id in (?) or pid='0'", sysIds).Find(&funcs).Error
 	return
 }
 

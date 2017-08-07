@@ -28,7 +28,8 @@ func Ticker() {
 func ScanAllSchema(MaxDistance float64) {
 	db := model.NewOrm()
 	comps := []model.Company{}
-	e := db.Find(&comps, model.Company{Status: model.CompanyStatApproveAccessed}).Error
+	e := db.Table(model.Public+"."+model.Company{}.TableName()).
+		Find(&comps, model.Company{Status: model.CompanyStatApproveAccessed}).Error
 	if e != nil {
 		return
 	}

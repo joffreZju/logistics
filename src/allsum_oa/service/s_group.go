@@ -382,8 +382,9 @@ func GetGroupList(prefix string) (gs []*model.Group, e error) {
 
 func GetUsersOfGroup(prefix string, gid int) (users []*model.User, e error) {
 	users = []*model.User{}
-	sql := fmt.Sprintf(`select * from "%s"."allsum_user" as t1 inner join "%s".user_group as t2
-		on t1.id=t2.user_id where t2.group_id=%d order by t1.id`, prefix, prefix, gid)
+	sql := fmt.Sprintf(`select * from "%s"."%s" as t1 inner join "%s"."%s" as t2
+		on t1.id=t2.user_id where t2.group_id=%d order by t1.id`,
+		prefix, model.User{}.TableName(), prefix, model.UserGroup{}.TableName(), gid)
 	e = model.NewOrm().Raw(sql).Scan(&users).Error
 	return
 }
