@@ -27,6 +27,10 @@ func (c *Controller) ListDataload() {
 	//	if err != nil {
 	//		index = 0
 	//	}
+
+	//Need to User
+	_ = c.GetString("reportuuid")
+
 	dataloads, err := models.ListDataLoadByField([]string{}, []interface{}{}, 0, 0)
 	if err != nil {
 		beego.Error("list dataload err: ", err)
@@ -93,7 +97,15 @@ func (c *Controller) GetDataload() {
 
 func (c *Controller) SaveDataload() {
 	dataloadName := c.GetString("name")
-	dataloadOwner := c.GetString("owner")
+
+	reportuuid := c.GetString("reportuuid")
+	report, err := models.GetReportByUuid(reportuuid)
+	if err != nil {
+		beego.Error("get report by reportuuid err :", err)
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	dataloadOwner := report.Owner
 	//	if err != nil {
 	//		beego.Error("save dataloadOwner err", err)
 	//		c.ReplyErr(errcode.ErrParams)
@@ -102,6 +114,11 @@ func (c *Controller) SaveDataload() {
 	uuid := c.GetString("uuid")
 
 	if uuid == "" {
+		if dataloadName == "" {
+			beego.Error("miss name err")
+			c.ReplyErr(errcode.ErrParams)
+			return
+		}
 		dataloadstruct := models.DataLoad{
 			Name:   dataloadName,
 			Status: util.DATALOAD_BUILDING,
@@ -127,8 +144,8 @@ func (c *Controller) SaveDataload() {
 	documents := c.GetString("documents")
 	webpath := c.GetString("web_path")
 	dataloadmap := map[string]string{
-		"uuid":          uuid,
-		"name":          dataloadName,
+		"uuid": uuid,
+		//		"name":          dataloadName,
 		"table_name":    table_name,
 		"create_script": create_script,
 		"alter_script":  alter_script,
@@ -138,7 +155,7 @@ func (c *Controller) SaveDataload() {
 		"documents":     documents,
 	}
 	//have check
-	err := dataload.AddDataLoad(dataloadmap)
+	err = dataload.AddDataLoad(dataloadmap)
 	if err != nil {
 		beego.Error("save dataload err :", err)
 		c.ReplyErr(errcode.ErrServerError)

@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Jeffail/tunny"
 	"github.com/astaxie/beego"
-	"github.com/bbjj040471/tunny"
-	_ "github.com/compose/transporter/adaptor/all"
-	_ "github.com/compose/transporter/function/all"
-	"github.com/compose/transporter/pipeline"
+	_ "github.com/bbjj040471/transporter/adaptor/all"
+	_ "github.com/bbjj040471/transporter/function/all"
+	"github.com/bbjj040471/transporter/pipeline"
 )
 
 var etltaskmap map[int]*pipeline.Pipeline
@@ -31,16 +31,16 @@ func init() {
 }
 
 func Start() {
-	err := createTransformPath()
-	if err != nil {
-		beego.Error("create transporter error: ", err)
-		return
-	}
+	//	err := createTransformPath()
+	//	if err != nil {
+	//		beego.Error("create transporter error: ", err)
+	//		return
+	//	}
 	StartEtlCron()
 }
 
 func DoETL(syncid int, scriptbuff []byte) (err error) {
-	beego.Debug("script : ", scriptbuff)
+	beego.Debug("script : ", string(scriptbuff))
 	if p, ok := etltaskmap[syncid]; ok {
 		p.Stop()
 	}
