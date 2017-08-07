@@ -12,7 +12,7 @@ func InitAllsum() {
 	allsumAdmin := beego.AppConfig.String("allsum::adminUser")
 	db := model.NewOrm()
 	count := 0
-	e := db.Table(model.Company{}.TableName()).Where("no=?", "allsum").Count(&count).Error
+	e := db.Table(model.Public+"."+model.Company{}.TableName()).Where("no=?", "allsum").Count(&count).Error
 	if e != nil {
 		beego.Error("初始化allsum出错:", e)
 		return
