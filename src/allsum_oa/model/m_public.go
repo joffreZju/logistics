@@ -55,7 +55,7 @@ type User struct {
 }
 
 func (User) TableName() string {
-	return "allsum_user"
+	return "oa_user"
 }
 
 func CreateUser(prefix string, u *User) (err error) {
@@ -149,7 +149,7 @@ type Company struct {
 }
 
 func (Company) TableName() string {
-	return "allsum_company"
+	return "oa_company"
 }
 
 func GetCompany(cno string) (c *Company, err error) {
@@ -187,7 +187,7 @@ type UserCompany struct {
 }
 
 func (UserCompany) TableName() string {
-	return "allsum_user_company"
+	return "oa_user_company"
 }
 
 func AddUserToCompany(cno string, uid int) (err error) {

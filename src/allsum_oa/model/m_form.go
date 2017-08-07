@@ -58,7 +58,7 @@ type Formtpl struct {
 }
 
 func (Formtpl) TableName() string {
-	return "formtpl"
+	return "oa_formtpl"
 }
 
 type Form struct {
@@ -72,7 +72,7 @@ type Form struct {
 }
 
 func (Form) TableName() string {
-	return "form"
+	return "oa_form"
 }
 
 type Approvaltpl struct {
@@ -93,7 +93,7 @@ type Approvaltpl struct {
 }
 
 func (Approvaltpl) TableName() string {
-	return "approvaltpl"
+	return "oa_approvaltpl"
 }
 
 type ApprovaltplFlow struct {
@@ -105,7 +105,7 @@ type ApprovaltplFlow struct {
 }
 
 func (ApprovaltplFlow) TableName() string {
-	return "approvaltpl_flow"
+	return "oa_approvaltpl_flow"
 }
 
 type Approval struct {
@@ -132,7 +132,7 @@ type Approval struct {
 }
 
 func (Approval) TableName() string {
-	return "approval"
+	return "oa_approval"
 }
 
 //发起审批单时创建flow（matchUsers，roleId，RoleName赋值），用户审批时更新userId，userName，status，comment字段
@@ -150,5 +150,5 @@ type ApproveFlow struct {
 }
 
 func (ApproveFlow) TableName() string {
-	return "approve_flow"
+	return "oa_approve_flow"
 }

@@ -27,5 +27,5 @@ type Message struct {
 }
 
 func (Message) TableName() string {
-	return "allsum_message"
+	return "oa_message"
 }

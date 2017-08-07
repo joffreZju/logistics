@@ -17,7 +17,7 @@ type UserGroup struct {
 }
 
 func (UserGroup) TableName() string {
-	return "user_group"
+	return "oa_user_group"
 }
 
 type Group struct {
@@ -35,7 +35,7 @@ type Group struct {
 }
 
 func (Group) TableName() string {
-	return "group"
+	return "oa_group"
 }
 
 type Attribute struct {
@@ -48,7 +48,7 @@ type Attribute struct {
 }
 
 func (Attribute) TableName() string {
-	return "attribute"
+	return "oa_attribute"
 }
 
 type GroupOperation struct {
@@ -60,5 +60,5 @@ type GroupOperation struct {
 }
 
 func (GroupOperation) TableName() string {
-	return "group_operation"
+	return "oa_group_operation"
 }

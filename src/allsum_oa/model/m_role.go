@@ -11,7 +11,7 @@ type Role struct {
 }
 
 func (Role) TableName() string {
-	return "role"
+	return "oa_role"
 }
 
 type RoleFunc struct {
@@ -22,7 +22,7 @@ type RoleFunc struct {
 }
 
 func (RoleFunc) TableName() string {
-	return "role_func"
+	return "oa_role_func"
 }
 
 type UserRole struct {
@@ -33,5 +33,5 @@ type UserRole struct {
 }
 
 func (UserRole) TableName() string {
-	return "user_role"
+	return "oa_user_role"
 }
