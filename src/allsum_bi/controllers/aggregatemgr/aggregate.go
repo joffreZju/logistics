@@ -187,3 +187,17 @@ func (c *Controller) TestAggregateFlushScript() {
 	}
 	c.ReplySucc(res)
 }
+
+func (c *Controller) StopAggregate() {
+	uuid := c.GetString("uuid")
+	aggregate, err := models.GetAggregateOpsByUuid(uuid)
+	if err != nil {
+		beego.Error("GetAggregate err :", err)
+		return
+	}
+	aggregation.StopAggregate(aggregate.Id)
+	res := map[string]string{
+		"res": "success",
+	}
+	c.ReplySucc(res)
+}

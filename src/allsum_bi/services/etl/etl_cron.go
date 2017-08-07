@@ -53,9 +53,7 @@ func AddCronWithFullScript(id int, cronstr string, fullscript string) (err error
 		if err != nil {
 			return
 		}
-		go func() {
-			DoETL(id, []byte(script))
-		}()
+		DoETL(id, []byte(script))
 	})
 	if err != nil {
 		return

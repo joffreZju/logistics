@@ -121,6 +121,11 @@ func (c *Controller) AddDemand() {
 	ownername := c.GetString("owner_name")
 	exhibitor := c.GetString("exhibitor")
 	description := c.GetString("description")
+	if owner == "" || ownername == "" || exhibitor == "" || description == "" {
+		beego.Error("miss param ")
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
 	inittime := time.Now()
 	status := util.DEMAND_STATUS_NO_ASSIGN
 	demand := models.Demand{
@@ -168,7 +173,7 @@ func (c *Controller) AddDemand() {
 //发布需求
 func (c *Controller) PublishDemand() {
 	demanduuid := c.GetString("demanduuid")
-	err := demandsvs.ChangeStatus(demanduuid, util.DEMAND_STATUS_RELEASE, util.REPORT_STATUS_RELEASE)
+	err := demandsvs.ChangeStatus(demanduuid, util.DEMAND_STATUS_RELEASE, util.REPORT_STATUS_RELEASE, c.UserComp)
 	if err != nil {
 		beego.Error("update demand err : ", err)
 		c.ReplyErr(errcode.ErrActionPutReport)
@@ -183,7 +188,7 @@ func (c *Controller) PublishDemand() {
 //提交审核需求 fortest
 func (c *Controller) ReviewDemand() {
 	demanduuid := c.GetString("demanduuid")
-	err := demandsvs.ChangeStatus(demanduuid, util.DEMAND_STATUS_REVIEW, util.REPORT_STATUS_REVIEW)
+	err := demandsvs.ChangeStatus(demanduuid, util.DEMAND_STATUS_REVIEW, util.REPORT_STATUS_REVIEW, c.UserComp)
 	if err != nil {
 		beego.Error("update demand err : ", err)
 		c.ReplyErr(errcode.ErrActionPutReport)
@@ -340,6 +345,19 @@ func (c *Controller) SetDemand() {
 	if err != nil {
 		beego.Error("json marshal assigner_authority err :", err)
 		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	var assigner_authority_maps []map[string]string
+	err = json.Unmarshal(assigner_authority_bytes, &assigner_authority_maps)
+	if err != nil {
+		beego.Error("json unmarshal assigner_authority err :", err)
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	err = demandsvs.AddAuthority(assigner_authority_maps, c.UserComp, c.UserID)
+	if err != nil {
+		beego.Error("add assigner_authority err", err)
+		c.ReplyErr(errcode.ErrActionAddAuthority)
 		return
 	}
 	assigner_authority := string(assigner_authority_bytes)

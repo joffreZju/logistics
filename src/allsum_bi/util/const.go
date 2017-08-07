@@ -12,7 +12,10 @@ const BASEDB_CONNID = "bi_base_db"
 //schema
 const BI_SCHEMA = "bi_system"
 const BI_MANAGER = "manager"
-const BI_COMMENT_PREFIX = "company_"
+const BI_COMMENT_PREFIX = ""
+
+//dbmgr
+const DEFAULT_PASSWD = "123456"
 
 //ETL
 const TRANSFORM_PATH = "./transform_js/"
@@ -80,7 +83,6 @@ const AGGREGATE_BUILDING = "building"
 const AGGREGATE_STARTED = "started"
 const AGGREGATE_ERROR = "error"
 const AGGREGATE_STOP = "stop"
-
 
 //reportset
 //aggregate

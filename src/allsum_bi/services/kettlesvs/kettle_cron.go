@@ -134,11 +134,13 @@ func savelog(jobid int, fmtstr string) {
 
 func StopCron(jobid int) (err error) {
 	if jobc, ok := CronJobs[jobid]; ok {
-		jobc["cron"].(*cron.Cron).Stop()
-		err = jobc["cmd"].(*exec.Cmd).Process.Kill()
-		if err != nil {
-			beego.Error("add cron cmd: ", err)
+		if cmd, ok := jobc["cmd"]; ok {
+			err = cmd.(*exec.Cmd).Process.Kill()
+			if err != nil {
+				beego.Error("add cron cmd: ", err)
+			}
 		}
+		jobc["cron"].(*cron.Cron).Stop()
 		delete(CronJobs, jobid)
 	}
 	return

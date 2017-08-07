@@ -15,12 +15,12 @@ type ReportSet struct {
 	Name             string
 	Reportid         int
 	Script           string
-	Params           string
 	Resttype         int
 	Conditions       string
 	EnableEventTypes string
 	WebPath          string
 	WebfileName      string
+	Documents        string
 	Status           string
 }
 

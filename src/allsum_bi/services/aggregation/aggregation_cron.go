@@ -48,6 +48,13 @@ func AddCronWithFlushScript(id int, cronstr string, flushscript string) (err err
 	return
 }
 
+func StopAggregate(id int) (err error) {
+	if c, ok := CronAggregate[id]; ok {
+		c.Stop()
+	}
+	return
+}
+
 func DoAggregate(id int, flushsqlscript string) (err error) {
 	if lock, ok := AggregateLock[id]; ok && lock {
 		beego.Info("aggregate locked wait to Next round")

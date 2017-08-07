@@ -44,21 +44,21 @@ func (c *Controller) ListReportSet() {
 	}
 	var reportsetres []map[string]interface{}
 	for _, reportset := range reportsets {
-		var conditions []map[string]interface{}
-		err = json.Unmarshal([]byte(reportset.Conditions), &conditions)
+		//		var conditions []map[string]interface{}
+		//		err = json.Unmarshal([]byte(reportset.Conditions), &conditions)
 
-		if err != nil {
-			beego.Error("unmarshal condition err ", err)
-			c.ReplyErr(errcode.ErrParams)
-			return
-		}
+		//		if err != nil {
+		//			beego.Error("unmarshal condition err ", err)
+		//			c.ReplyErr(errcode.ErrParams)
+		//			return
+		//		}
 		reportmap := map[string]interface{}{
-			"index":      reportset.Id,
-			"uuid":       reportset.Uuid,
-			"name":       reportset.Name,
-			"script":     reportset.Script,
-			"conditions": reportset.Conditions,
-			"webpath":    reportset.WebPath,
+			"index": reportset.Id,
+			"uuid":  reportset.Uuid,
+			"name":  reportset.Name,
+			//			"script":     reportset.Script,
+			//			"conditions": reportset.Conditions,
+			//			"webpath":    reportset.WebPath,
 		}
 		reportsetres = append(reportsetres, reportmap)
 	}
@@ -86,14 +86,19 @@ func (c *Controller) GetReportSet() {
 		c.ReplyErr(errcode.ErrActionGetReportSet)
 		return
 	}
-	var conditions []map[string]interface{}
-	err = json.Unmarshal([]byte(reportset.Conditions), &conditions)
 
-	if err != nil {
-		beego.Error("unmarshal condition err ", err)
-		c.ReplyErr(errcode.ErrParams)
-		return
+	var conditions []map[string]interface{}
+	if reportset.Conditions == "" {
+		conditions = []map[string]interface{}{}
+	} else {
+		err = json.Unmarshal([]byte(reportset.Conditions), &conditions)
+		if err != nil {
+			beego.Error("unmarshal condition err ", err)
+			c.ReplyErr(errcode.ErrParams)
+			return
+		}
 	}
+
 	res := map[string]interface{}{
 		"uuid":       reportset.Uuid,
 		"dbid":       reportset.Dbid,
@@ -101,6 +106,7 @@ func (c *Controller) GetReportSet() {
 		"script":     reportset.Script,
 		"conditions": conditions,
 		"web_path":   reportset.WebPath,
+		"documents":  reportset.Documents,
 		//		"webfile_name": reportset.WebfileName,
 		"status": reportset.Status,
 	}
@@ -124,15 +130,21 @@ func (c *Controller) SaveReportSet() {
 			c.ReplyErr(errcode.ErrParams)
 			return
 		}
+		name, ok := reqbody["name"]
+		if !ok {
+			beego.Error("miss name")
+			c.ReplyErr(errcode.ErrParams)
+			return
+		}
 		report, err := models.GetReportByUuid(reportuuid.(string))
 		if err != nil {
 			beego.Error("get Report by uuid err", err)
 			c.ReplyErr(errcode.ErrActionGetReport)
 			return
-
 		}
 		reportsetdb := models.ReportSet{
 			Reportid: report.Id,
+			Name:     name.(string),
 			Status:   util.REPORTSET_BUILDING,
 		}
 		uuidstr, err := models.InsertReportSet(reportsetdb)
@@ -153,7 +165,7 @@ func (c *Controller) SaveReportSet() {
 		c.ReplyErr(errcode.ErrActionGetReportSet)
 		return
 	}
-	getsql, ok := reqbody["get_script"]
+	getsql, ok := reqbody["script"]
 	if !ok {
 		beego.Error("miss get_script")
 		c.ReplyErr(errcode.ErrParams)
@@ -181,11 +193,41 @@ func (c *Controller) SaveReportSet() {
 	if !ok {
 		dbid = util.BASEDB_CONNID
 	}
+
+	documents, ok := reqbody["documents"]
+	if !ok {
+		beego.Error("miss documents")
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	reportsetdb.Documents = documents.(string)
 	reportsetdb.Dbid = dbid.(string)
-	reportsetdb.Status = util.REPORTSET_STARTED
-	err = models.UpdateReportSet(reportsetdb, "dbid", "script", "conditions", "status", "web_path")
+	reportsetdb.Status = util.REPORTSET_BUILDING
+	err = models.UpdateReportSet(reportsetdb, "dbid", "script", "conditions", "status", "web_path", "documents")
 	if err != nil {
 		beego.Error("update report set ")
+		c.ReplyErr(errcode.ErrActionPutReportSet)
+		return
+	}
+	res := map[string]string{
+		"res": "success",
+	}
+	c.ReplySucc(res)
+	return
+}
+
+func (c *Controller) PublishReportSet() {
+	uuid := c.GetString("uuid")
+	reportset, err := models.GetReportSetByUuid(uuid)
+	if err != nil {
+		beego.Error("get reportset err by uuid", err)
+		c.ReplyErr(errcode.ErrActionGetReportSet)
+		return
+	}
+	reportset.Status = util.REPORTSET_STARTED
+	err = models.UpdateReportSet(reportset, "status")
+	if err != nil {
+		beego.Error("update reportset err", err)
 		c.ReplyErr(errcode.ErrActionPutReportSet)
 		return
 	}

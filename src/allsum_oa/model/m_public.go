@@ -16,6 +16,7 @@ const (
 //用户类型
 const (
 	UserTypeNormal = iota + 1
+	UserTypeAdmin
 )
 
 //用户状态
