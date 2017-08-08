@@ -2,7 +2,6 @@ package routers
 
 import (
 	"allsum_bi/controllers/aggregatemgr"
-	"allsum_bi/controllers/base"
 	"allsum_bi/controllers/dataloadmgr"
 	"allsum_bi/controllers/dbmgr"
 	"allsum_bi/controllers/demand"
@@ -38,7 +37,7 @@ func init() {
 	beego.Router(DemandPrefix+"/upload_demand_doc", &demand.Controller{}, "post:UploadDemandDoc")
 	beego.Router(DemandPrefix+"/publish_demand", &demand.Controller{}, "*:PublishDemand")
 	beego.Router(DemandPrefix+"/review_demand", &demand.Controller{}, "*:ReviewDemand")
-	beego.Router("/*", &base.Controller{}, "*:Index")
+	//	beego.Router("/*", &base.Controller{}, "*:Index")
 
 	//ETL
 	beego.Router(ETLPrefix+"/show_sycn_list", &etlmgr.Controller{}, "get:ShowSycnList")
