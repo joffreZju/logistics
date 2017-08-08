@@ -18,6 +18,7 @@ type Conn struct {
 	Passwd      string
 	Params      string
 	Dbname      string
+	Prefix      string
 	Db          *gorm.DB
 	Status      bool
 	Lastusetime time.Time

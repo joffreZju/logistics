@@ -1,11 +1,11 @@
 package etlmgr
 
 import (
-	"allsum_bi/controllers/base"
 	"allsum_bi/db"
 	"allsum_bi/models"
 	"allsum_bi/services/etl"
 	"allsum_bi/util"
+	base "common/lib/baseController"
 	"common/lib/errcode"
 
 	"github.com/astaxie/beego"

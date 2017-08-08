@@ -1,8 +1,8 @@
 package common
 
 import (
-	"allsum_bi/controllers/base"
 	"allsum_bi/services/oa"
+	base "common/lib/baseController"
 	"common/lib/errcode"
 
 	"github.com/astaxie/beego"

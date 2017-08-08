@@ -4,6 +4,7 @@ import (
 	"allsum_bi/db"
 	"allsum_bi/models"
 	"allsum_bi/util"
+	"common/lib/service_client/oaclient"
 	"strings"
 	"time"
 
@@ -68,26 +69,42 @@ func DoAggregate(id int, flushsqlscript string) (err error) {
 	if err != nil {
 		return
 	}
-	schema := db.GetCompanySchema(demand.Owner)
-	flush_script_real := strings.Replace(aggregate.Script, util.SCRIPT_TABLE, aggregate.DestTable, util.SCRIPT_LIMIT)
-	flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, util.SCRIPT_LIMIT)
-	AggregateLock[id] = true
-
-	err = db.Exec(util.BASEDB_CONNID, flushsqlscript)
-	AggregateLock[id] = false
-
+	//TODO is easy
+	report, err := models.GetReport(aggregate.Reportid)
 	if err != nil {
 		return
-		aggregates := models.AggregateLog{
-			Aggregateid: id,
-			Reportid:    aggregate.Reportid,
-			Error:       err.Error(),
-			Res:         "",
-			Timestamp:   time.Now(),
-			Status:      util.IS_OPEN,
-		}
-		models.InsertAggregateLog(aggregates)
 	}
+	var schemas []string
+	if report.Reporttype == util.REPORT_TYPE_PRIVATE {
+		schemas = []string{db.GetCompanySchema(demand.Owner)}
+	} else {
+		schemas, err = oaclient.GetAllCompanySchema()
+		if err != nil {
+			return
+		}
+	}
+	AggregateLock[id] = true
+	for _, schema := range schemas {
+		desttable, _ := db.EncodeTableSchema(util.BASEDB_CONNID, schema, aggregate.DestTable)
+		flush_script_real := strings.Replace(aggregate.Script, util.SCRIPT_TABLE, desttable, util.SCRIPT_LIMIT)
+		flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, util.SCRIPT_LIMIT)
+
+		err = db.Exec(util.BASEDB_CONNID, flushsqlscript)
+
+		if err != nil {
+			aggregates := models.AggregateLog{
+				Aggregateid: id,
+				Reportid:    aggregate.Reportid,
+				Error:       err.Error(),
+				Res:         "",
+				Timestamp:   time.Now(),
+				Status:      util.IS_OPEN,
+			}
+			models.InsertAggregateLog(aggregates)
+			return
+		}
+	}
+	AggregateLock[id] = false
 	return
 }
 

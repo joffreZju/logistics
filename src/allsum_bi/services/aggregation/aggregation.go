@@ -4,14 +4,15 @@ import (
 	"allsum_bi/db"
 	"allsum_bi/models"
 	"allsum_bi/util"
+	"common/lib/service_client/oaclient"
 	"fmt"
 	"strings"
 )
 
-func AddAggregateByDataload(name string, owner string, schema_table string, flush_script string, cron string, documents string) (aggregate models.AggregateOps, err error) {
+func AddAggregateByDataload(name string, owner string, tablename string, flush_script string, cron string, documents string) (aggregate models.AggregateOps, err error) {
 	aggregate = models.AggregateOps{
 		Name:      name,
-		DestTable: schema_table,
+		DestTable: tablename,
 		Script:    flush_script,
 		Cron:      cron,
 		Documents: documents,
@@ -22,6 +23,7 @@ func AddAggregateByDataload(name string, owner string, schema_table string, flus
 		return
 	}
 	schema := db.GetCompanySchema(owner)
+	schema_table, _ := db.EncodeTableSchema(util.BASEDB_CONNID, schema, tablename)
 	flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
 	flush_script_real = strings.Replace(flush_script_real, schema, util.SCRIPT_SCHEMA, util.SCRIPT_LIMIT)
 
@@ -40,46 +42,60 @@ func AddAggregate(uuid string, table_name string, create_script string, alter_sc
 		return
 	}
 	//TODO add common report check
-
-	schema := db.GetCompanySchema(demand.Owner)
-	err = db.CreateSchema(schema)
+	report, err := models.GetReport(aggregate.Reportid)
 	if err != nil {
 		return
 	}
-	schema_table := schema + "." + table_name
-	isexsit := db.CheckTableExist(util.BASEDB_CONNID, schema_table)
-	if !isexsit {
-		create_script_real := strings.Replace(create_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
-		err = db.Exec(util.BASEDB_CONNID, create_script_real)
+	var schemas []string
+	if report.Reporttype == util.REPORT_TYPE_PRIVATE {
+		schemas = []string{db.GetCompanySchema(demand.Owner)}
+	} else {
+		schemas, err = oaclient.GetAllCompanySchema()
 		if err != nil {
 			return
 		}
 	}
-	alter_script_real := strings.Replace(aggregate.AlterScript, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
-	//TODO not sure is able exec multiple sql need check
-	err = db.Exec(util.BASEDB_CONNID, alter_script_real)
-	if err != nil {
-		return
+
+	for _, schema := range schemas {
+		err = db.CreateSchema(schema)
+		if err != nil {
+			return
+		}
+		schema_table := schema + "." + table_name
+		isexsit := db.CheckTableExist(util.BASEDB_CONNID, schema_table)
+		if !isexsit {
+			create_script_real := strings.Replace(create_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
+			err = db.Exec(util.BASEDB_CONNID, create_script_real)
+			if err != nil {
+				return
+			}
+		}
+		alter_script_real := strings.Replace(aggregate.AlterScript, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
+		//TODO not sure is able exec multiple sql need check
+		err = db.Exec(util.BASEDB_CONNID, alter_script_real)
+		if err != nil {
+			return
+		}
+		new_create_sql, err := db.GetTableDesc(util.BASEDB_CONNID, schema, table_name, schema, table_name)
+		if err != nil {
+			return err
+		}
+		new_create_sql_format := strings.Replace(new_create_sql, schema_table, util.SCRIPT_TABLE, util.SCRIPT_LIMIT)
+
+		flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
+		flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, util.SCRIPT_LIMIT)
+
+		err = AddCronWithFlushScript(aggregate.Id, cron, flush_script_real)
+
+		aggregate.CreateScript = new_create_sql_format
+		aggregate.AlterScript = ""
+		aggregate.Cron = cron
+		aggregate.Script = flush_script
+		aggregate.Documents = documents
+		aggregate.DestTable = table_name
+		aggregate.Status = util.AGGREGATE_STARTED
+		err = models.UpdateAggregate(aggregate, "dest_table", "create_script", "alter_script", "flush_script", "cron", "documents", "status")
 	}
-	new_create_sql, err := db.GetTableDesc(util.BASEDB_CONNID, schema, table_name, schema, table_name)
-	if err != nil {
-		return
-	}
-	new_create_sql_format := strings.Replace(new_create_sql, schema_table, util.SCRIPT_TABLE, util.SCRIPT_LIMIT)
-
-	flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
-	flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, util.SCRIPT_LIMIT)
-
-	err = AddCronWithFlushScript(aggregate.Id, cron, flush_script_real)
-
-	aggregate.CreateScript = new_create_sql_format
-	aggregate.AlterScript = ""
-	aggregate.Cron = cron
-	aggregate.Script = flush_script
-	aggregate.Documents = documents
-	aggregate.DestTable = schema_table
-	aggregate.Status = util.AGGREGATE_STARTED
-	err = models.UpdateAggregate(aggregate, "dest_table", "create_script", "alter_script", "flush_script", "cron", "documents", "status")
 	return
 }
 

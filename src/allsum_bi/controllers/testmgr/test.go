@@ -1,10 +1,10 @@
 package testmgr
 
 import (
-	"allsum_bi/controllers/base"
 	"allsum_bi/models"
 	"allsum_bi/util"
 	"allsum_bi/util/ossfile"
+	base "common/lib/baseController"
 	"common/lib/errcode"
 	"io/ioutil"
 

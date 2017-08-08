@@ -1,12 +1,12 @@
 package demand
 
 import (
-	"allsum_bi/controllers/base"
 	"allsum_bi/models"
 	"allsum_bi/services/demandsvs"
 	"allsum_bi/services/oa"
 	"allsum_bi/util"
 	"allsum_bi/util/ossfile"
+	base "common/lib/baseController"
 	"common/lib/errcode"
 	"encoding/json"
 	_ "fmt"

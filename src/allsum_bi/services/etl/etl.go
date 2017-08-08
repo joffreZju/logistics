@@ -2,6 +2,7 @@ package etl
 
 import (
 	"allsum_bi/db"
+	"allsum_bi/db/conn"
 	"allsum_bi/models"
 	"allsum_bi/util"
 	"common/lib/service_client/oaclient"
@@ -69,15 +70,20 @@ func DoETL(syncid int, scriptbuff []byte) (err error) {
 }
 
 func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
+	conninfo, err := conn.GetConninfo(dbid)
+	if err != nil {
+		return
+	}
+	prefix_desttable := conninfo.Prefix + table
 	sourceTable, err := db.EncodeTableSchema(dbid, schema, table)
 	if err != nil {
 		return
 	}
-	destTable, err := db.EncodeTableSchema(util.BASEDB_CONNID, schema, table)
+	destTable, err := db.EncodeTableSchema(util.BASEDB_CONNID, schema, prefix_desttable)
 	if err != nil {
 		return
 	}
-	sync, err := models.GetSynchronousByTableName(dbid, sourceTable)
+	sync, err := models.GetSynchronousByTableName(dbid, prefix_desttable)
 	var isinsert bool
 	var createsql string
 	if err == nil {
@@ -86,7 +92,7 @@ func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
 		createsql = strings.Replace(createsql, util.SCRIPT_SCHEMA, schema, -1)
 	} else {
 		isinsert = true
-		createsql, err = db.GetTableDesc(dbid, schema, table, schema, table)
+		createsql, err = db.GetTableDesc(dbid, schema, table, schema, prefix_desttable)
 		if err != nil {
 			return err
 		}
@@ -114,7 +120,7 @@ func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
 	if isinsert {
 		syncid, err := models.InsertSynchronous(sync_res)
 		if err != nil {
-			db.DeleteTable(util.BASEDB_CONNID, schema, table)
+			db.DeleteTable(util.BASEDB_CONNID, schema, prefix_desttable)
 			return err
 		}
 		sync_res.Id = syncid

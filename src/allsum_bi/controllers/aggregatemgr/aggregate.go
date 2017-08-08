@@ -1,9 +1,9 @@
 package aggregatemgr
 
 import (
-	"allsum_bi/controllers/base"
 	"allsum_bi/models"
 	"allsum_bi/services/aggregation"
+	base "common/lib/baseController"
 	"common/lib/errcode"
 	"encoding/json"
 

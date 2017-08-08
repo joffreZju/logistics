@@ -110,7 +110,7 @@ func GetSynchronousByTableName(dbid string, tablename string) (sync Synchronous,
 	if err != nil {
 		return
 	}
-	err = db.Table(GetSynchronousTableName()).Where("source_db_id=? and source_table=?", dbid, tablename).First(&sync).Error
+	err = db.Table(GetSynchronousTableName()).Where("source_db_id=? and dest_table=?", dbid, tablename).First(&sync).Error
 	return
 }
 

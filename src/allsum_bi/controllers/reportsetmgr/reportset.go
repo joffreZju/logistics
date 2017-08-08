@@ -1,10 +1,10 @@
 package reportsetmgr
 
 import (
-	"allsum_bi/controllers/base"
 	"allsum_bi/models"
 	"allsum_bi/services/reportset"
 	"allsum_bi/util"
+	base "common/lib/baseController"
 	"common/lib/errcode"
 	"encoding/json"
 

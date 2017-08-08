@@ -5,7 +5,7 @@ import (
 	"allsum_bi/services/kettlesvs"
 	"allsum_bi/util"
 	"allsum_bi/util/ossfile"
-	"allsum_oa/controller/base"
+	base "common/lib/baseController"
 	"common/lib/errcode"
 	"encoding/json"
 	"io/ioutil"

@@ -18,6 +18,7 @@ type DatabaseManager struct {
 	Password string
 	Params   string
 	Name     string
+	Prefix   string
 }
 
 func InsertDatabaseManager(conninfo DatabaseManager) (err error) {

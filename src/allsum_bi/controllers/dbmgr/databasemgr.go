@@ -1,11 +1,11 @@
 package dbmgr
 
 import (
-	"allsum_bi/controllers/base"
 	"allsum_bi/db"
 	"allsum_bi/db/conn"
 	"allsum_bi/models"
 	"allsum_bi/util"
+	base "common/lib/baseController"
 	"common/lib/errcode"
 	"fmt"
 
@@ -53,6 +53,7 @@ func (c *Controller) ListDbDetail() {
 			"dbname": v.Dbname,
 			"host":   v.Host,
 			"port":   fmt.Sprintf("%d", v.Port),
+			"prefix": v.Prefix,
 			//		"username": v.Dbuser,
 			//		"password": v.Password,
 		}
@@ -75,6 +76,7 @@ func (c *Controller) AddDb() {
 	DbName := c.GetString("dbname")
 	DbUser := c.GetString("dbuser")
 	DbPasswd := c.GetString("dbpasswd")
+	prefix := c.GetString("prefix")
 
 	databasemgr := models.DatabaseManager{
 		Dbid:     uuid.NewV4().String(),
@@ -85,6 +87,7 @@ func (c *Controller) AddDb() {
 		Dbuser:   DbUser,
 		Password: DbPasswd,
 		Name:     Name,
+		Prefix:   prefix,
 	}
 
 	conninfo := conn.Conn{
@@ -96,6 +99,7 @@ func (c *Controller) AddDb() {
 		DbUser: DbUser,
 		Passwd: DbPasswd,
 		Dbname: DbName,
+		Prefix: prefix,
 	}
 	err = conn.CreateConn(conninfo)
 	if err != nil {
@@ -130,6 +134,7 @@ func (c *Controller) UpdateDb() {
 	DbName := c.GetString("dbname")
 	DbUser := c.GetString("dbuser")
 	DbPasswd := c.GetString("dbpasswd")
+	Prefix := c.GetString("prefix")
 
 	conninfo := conn.Conn{
 		Id:     dbid,
@@ -140,6 +145,7 @@ func (c *Controller) UpdateDb() {
 		DbUser: DbUser,
 		Passwd: DbPasswd,
 		Dbname: DbName,
+		Prefix: Prefix,
 	}
 	conn.RemoveConn(dbid)
 
@@ -159,6 +165,7 @@ func (c *Controller) UpdateDb() {
 		Dbuser:   DbUser,
 		Password: DbPasswd,
 		Name:     Name,
+		Prefix:   Prefix,
 	}
 	err = models.UpdateDatabaseManager(databasemgr, "dbname", "dbtype", "host", "port", "dbuser", "db_passwd", "name")
 	if err != nil {

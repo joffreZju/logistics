@@ -2,7 +2,7 @@ package authority
 
 import (
 	"allsum_bi/services/userauthority"
-	"allsum_oa/controller/base"
+	base "common/lib/baseController"
 	"common/lib/errcode"
 
 	"github.com/astaxie/beego"
