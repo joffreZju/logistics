@@ -425,7 +425,7 @@ func (c *Controller) GetDemandDoc() {
 }
 
 func (c *Controller) UploadDemandDoc() {
-	demanduuid := c.GetString("demanduuid")
+	demanduuid := c.Ctx.Request.Header.Get("demanduuid")
 	f, h, err := c.GetFile("uploadfile")
 	if err != nil {
 		beego.Error("get file err : ", err)
