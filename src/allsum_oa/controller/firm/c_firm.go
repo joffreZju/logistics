@@ -1,8 +1,9 @@
-package user
+package firm
 
 import (
 	"allsum_oa/model"
 	"allsum_oa/service"
+	"common/lib/baseController"
 	"common/lib/errcode"
 	"common/lib/keycrypt"
 	"encoding/json"
@@ -10,6 +11,12 @@ import (
 	"github.com/astaxie/beego"
 	"strings"
 )
+
+const commonErr = 99999
+
+type Controller struct {
+	base.Controller
+}
 
 //注册之后修改公司信息
 func (c *Controller) UpdateFirmInfo() {

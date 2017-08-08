@@ -1,8 +1,8 @@
 package msg
 
 import (
-	"allsum_oa/controller/base"
 	"allsum_oa/service"
+	"common/lib/baseController"
 	"common/lib/errcode"
 	"github.com/astaxie/beego"
 )

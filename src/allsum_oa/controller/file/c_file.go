@@ -1,7 +1,7 @@
 package file
 
 import (
-	"allsum_oa/controller/base"
+	"common/lib/baseController"
 	"common/lib/errcode"
 	"common/lib/ossfile"
 	"github.com/astaxie/beego"

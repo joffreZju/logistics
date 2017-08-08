@@ -238,7 +238,7 @@ func createSchema(schema string) (e error) {
 func createCreatorRole(prefix string) (e error) {
 	tx := model.NewOrm().Begin()
 	r := &model.Role{
-		Name:   "创始人",
+		Name:   "管理员",
 		Descrp: "公司初始注册者",
 	}
 	e = tx.Table(prefix + "." + r.TableName()).Create(r).Error
@@ -248,7 +248,8 @@ func createCreatorRole(prefix string) (e error) {
 	}
 	funcs := []*model.Function{}
 	//todo 菜单是否可以分配，是否要在这里要体现出来，只把开放给其他公司的菜单全部分配给创始人？
-	e = tx.Table(model.Public + "." + model.Function{}.TableName()).Find(&funcs).Error
+	e = tx.Table(model.Public+"."+model.Function{}.TableName()).
+		Find(&funcs, "pid=? or sys_id=?", 0, "oa").Error
 	if e != nil {
 		tx.Rollback()
 		return

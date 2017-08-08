@@ -1,12 +1,19 @@
-package user
+package admin
 
 import (
 	"allsum_oa/model"
 	"allsum_oa/service"
+	"common/lib/baseController"
 	"common/lib/errcode"
 	"encoding/json"
 	"github.com/astaxie/beego"
 )
+
+const commonErr = 99999
+
+type Controller struct {
+	base.Controller
+}
 
 func (c *Controller) AdminGetFirmInfo() {
 	no := c.GetString("cno")
@@ -131,15 +138,5 @@ func (c *Controller) AddAppVersion() {
 		beego.Error(e)
 	} else {
 		c.ReplySucc(nil)
-	}
-}
-
-func (c *Controller) GetLatestAppVersion() {
-	app, e := service.GetLatestAppVersion()
-	if e != nil {
-		c.ReplyErr(errcode.New(commonErr, e.Error()))
-		beego.Error(e)
-	} else {
-		c.ReplySucc(app)
 	}
 }

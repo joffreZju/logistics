@@ -1,9 +1,9 @@
 package user
 
 import (
-	"allsum_oa/controller/base"
 	"allsum_oa/model"
 	"allsum_oa/service"
+	"common/lib/baseController"
 	"common/lib/errcode"
 	"common/lib/keycrypt"
 	"common/lib/push"
@@ -337,37 +337,6 @@ func (c *Controller) SwitchCurrentFirm() {
 		c.ReplySucc(user)
 		beego.Info("switch company success with cno:%s", cno)
 	}
-}
-
-func (c *Controller) Test() {
-	a, e := c.RedisClient.Hmset("group_1", map[string]interface{}{
-		"roles":  "1_2_3",
-		"groups": "4_5_6",
-	})
-	beego.Info(a, e)
-
-	a, e = c.RedisClient.Hmset("group_1", map[string]interface{}{
-		"roles":  "1_2",
-		"groups": "4_5",
-	})
-	beego.Info(a, e)
-
-	b, e := c.RedisClient.Hmget("group_1", []string{"roles", "groups"})
-	beego.Info(b, e)
-
-	d, e := c.RedisClient.HDel("group_1", "roles")
-	beego.Info(d, e)
-
-	f, e := c.RedisClient.Hmget("group_1", []string{"roles", "groups"})
-	beego.Info(f, e, len(f["roles"]))
-
-	g, e := c.RedisClient.Expire("group_1", 120)
-	beego.Info(g, e)
-
-	g, e = c.RedisClient.Expire("group_1", 30)
-	beego.Info(g, e)
-
-	c.ReplySucc(nil)
 }
 
 func (c *Controller) LoginOut() {

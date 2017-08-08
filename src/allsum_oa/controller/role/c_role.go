@@ -1,7 +1,7 @@
 package role
 
 import (
-	"allsum_oa/controller/base"
+	"common/lib/baseController"
 	"common/lib/errcode"
 	"encoding/json"
 	"github.com/astaxie/beego"
