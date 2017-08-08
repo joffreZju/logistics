@@ -46,6 +46,7 @@ func AddAuthority(authoritymaps []map[string]string, UserComp string, Userid int
 		if err != nil {
 			return
 		}
+		db.CreateSchema(schema)
 		err = db.AddAuthority(dbid, userdbname, schema, "SELECT")
 		if err != nil {
 			return
