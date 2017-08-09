@@ -32,10 +32,12 @@ func (c *Controller) GetTestInfo() {
 		return
 	}
 	var documents []string
-	var filepaths [][]string
+	var filepaths []string
 	for _, testinfo := range testinfos {
 		documents = append(documents, testinfo.Documents)
-		filepaths = append(filepaths, testinfo.Filepaths.([]string))
+		for _, filep := range testinfo.Filepaths.([]interface{}) {
+			filepaths = append(filepaths, filep.(string))
+		}
 	}
 
 	res := map[string]interface{}{
