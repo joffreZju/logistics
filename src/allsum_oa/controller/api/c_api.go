@@ -1,6 +1,7 @@
 package api
 
 import (
+	"allsum_oa/model"
 	"allsum_oa/service"
 	"common/lib/baseController"
 	"common/lib/errcode"
@@ -49,5 +50,19 @@ func (c *Controller) GetUsersOfRole() {
 		beego.Error(e)
 	} else {
 		c.ReplySucc(users)
+	}
+}
+
+func (c *Controller) GetUserInfo() {
+	uid, e := c.GetInt("userId")
+	if e != nil || uid == 0 {
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
+	user, e := service.GetUserById(model.Public, uid)
+	if e != nil {
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
+	} else {
+		c.ReplySucc(user)
 	}
 }

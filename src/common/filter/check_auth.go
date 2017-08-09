@@ -8,6 +8,7 @@ import (
 	"github.com/astaxie/beego/context"
 	"github.com/ysqi/tokenauth"
 	"github.com/ysqi/tokenauth2beego/o2o"
+	"net/http"
 )
 
 var (
@@ -54,12 +55,7 @@ func CheckAuthWebFilter(api bool, group string, notNeedAuthList []string) beego.
 	}
 }
 
-func CheckAuthFilter(group string, notNeedAuthList []string) beego.FilterFunc {
-	noAuthMap := map[string]bool{}
-	for _, path := range notNeedAuthList {
-		noAuthMap[path] = true
-	}
-
+func CheckAuthFilter(group string, notNeedAuthPrefixList []string) beego.FilterFunc {
 	d := &tokenauth.DefaultProvider{}
 	audience := &tokenauth.Audience{
 		Name:        "CusSingleTokenCheck",
@@ -76,14 +72,17 @@ func CheckAuthFilter(group string, notNeedAuthList []string) beego.FilterFunc {
 
 	return func(ctx *context.Context) {
 		path := ctx.Request.URL.Path
-		if ctx.Request.Method == "OPTIONS" {
+		if ctx.Request.Method == http.MethodOptions {
 			return
 		}
 		if token, err := o2o.Auth.CheckToken(ctx.Request); err != nil {
-			if !noAuthMap[ctx.Request.URL.Path] {
-				beego.Debug("request to: ", path, ctx.Request.Method, err.Error(), "token:", token)
-				o2o.Auth.ReturnFailueInfo(err, ctx)
+			for _, pathPrefix := range notNeedAuthPrefixList {
+				if strings.Contains(path, pathPrefix) {
+					return
+				}
 			}
+			beego.Debug("request to: ", path, ctx.Request.Method, err.Error(), "token:", token)
+			o2o.Auth.ReturnFailueInfo(err, ctx)
 		} else {
 			beego.Debug("CheckAuthFilter token", token)
 			//for visit admin page

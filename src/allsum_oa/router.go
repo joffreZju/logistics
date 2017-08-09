@@ -38,6 +38,7 @@ func LoadRouter() {
 	beego.Router(OpenApiPrefix+"/schema/list/get", &api.Controller{}, "Get:GetSchemaList")
 	beego.Router(OpenApiPrefix+"/role/list/get", &api.Controller{}, "Get:GetRoleList")
 	beego.Router(OpenApiPrefix+"/role/user/list/get", &api.Controller{}, "Get:GetUsersOfRole")
+	beego.Router(OpenApiPrefix+"/user/get", &api.Controller{}, "Get:GetUserInfo")
 
 	//文件上传下载
 	beego.Router(FilePrefix+"/upload", &file.Controller{}, "Post:UploadFile")
@@ -138,23 +139,11 @@ func LoadRouter() {
 	}))
 
 	// 非登录态列表
-	notNeedAuthList := []string{
-		ExemptPrefix + PublicPrefix + "/appversion/latest/get",
-		ExemptPrefix + PublicPrefix + "/functions/get",
-		ExemptPrefix + PublicPrefix + "/smscode",
-		ExemptPrefix + UserPrefix + "/register",
-		ExemptPrefix + UserPrefix + "/login",
-		ExemptPrefix + UserPrefix + "/login_phone",
-		ExemptPrefix + UserPrefix + "/login_out",
-		ExemptPrefix + UserPrefix + "/forgetpwd",
-		OpenApiPrefix + "/schema/list/get",
-		OpenApiPrefix + "/role/list/get",
-		OpenApiPrefix + "/role/user/list/get",
-	}
+	notNeedAuthPrefixList := []string{ExemptPrefix, OpenApiPrefix}
 
 	// 请求合法性验证 这个要放在第一个
 	//beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckRequestFilter())
 	//filter.AddURLCheckSeed("wxapp", "bFvKYrlnHdtSaaGk7B1t") // 添加URLCheckSeed
-	beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckAuthFilter("stowage_user", notNeedAuthList))
+	beego.InsertFilter("/*", beego.BeforeRouter, filter.CheckAuthFilter("stowage_user", notNeedAuthPrefixList))
 	beego.InsertFilter("/*", beego.BeforeRouter, filter.RequestFilter())
 }
