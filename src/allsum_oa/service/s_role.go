@@ -8,7 +8,13 @@ import (
 	"time"
 )
 
-func GetRoles(prefix string) (roles []*model.Role, e error) {
+func GetRoleList(prefix string) (roles []*model.Role, e error) {
+	roles = []*model.Role{}
+	e = model.NewOrm().Table(prefix + "." + model.Role{}.TableName()).Order("id").Find(&roles).Error
+	return
+}
+
+func GetRolesDetail(prefix string) (roles []*model.Role, e error) {
 	db := model.NewOrm()
 	roles = []*model.Role{}
 	e = db.Table(prefix + "." + model.Role{}.TableName()).Order("id").Find(&roles).Error

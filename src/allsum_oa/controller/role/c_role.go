@@ -15,13 +15,13 @@ type Controller struct {
 	base.Controller
 }
 
-const CommonErr = 99999
+const commonErr = 99999
 
 func (c *Controller) GetRoleList() {
 	prefix := c.UserComp
-	roles, e := service.GetRoles(prefix)
+	roles, e := service.GetRolesDetail(prefix)
 	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
 	} else {
 		c.ReplySucc(roles)
@@ -47,7 +47,7 @@ func (c *Controller) AddRole() {
 	}
 	e = service.AddRole(prefix, &r, funcIds)
 	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
 	} else {
 		c.ReplySucc(nil)
@@ -79,7 +79,7 @@ func (c *Controller) UpdateRole() {
 	}
 	e = service.UpdateRole(prefix, &r, funcIds)
 	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
 	} else {
 		c.ReplySucc(nil)
@@ -96,7 +96,7 @@ func (c *Controller) DelRole() {
 	}
 	e = service.DelRole(prefix, rid)
 	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
 	} else {
 		c.ReplySucc(nil)
@@ -109,7 +109,7 @@ func (c *Controller) GetUsersOfRole() {
 	rid, e := c.GetInt("id")
 	users, e := service.GetUsersOfRole(prefix, rid)
 	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
 	} else {
 		c.ReplySucc(users)
@@ -135,7 +135,7 @@ func (c *Controller) AddUsersToRole() {
 	}
 	e = service.AddUsersToRole(prefix, rid, uids)
 	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
 	} else {
 		c.ReplySucc(nil)
@@ -161,7 +161,7 @@ func (c *Controller) DelUsersFromRole() {
 	}
 	e = service.DelUsersFromRole(prefix, rid, uids)
 	if e != nil {
-		c.ReplyErr(errcode.New(CommonErr, e.Error()))
+		c.ReplyErr(errcode.New(commonErr, e.Error()))
 		beego.Error(e)
 	} else {
 		c.ReplySucc(nil)

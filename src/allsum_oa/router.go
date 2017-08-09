@@ -36,6 +36,8 @@ const (
 func LoadRouter() {
 	// openApi
 	beego.Router(OpenApiPrefix+"/schema/list/get", &api.Controller{}, "Get:GetSchemaList")
+	beego.Router(OpenApiPrefix+"/role/list/get", &api.Controller{}, "Get:GetRoleList")
+	beego.Router(OpenApiPrefix+"/role/user/list/get", &api.Controller{}, "Get:GetUsersOfRole")
 
 	//文件上传下载
 	beego.Router(FilePrefix+"/upload", &file.Controller{}, "Post:UploadFile")
@@ -146,6 +148,8 @@ func LoadRouter() {
 		ExemptPrefix + UserPrefix + "/login_out",
 		ExemptPrefix + UserPrefix + "/forgetpwd",
 		OpenApiPrefix + "/schema/list/get",
+		OpenApiPrefix + "/role/list/get",
+		OpenApiPrefix + "/role/user/list/get",
 	}
 
 	// 请求合法性验证 这个要放在第一个
