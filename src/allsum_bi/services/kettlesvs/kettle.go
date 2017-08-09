@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"syscall"
 	"time"
@@ -69,7 +70,48 @@ func ExecJob(jobfile string) (fmtstr string, err error) {
 	return
 }
 
-func AddJobKtrfile(name string, cron string, filename string, jobfiledata []byte, ktrdatas map[string][]byte) (kettlejob models.KettleJob, err error) {
+func AddJobKtrfile(userid int, name string, cron string, filename string, jobfiledata []byte, jobktrs []map[string]string) (kettlejob models.KettleJob, err error) {
+	kettleWorkPath := beego.AppConfig.String("kettle::workpath")
+	jobfiledatastr := string(jobfiledata)
+	for _, jobktrmap := range jobktrs {
+		basektrpath := path.Base(jobktrmap["uri"])
+		jobfiledatastr = strings.Replace(jobfiledatastr, jobktrmap["name"], basektrpath, -1)
+	}
+	kjobfile := fmt.Sprintf("%d_%v_%s", userid, time.Now(), filename)
+	jobfiledata = []byte(jobfiledatastr)
+	urlpath, err := ossfile.PutFile("kettle", kjobfile, jobfiledata)
+	if err != nil {
+		return
+	}
+	kjobfilemap := map[string]string{
+		"filename": filename,
+		"urlpath":  urlpath,
+	}
+	err = ioutil.WriteFile(kettleWorkPath+kjobfile, jobfiledata, 0664)
+	if err != nil {
+		return
+	}
+	kjobfilejson, err := json.Marshal(kjobfilemap)
+	if err != nil {
+		return
+	}
+	ktrfilejson, err := json.Marshal(jobktrs)
+	if err != nil {
+		return
+	}
+
+	kettlejob = models.KettleJob{
+		Name:     name,
+		Cron:     cron,
+		Kjbpath:  string(kjobfilejson),
+		Ktrpaths: string(ktrfilejson),
+		Status:   util.KETTLEJOB_FAIL,
+	}
+	kettlejob, err = models.InsertKettleJob(kettlejob)
+	return
+}
+
+func AddJobKtrfile_OLD(name string, cron string, filename string, jobfiledata []byte, ktrdatas map[string][]byte) (kettlejob models.KettleJob, err error) {
 
 	kettleWorkPath := beego.AppConfig.String("kettle::workpath")
 	jobfiledatastr := string(jobfiledata)

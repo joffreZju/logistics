@@ -294,6 +294,9 @@ func (c *Controller) GetAnalyzeReport() {
 		}
 		authoritymap[dbid] = data
 	}
+
+	handlerdbuser := demandsvs.GetHandlerDbUser(c.UserComp, demand.Handlerid)
+
 	var authorityArray []interface{}
 	for _, v := range authoritymap {
 		authorityArray = append(authorityArray, v)
@@ -315,6 +318,7 @@ func (c *Controller) GetAnalyzeReport() {
 		"handler_name":       demand.HandlerName,
 		"deadline":           demand.Deadline,
 		"assigner_authority": authorityArray,
+		"handlerdbuser":      handlerdbuser,
 	}
 	c.ReplySucc(res)
 }

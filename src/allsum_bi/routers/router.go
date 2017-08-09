@@ -95,6 +95,7 @@ func init() {
 
 	//kettlemgr
 	beego.Router(KettlePrefix+"/add_kettle_job", &kettlemgr.Controller{}, "post:AddKJob")
+	beego.Router(KettlePrefix+"/add_job_file", &kettlemgr.Controller{}, "post:AddJobFile")
 	beego.Router(KettlePrefix+"/list_kettle_job", &kettlemgr.Controller{}, "get:ListKJob")
 	beego.Router(KettlePrefix+"/download_kettle_job", &kettlemgr.Controller{}, "get:DownloadKJob")
 	beego.Router(KettlePrefix+"/set_kettle_job_enable", &kettlemgr.Controller{}, "post:SetJobEnable")
@@ -103,7 +104,7 @@ func init() {
 	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
 		//AllowOrigins:     []string{"http://localhost:8090", "http://www.suanpeizaix.comw", "http://www.suanpeizaix.com:8090"},
 		AllowAllOrigins:  true,
-		AllowHeaders:     []string{"demanduuid", "uid", "cno", "access_token", "Authorization", "X-Requested-With", "Content-Type", "Origin", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers"},
+		AllowHeaders:     []string{"filetype", "demanduuid", "uid", "cno", "access_token", "Authorization", "X-Requested-With", "Content-Type", "Origin", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers"},
 		AllowMethods:     []string{"GET", "DELETE", "PUT", "PATCH", "POST", "OPTIONS"},
 		ExposeHeaders:    []string{"Authorization", "Content-Type", "Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers"},
 		AllowCredentials: true,

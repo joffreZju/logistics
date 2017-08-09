@@ -67,3 +67,7 @@ func RevokeAuthority(authoritymaps []map[string]string, UserComp string, Handlei
 	}
 	return
 }
+
+func GetHandlerDbUser(compid string, handlerid int) (dbusername string) {
+	return fmt.Sprintf("%s_%d", compid, handlerid)
+}
