@@ -123,34 +123,34 @@ func (c *Controller) AddDb() {
 
 func (c *Controller) UpdateDb() {
 	Name := c.GetString("name")
-	Host := c.GetString("host")
+	//	Host := c.GetString("host")
 	dbid := c.GetString("dbid")
-	Port, err := c.GetInt("port")
-	if err != nil {
-		beego.Error("beego err ", err)
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
-	DbType := c.GetString("dbtype")
-	DbName := c.GetString("dbname")
-	DbUser := c.GetString("dbuser")
-	DbPasswd := c.GetString("dbpasswd")
-	Prefix := c.GetString("prefix")
+	//	Port, err := c.GetInt("port")
+	//	if err != nil {
+	//		beego.Error("beego err ", err)
+	//		c.ReplyErr(errcode.ErrParams)
+	//		return
+	//	}
+	//	DbType := c.GetString("dbtype")
+	//	DbName := c.GetString("dbname")
+	//	DbUser := c.GetString("dbuser")
+	//	DbPasswd := c.GetString("dbpasswd")
+	//	Prefix := c.GetString("prefix")
 
 	conninfo := conn.Conn{
-		Id:     dbid,
-		Dbtype: DbType,
-		Name:   Name,
-		Host:   Host,
-		Port:   Port,
-		DbUser: DbUser,
-		Passwd: DbPasswd,
-		Dbname: DbName,
-		Prefix: Prefix,
+		Id: dbid,
+		//	Dbtype: DbType,
+		Name: Name,
+		//	Host:   Host,
+		//	Port:   Port,
+		//	DbUser: DbUser,
+		//	Passwd: DbPasswd,
+		//	Dbname: DbName,
+		//	Prefix: Prefix,
 	}
 	conn.RemoveConn(dbid)
 
-	err = conn.CreateConn(conninfo)
+	err := conn.CreateConn(conninfo)
 	if err != nil {
 		beego.Error("create conn err", err)
 		c.ReplyErr(errcode.ErrActionCreateConn)
@@ -158,17 +158,18 @@ func (c *Controller) UpdateDb() {
 	}
 
 	databasemgr := models.DatabaseManager{
-		Dbid:     dbid,
-		Dbname:   DbName,
-		Dbtype:   DbType,
-		Host:     Host,
-		Port:     Port,
-		Dbuser:   DbUser,
-		Password: DbPasswd,
-		Name:     Name,
-		Prefix:   Prefix,
+		Dbid: dbid,
+		//		Dbname:   DbName,
+		//		Dbtype:   DbType,
+		//		Host:     Host,
+		//		Port:     Port,
+		//		Dbuser:   DbUser,
+		//		Password: DbPasswd,
+		Name: Name,
+		//		Prefix:   Prefix,
 	}
-	err = models.UpdateDatabaseManager(databasemgr, "dbname", "dbtype", "host", "port", "dbuser", "db_passwd", "name")
+	//	err = models.UpdateDatabaseManager(databasemgr, "dbname", "dbtype", "host", "port", "dbuser", "db_passwd", "name")
+	err = models.UpdateDatabaseManager(databasemgr, "name")
 	if err != nil {
 		beego.Error("listdb err :", err)
 		c.ReplyErr(errcode.ErrServerError)
