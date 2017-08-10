@@ -464,3 +464,14 @@ func (c *Controller) UploadDemandDoc() {
 	}
 	c.ReplySucc(res)
 }
+
+func (c *Controller) GetHandlerList() {
+	users, err := demandsvs.GetHandlerUserFromOA()
+	if err != nil {
+		beego.Error("users :", users)
+		c.ReplyErr(errcode.ErrServerError)
+		return
+	}
+	c.ReplySucc(users)
+	return
+}

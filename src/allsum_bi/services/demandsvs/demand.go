@@ -4,8 +4,10 @@ import (
 	"allsum_bi/db"
 	"allsum_bi/models"
 	"allsum_bi/util"
+	"common/lib/service_client/oaclient"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 func ChangeStatus(demanduuid string, demandstatus int, reportstatus int, HandleCompany string) (err error) {
@@ -70,4 +72,41 @@ func RevokeAuthority(authoritymaps []map[string]string, UserComp string, Handlei
 
 func GetHandlerDbUser(compid string, handlerid int) (dbusername string) {
 	return fmt.Sprintf("%s_%d", compid, handlerid)
+}
+
+func GetHandlerUserFromOA() (users []map[string]interface{}, err error) {
+	roles, err := oaclient.GetAllRoleByCompany(util.COMPANY_NO)
+	if err != nil {
+		return
+	}
+	var biroles []map[string]interface{}
+	for _, rolebi := range roles {
+		name := rolebi["Name"].(string)
+		if strings.Contains(name, util.REG_ROLE_BI) {
+			biroles = append(biroles, rolebi)
+		}
+	}
+	if len(biroles) == 0 {
+		return
+	}
+	var developroles []map[string]interface{}
+	for _, rolebi := range biroles {
+		name := rolebi["Name"].(string)
+		if strings.Contains(name, util.REG_ROLE_DEVELOP) {
+			developroles = append(developroles, rolebi)
+		}
+	}
+	if len(developroles) == 0 {
+		developroles = biroles
+	}
+	for _, developrole := range developroles {
+		var roleid int
+		roleid = int(developrole["Id"].(float64))
+		userapis, err := oaclient.GetAllUserByRole(util.COMPANY_NO, roleid)
+		if err != nil {
+			continue
+		}
+		users = append(users, userapis...)
+	}
+	return
 }

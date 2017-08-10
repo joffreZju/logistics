@@ -5,6 +5,11 @@ const MYSQL_DB_TYPE = "mysql"
 const PG_DB_TYPE = "pgsql"
 const MONGO_DB_TYPE = "mongo"
 
+//
+const COMPANY_NO = "allsum"
+const REG_ROLE_BI = "bi"
+const REG_ROLE_DEVELOP = "开发"
+
 //basedb conn id
 
 const BASEDB_CONNID = "bi_base_db"

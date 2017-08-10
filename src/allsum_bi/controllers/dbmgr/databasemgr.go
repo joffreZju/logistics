@@ -53,6 +53,7 @@ func (c *Controller) ListDbDetail() {
 			"dbname": v.Dbname,
 			"host":   v.Host,
 			"port":   fmt.Sprintf("%d", v.Port),
+			"dbtype": v.Dbtype,
 			"prefix": v.Prefix,
 			//		"username": v.Dbuser,
 			//		"password": v.Password,
