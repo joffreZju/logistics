@@ -104,6 +104,8 @@ func (c *Controller) AddDb() {
 	}
 	err = conn.CreateConn(conninfo)
 	if err != nil {
+		beego.Error("listdb err :", err)
+		c.ReplyErr(errcode.ErrActionCreateConn)
 		return
 	}
 
