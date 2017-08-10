@@ -55,7 +55,7 @@ func (c *Controller) ListDbDetail() {
 			"port":   fmt.Sprintf("%d", v.Port),
 			"dbtype": v.Dbtype,
 			"prefix": v.Prefix,
-			//		"username": v.Dbuser,
+			"dbuser": v.Dbuser,
 			//		"password": v.Password,
 		}
 		res = append(res, resbase)
