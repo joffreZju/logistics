@@ -9,6 +9,12 @@ import (
 
 func AddAuthority(dbid string, username string, schema string, option string) (err error) {
 	username = strings.ToLower(username)
+	sqlstr0 := "GRANT USAGE ON SCHEMA " + schema + " to " + username
+	err = Exec(dbid, sqlstr0)
+	if err != nil {
+		return
+	}
+
 	sqlstr1 := "GRANT " + option + " ON ALL TABLES IN SCHEMA " + schema + " TO " + username
 	err = Exec(dbid, sqlstr1)
 	if err != nil {

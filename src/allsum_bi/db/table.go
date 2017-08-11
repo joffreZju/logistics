@@ -14,7 +14,7 @@ func GetTableDesc(dbid string, schema string, table string, destschema string, d
 	if err != nil {
 		return
 	}
-	rows, err := db.Raw("SELECT column_name, data_type, character_maximum_length, is_nullable FROM information_schema.columns WHERE table_name=? and table_schema=?", table, schema).Rows()
+	rows, err := db.Raw("SELECT column_name, udt_name, character_maximum_length, is_nullable FROM information_schema.columns WHERE table_name=? and table_schema=?", table, schema).Rows()
 	if err != nil {
 		beego.Error("get create sql fail :", err)
 		return

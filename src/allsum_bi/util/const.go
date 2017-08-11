@@ -7,7 +7,7 @@ const MONGO_DB_TYPE = "mongo"
 
 //
 const COMPANY_NO = "allsum"
-const REG_ROLE_BI = "bi"
+const REG_ROLE_BI = "BI"
 const REG_ROLE_DEVELOP = "开发"
 
 //basedb conn id
@@ -25,7 +25,7 @@ const DEFAULT_PASSWD = "123456"
 //ETL
 const TRANSFORM_PATH = "./transform_js/"
 const JS_TEMPLATE = "var %s = postgres({\"uri\": \"postgres://%s:%d/%s?sslmode=disable&user=%s&password=%s\"})"
-const JS_TRANSPORT = "t.Source( source, \"/^%s\\/\" ).%sSave( sink, \"/%s/\" )"
+const JS_TRANSPORT = "t.Source( source, \"/%s/\" ).%sSave( sink, \"/%s/\" )"
 const TRANSPORTFORM_GOJA = "Transform(%s)."
 
 const DEFAULT_TRANSPORT = "skip({\"field\": \"%s\", \"operator\": \"<=\", \"match\": %v})"

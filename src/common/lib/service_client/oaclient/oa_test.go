@@ -17,5 +17,7 @@ func Test_oa(b *testing.T) {
 	fmt.Println("roles:", roleinfos, err)
 	userinfos, err := GetAllUserByRole(company, roleid)
 	fmt.Println("userinfo:", userinfos, err)
+	userinfo, err := GetUserInfo(7)
+	fmt.Println("userinfo:", userinfo, err)
 
 }

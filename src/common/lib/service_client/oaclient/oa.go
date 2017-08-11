@@ -85,7 +85,7 @@ func GetAllRoleByCompany(companyNo string) (roleinfos []map[string]interface{}, 
 func GetAllUserByRole(companyNo string, roleid int) (userinfos []map[string]interface{}, err error) {
 	oahost := beego.AppConfig.String("service_client::oa_host")
 
-	url := fmt.Sprintf("http://%s/api/role/list/get?companyNo=%s&roleId=%v", oahost, companyNo, roleid)
+	url := fmt.Sprintf("http://%s/api/role/user/list/get?companyNo=%s&roleId=%v", oahost, companyNo, roleid)
 	beego.Debug("url:", url)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -116,5 +116,40 @@ func GetAllUserByRole(companyNo string, roleid int) (userinfos []map[string]inte
 	for _, user := range users.([]interface{}) {
 		userinfos = append(userinfos, user.(map[string]interface{}))
 	}
+	return
+}
+
+func GetUserInfo(userid int) (userinfo map[string]interface{}, err error) {
+	oahost := beego.AppConfig.String("service_client::oa_host")
+
+	url := fmt.Sprintf("http://%s/api/user/get?userId=%v", oahost, userid)
+	beego.Debug("url:", url)
+	resp, err := http.Get(url)
+	if err != nil {
+		beego.Error("http client err", err)
+		return
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		beego.Error("read body err:", err)
+		return
+	}
+	var res map[string]interface{}
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return
+	}
+	code, ok := res["code"]
+	if !ok || code.(float64) != 0 {
+		err = fmt.Errorf("err code ", res)
+		return
+	}
+	user, ok := res["data"]
+	if !ok {
+		err = fmt.Errorf("miss data in response")
+		return
+	}
+	userinfo = user.(map[string]interface{})
 	return
 }

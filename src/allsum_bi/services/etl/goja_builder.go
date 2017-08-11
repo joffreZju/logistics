@@ -112,7 +112,7 @@ type Adaptor struct {
 func (t *Transporter) run(id int) (outfmt string, err error) {
 	var buf bytes.Buffer
 	log.Orig().Out = &buf
-	log.Orig().Level = logrus.WarnLevel
+	log.Orig().Level = logrus.DebugLevel
 	//	var g group.Group
 	p, err := pipeline.NewPipeline("0.1", t.sourceNode, events.LogEmitter(), 5*time.Second)
 	if err != nil {

@@ -93,6 +93,7 @@ func init() {
 	beego.Router(TestPrefix+"/add", &testmgr.Controller{}, "post:AddTest")
 	beego.Router(TestPrefix+"/addtestfile", &testmgr.Controller{}, "post:AddTestFile")
 	beego.Router(TestPrefix+"/get_image", &testmgr.Controller{}, "get:GetTestFile")
+	beego.Router(TestPrefix+"/repair_bug", &testmgr.Controller{}, "get:RepairBug")
 
 	//kettlemgr
 	beego.Router(KettlePrefix+"/add_kettle_job", &kettlemgr.Controller{}, "post:AddKJob")

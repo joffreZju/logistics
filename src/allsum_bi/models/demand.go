@@ -58,6 +58,15 @@ func GetDemandByUuid(uuid string) (demand Demand, err error) {
 	return
 }
 
+func GetDemand(id int) (demand Demand, err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	err = db.Table(GetDemandTableName()).Where("id=?", id).First(&demand).Error
+	return
+}
+
 func ListDemandByField(fields []string, values []interface{}, limit int, index int) (demands []Demand, err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {

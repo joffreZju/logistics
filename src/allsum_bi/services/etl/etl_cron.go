@@ -80,7 +80,7 @@ func AddCronWithFullScript(id int, cronstr string, fullscript string) (err error
 	return
 }
 
-func AddCronWithScript(id int, cronstr string, fullscript string) (err error) {
+func AddCronWithScript(id int, cronstr string, script string) (err error) {
 	if etlc, ok := CronEtls[id]; ok {
 		etlc.Stop()
 	}
@@ -110,13 +110,14 @@ func AddCronWithScript(id int, cronstr string, fullscript string) (err error) {
 			"lock":    1,
 			"passnum": 0,
 		}
-		script, err := MakeRunScript(fullscript)
+		//		script, err := MakeRunScript(fullscript)
 		if err != nil {
 			return
 		}
 		DoETL(id, []byte(script))
 		delete(etltaskmap, id)
 		delete(EtlLock, id)
+		beego.Debug("one round bye bye... left:", etltaskmap)
 	})
 	if err != nil {
 		return

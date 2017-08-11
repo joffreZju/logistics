@@ -358,7 +358,7 @@ func (c *Controller) SetDemand() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	err = demandsvs.AddAuthority(assigner_authority_maps, c.UserComp, c.UserID)
+	err = demandsvs.AddAuthority(assigner_authority_maps, c.UserComp, handlerid)
 	if err != nil {
 		beego.Error("add assigner_authority err", err)
 		c.ReplyErr(errcode.ErrActionAddAuthority)

@@ -4,15 +4,24 @@ import (
 	"allsum_bi/db/conn"
 	"fmt"
 	"strings"
+	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 type TestInfo struct {
-	Id        int
-	Uuid      string
-	Reportid  int
-	Documents string
-	Filepaths interface{}
-	Status    int
+	Id          int
+	Uuid        string
+	Testerid    int
+	Reportid    int
+	Handlerid   int
+	HandlerName string
+	Title       string
+	Documents   string
+	Filepaths   interface{}
+	Status      int
+	ctt         time.Time
+	utt         time.Time
 }
 
 func InsertTestInfo(testinfo TestInfo) (uuidstr string, err error) {
@@ -27,6 +36,9 @@ func InsertTestInfo(testinfo TestInfo) (uuidstr string, err error) {
 	filepaths := testinfo.Filepaths.([]string)
 	filepatharray := "{" + strings.Join(filepaths, ",") + "}"
 	testinfo.Filepaths = filepatharray
+	testinfo.Uuid = uuid.NewV4().String()
+	testinfo.ctt = time.Now()
+	testinfo.utt = time.Now()
 	err = db.Table(GetTestInfoTableName()).Create(&testinfo).Error
 	uuidstr = testinfo.Uuid
 	return
@@ -117,5 +129,24 @@ func ListAllTestInfos() (testinfos []TestInfo, err error) {
 		testinfo.Filepaths = strings.Split(testinfo.Filepaths.(string), ",")
 		testinfos = append(testinfos, testinfo)
 	}
+	return
+}
+
+func UpdateTestInfo(testinfo TestInfo, fields ...string) (err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	testinfo.utt = time.Now()
+	err = db.Table(GetTestInfoTableName()).Where("id=?", testinfo.Id).Updates(testinfo).Update(fields).Error
+	return
+}
+func UpdateTestInfoByUuid(testinfo TestInfo, fields ...string) (err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	testinfo.utt = time.Now()
+	err = db.Table(GetTestInfoTableName()).Where("uuid=?", testinfo.Uuid).Updates(testinfo).Update(fields).Error
 	return
 }

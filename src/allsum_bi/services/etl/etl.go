@@ -65,6 +65,7 @@ func DoETL(syncid int, scriptbuff []byte) (err error) {
 			CleanEtlError(syncid)
 		}
 	})
+	beego.Debug("do etl end!!!")
 
 	return
 }

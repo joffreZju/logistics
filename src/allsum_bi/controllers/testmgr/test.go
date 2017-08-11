@@ -31,20 +31,21 @@ func (c *Controller) GetTestInfo() {
 		c.ReplyErr(errcode.ErrActionGetTestInfo)
 		return
 	}
-	var documents []string
-	var filepaths []string
-	for _, testinfo := range testinfos {
-		documents = append(documents, testinfo.Documents)
-		for _, filep := range testinfo.Filepaths.([]interface{}) {
-			filepaths = append(filepaths, filep.(string))
-		}
-	}
-
-	res := map[string]interface{}{
-		"documents": documents,
-		"filepaths": filepaths,
-	}
-	c.ReplySucc(res)
+	c.ReplySucc(testinfos)
+	//	var documents []string
+	//	var filepaths []string
+	//	for _, testinfo := range testinfos {
+	//		documents = append(documents, testinfo.Documents)
+	//		for _, filep := range testinfo.Filepaths {
+	//			filepaths = append(filepaths, filep)
+	//		}
+	//	}
+	//
+	//	res := map[string]interface{}{
+	//		"documents": documents,
+	//		"filepaths": filepaths,
+	//	}
+	//	c.ReplySucc(res)
 }
 
 func (c *Controller) AddTestFile() {
@@ -89,6 +90,12 @@ func (c *Controller) AddTest() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
+	title, ok := reqmap["title"]
+	if !ok {
+		beego.Error("miss title")
+		c.ReplyErr(errcode.ErrParams)
+		return
+	}
 	document, ok := reqmap["document"]
 	if !ok {
 		beego.Error("miss documents")
@@ -112,6 +119,13 @@ func (c *Controller) AddTest() {
 		c.ReplyErr(errcode.ErrActionGetReport)
 		return
 	}
+	demand, err := models.GetDemand(report.Demandid)
+	if err != nil {
+		beego.Error("get demand err :", err)
+		c.ReplyErr(errcode.ErrActionGetDemand)
+		return
+	}
+
 	//	var uripaths []string
 	//	fileform := c.Ctx.Request.MultipartForm
 	//	filelist := fileform.File
@@ -139,10 +153,14 @@ func (c *Controller) AddTest() {
 	//	}
 	//	documents := c.GetString("document")
 	testinfo := models.TestInfo{
-		Reportid:  report.Id,
-		Documents: document.(string),
-		Filepaths: webpaths,
-		Status:    util.IS_OPEN,
+		Reportid:    report.Id,
+		Testerid:    c.UserID,
+		Title:       title.(string),
+		Handlerid:   demand.Handlerid,
+		HandlerName: demand.HandlerName,
+		Documents:   document.(string),
+		Filepaths:   webpaths,
+		Status:      util.IS_OPEN,
 	}
 	_, err = models.InsertTestInfo(testinfo)
 	if err != nil {
@@ -166,4 +184,22 @@ func (c *Controller) GetTestFile() {
 	}
 	c.ReplyFile("application/octet-stream", path, filedata)
 	return
+}
+
+func (c *Controller) RepairBug() {
+	testuuid := c.GetString("uuid")
+	testinfo := models.TestInfo{
+		Uuid:   testuuid,
+		Status: util.IS_CLOSE,
+	}
+	err := models.UpdateTestInfoByUuid(testinfo, "uuid")
+	if err != nil {
+		beego.Error("update testinfo by uuid :", testuuid, err)
+		c.ReplyErr(errcode.ErrActionPutTestData)
+		return
+	}
+	res := map[string]string{
+		"res": "success",
+	}
+	c.ReplySucc(res)
 }
