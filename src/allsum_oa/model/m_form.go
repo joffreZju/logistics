@@ -45,6 +45,12 @@ const (
 	GetApprovalFinished  = "finished"
 )
 
+//审批单有新状态时是否发邮件通知
+const (
+	EmailMsgNo = iota + 1
+	EmailMsgYes
+)
+
 type Formtpl struct {
 	No         string `gorm:"primary_key"`
 	Name       string `gorm:"not null"`
@@ -85,6 +91,7 @@ type Approvaltpl struct {
 	//SkipBlankRole int       //是否跳过空角色 1:否，2:是
 	//RoleFlow      IntSlice  `gorm:"type:int[]"` //role_id 的组成的数组
 	AllowRoles IntSlice  `gorm:"type:int[]"`
+	EmailMsg   int       `gorm:""`
 	BeginTime  time.Time `gorm:"not null"`
 	Status     int       `gorm:"not null"`
 
@@ -118,6 +125,7 @@ type Approval struct {
 	//SkipBlankRole int       //1:否，2:是
 	//RoleFlow      IntSlice  `gorm:"type:int[]"`
 	//CurrentRole   int       //当前正在审批的角色id(current_user是pg的关键字)
+	EmailMsg    int    `gorm:""`
 	CurrentFlow int    //当前正在审批的一步流程
 	UserId      int    `gorm:"not null"`
 	RoleId      int    `gorm:""`

@@ -1,4 +1,4 @@
-### 系统常量定义
+## 系统常量定义
 
 ```
 User.Status{1:正常,2:锁定}
@@ -12,13 +12,15 @@ Formtpl.Status{1:初始化,2:启用,3:禁用}
 
 审批单模板状态
 Approvaltpl.Status{1:初始化,2:启用,3:禁用}
+Approvaltpl.EmailMsg{1:No,2:Yes}
 
 流程是否必审
 ApprovaltplFlow.Necessary{1:不必须,2:必审}
 
 审批单状态
 Approval.Status{1：正在审批，2：审批通过，3：审批不通过，4：审批取消，5：审批停止，无法进行下去（没有审批人）}
-Approval.ApproveFlow{1：正在审批，2：审批通过，3：审批不通过}
+Approval.ApproveFlow.Status{1：正在审批，2：审批通过，3：审批不通过}
+Approval.EmailMsg{1:No,2:Yes}
 
 组织树操作记录
 GroupOperation.Status{1:历史记录,2:未生效记录}
@@ -33,7 +35,7 @@ AppVersion{
     UpgradeType: 1:透明2:友好提示3:强制升级
 }
 ```
-### 部分errcode定义
+## 部分errcode定义
 ```
 token相关错误码
 ERR_InvalidateToken = ValidationError{Code: 40001, Msg: "Invalid token"}
@@ -45,8 +47,13 @@ ErrAuthCodeError            = &CodeError{20103, "验证码错误"}
 ErrAuthCodeExpired          = &CodeError{20104, "验证码已经失效"}
 ErrUserCodeHasAlreadyExited = &CodeError{20106, "验证码已经发送，请60秒后重试"}
 ```
+## 接口修改记录
 
-### 接口修改 2017-07-17
+#### 2017-08-11
+- 增加审批流模板，编辑审批流模板两个接口都增加了EmailMsg字段,该字段对应常量值见上。
+
+
+#### 2017-07-17
 
 - MatchUsers修改为1-2-3, "-"拼接
 
@@ -63,7 +70,7 @@ ErrUserCodeHasAlreadyExited = &CodeError{20106, "验证码已经发送，请60�
 - 审批单详情，返回所有的流程id正序排列，id小于approval.CurrentFlow的是已经走过的流程。
 
 
-### 接口修改 long long ago
+#### long long ago
 
 - 注册加了username字段，加了获取历史消息接口,获取（发起，收到）的审批单列表
 
@@ -94,6 +101,8 @@ ErrUserCodeHasAlreadyExited = &CodeError{20106, "验证码已经发送，请60�
 
 - 审批单不能保存草稿，直接提交
 
-    
-    
-    
+
+## System Change Log
+
+### 2017-08-11
+- 所有schema下oa_approval, oa_approvaltpl增加email_msg字段

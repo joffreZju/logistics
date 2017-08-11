@@ -177,7 +177,12 @@ func (c *Controller) AddApprovaltpl() {
 		beego.Error(e)
 		return
 	}
-	if len(atpl.AllowRoles) == 0 && len(atpl.FlowContent) == 0 {
+	if atpl.EmailMsg != model.EmailMsgNo && atpl.EmailMsg != model.EmailMsgYes {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error("审批单模板设置错误")
+		return
+	}
+	if len(atpl.AllowRoles) == 0 || len(atpl.FlowContent) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error("审批单模板设置错误")
 		return
@@ -218,6 +223,11 @@ func (c *Controller) UpdateApprovaltpl() {
 	if e != nil || len(atpl.No) == 0 {
 		c.ReplyErr(errcode.ErrParams)
 		beego.Error(e)
+		return
+	}
+	if atpl.EmailMsg != model.EmailMsgNo && atpl.EmailMsg != model.EmailMsgYes {
+		c.ReplyErr(errcode.ErrParams)
+		beego.Error("审批单模板设置错误")
 		return
 	}
 	if len(atpl.AllowRoles) == 0 || len(atpl.FlowContent) == 0 {

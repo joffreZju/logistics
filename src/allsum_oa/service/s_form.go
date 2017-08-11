@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/jinzhu/gorm"
+	"gopkg.in/gomail.v2"
 	"strconv"
 	"strings"
 )
@@ -218,9 +219,14 @@ func CancelApproval(prefix, no string) (e error) {
 
 func AddApproval(prefix string, a *model.Approval, atplNo string) (e error) {
 	db := model.NewOrm()
+	atpl := &model.Approvaltpl{}
 	user := &model.User{}
 	group := &model.Group{}
 	role := &model.Role{}
+	e = db.Table(prefix+"."+atpl.TableName()).First(atpl, atplNo).Error
+	if e != nil {
+		return
+	}
 	e = db.Table(prefix+"."+user.TableName()).First(user, a.UserId).Error
 	if e != nil {
 		return
@@ -252,6 +258,7 @@ func AddApproval(prefix string, a *model.Approval, atplNo string) (e error) {
 	}
 	//写入审批单
 	a.CurrentFlow = aflows[0].Id
+	a.EmailMsg = atpl.EmailMsg
 	e = tx.Table(prefix + "." + a.TableName()).Create(a).Error
 	if e != nil {
 		tx.Rollback()
@@ -360,14 +367,15 @@ func getMatchUsersOfFlow(prefix string, a *model.Approval, atplFlow *model.Appro
 			   WHERE t2.role_id =? AND t1.group_id IN (?) )`,
 		prefix, model.User{}.TableName(), prefix, model.UserGroup{}.TableName(), prefix, model.UserRole{}.TableName())
 
-	me := &model.Group{}
-	e = db.Table(prefix+"."+me.TableName()).First(me, "id=?", a.GroupId).Error
+	//找到发起人所在组织
+	myGroup := &model.Group{}
+	e = db.Table(prefix+"."+myGroup.TableName()).First(myGroup, "id=?", a.GroupId).Error
 	if e != nil {
 		return
 	}
 	//找上级,找到就返回
 	fathers := []int{}
-	for _, v := range strings.Split(me.Path, "-") {
+	for _, v := range strings.Split(myGroup.Path, "-") {
 		pid, e := strconv.Atoi(v)
 		if e != nil {
 			return nil, e
@@ -380,7 +388,7 @@ func getMatchUsersOfFlow(prefix string, a *model.Approval, atplFlow *model.Appro
 	}
 	//找下级
 	children := []int{}
-	e = db.Table(prefix+"."+me.TableName()).Where("path like ?", me.Path+"-%").Pluck("id", &children).Error
+	e = db.Table(prefix+"."+myGroup.TableName()).Where("path like ?", myGroup.Path+"-%").Pluck("id", &children).Error
 	if e != nil {
 		return
 	}
@@ -407,6 +415,7 @@ func Approve(prefix string, a *model.Approval, af *model.ApproveFlow) (e error) 
 			return errors.New("审批失败")
 		}
 		go newMsgToCreator(prefix, a)
+		go sendEmailToCreator(prefix, a, af, nil)
 	} else {
 		nextFlow := &model.ApproveFlow{}
 		e = db.Table(prefix+"."+nextFlow.TableName()).Order("id").Limit(1).
@@ -420,6 +429,7 @@ func Approve(prefix string, a *model.Approval, af *model.ApproveFlow) (e error) 
 				return
 			}
 			go newMsgToCreator(prefix, a)
+			go sendEmailToCreator(prefix, a, af, nil)
 		} else if e == nil {
 			//继续下一步
 			a.CurrentFlow = nextFlow.Id
@@ -429,12 +439,73 @@ func Approve(prefix string, a *model.Approval, af *model.ApproveFlow) (e error) 
 				return
 			}
 			go newMsgToApprovers(prefix, nextFlow.MatchUsers, a)
+			go sendEmailToCreator(prefix, a, af, nextFlow)
 		} else {
 			tx.Rollback()
 			return errors.New("审批失败")
 		}
 	}
 	return tx.Commit().Error
+}
+
+func sendEmailToCreator(prefix string, approval *model.Approval, currentFlow, nextFlow *model.ApproveFlow) {
+	db := model.NewOrm()
+	u := &model.User{Id: approval.UserId}
+	e := db.Table(prefix+"."+u.TableName()).Find(u, u).Error
+	if e != nil {
+		beego.Error(e)
+		return
+	}
+	if approval.EmailMsg == model.EmailMsgNo || len(u.Mail) == 0 {
+		return
+	}
+	subject := fmt.Sprintf("OA系统通知:%s", approval.Name)
+
+	body := fmt.Sprintf(`你的<b>%s</b>有最新状态,请到<a href="http://oa.allsum.cn">壹算科技OA</a>查看<br><br>`, approval.Name)
+	body += fmt.Sprintf(`审批人：<b>%s</b><br>`, currentFlow.UserName)
+
+	if currentFlow.Status == model.ApprovalStatAccessed {
+		body += fmt.Sprint(`审批意见：<b>通过</b><br>`)
+	} else {
+		body += fmt.Sprint(`审批意见：<b>拒绝</b><br>`)
+	}
+	if len(currentFlow.Comment) != 0 {
+		body += fmt.Sprintf(`审批备注：<b>%s</b>`, currentFlow.Comment)
+	}
+	if nextFlow == nil {
+		body += fmt.Sprint(`下一步审批：审批单已结束，没有下一步<br>`)
+	} else {
+		body += fmt.Sprintf(`下一步审批：%s`, nextFlow.RoleName)
+	}
+	sendEmail([]string{u.Mail}, subject, body)
+}
+
+func sendEmail(targets []string, subject, body string) {
+	if len(targets) == 0 {
+		return
+	}
+	smtpHost := beego.AppConfig.String("emailAccount::smtp")
+	smtpPort, _ := beego.AppConfig.Int("emailAccount::port")
+	from := beego.AppConfig.String("emailAccount::from")
+	password := beego.AppConfig.String("emailAccount::password")
+
+	m := gomail.NewMessage()
+	m.SetAddressHeader("From", from, "")
+
+	tos := []string{}
+	for _, v := range targets {
+		tos = append(tos, m.FormatAddress(v, ""))
+	}
+	m.SetHeader("To", tos...)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/html", body)
+
+	dial := gomail.NewPlainDialer(smtpHost, smtpPort, from, password)
+	if e := dial.DialAndSend(m); e != nil {
+		beego.Error("发送邮件失败:", e)
+	} else {
+		beego.Info("发送邮件成功:", targets)
+	}
 }
 
 func newMsgToCreator(company string, a *model.Approval) {
