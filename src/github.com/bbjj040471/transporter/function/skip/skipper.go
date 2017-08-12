@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/bbjj040471/transporter/function"
 	"github.com/bbjj040471/transporter/message"
@@ -43,7 +44,7 @@ type Skip struct {
 	Match    interface{} `json:"match"`
 }
 
-func (s *Skip) Apply(msg message.Msg) (message.Msg, error) {
+func (s *Skip) ApplyOld(msg message.Msg) (message.Msg, error) {
 	val := msg.Data().Get(s.Field)
 	match := fmt.Sprintf("%v", s.Match)
 	switch s.Operator {
@@ -86,6 +87,58 @@ func (s *Skip) Apply(msg message.Msg) (message.Msg, error) {
 		return nil, UnknownOperatorError{s.Operator}
 	}
 	return nil, nil
+}
+
+func (s *Skip) Apply(msg message.Msg) (message.Msg, error) {
+	val := msg.Data().Get(s.Field)
+	match := fmt.Sprintf("%v", s.Match)
+	switch s.Operator {
+	case "==", "eq", "$eq":
+		valstr := fmt.Sprintf("%v", val)
+		if reflect.DeepEqual(valstr, match) {
+			fmt.Println("true")
+			return msg, nil
+		}
+	case "=~":
+		valstr := fmt.Sprintf("%v", val)
+		if ok, err := regexp.MatchString(match, valstr); err != nil || ok {
+			return msg, err
+		}
+	case ">", "gt", "$gt":
+		res, err := convertTostrCompare(val, s.Match)
+		if err == nil && res == 1 {
+			return msg, err
+		}
+		return nil, err
+	case ">=", "gte", "$gte":
+		res, err := convertTostrCompare(val, s.Match)
+		if err == nil && (res == 1 || res == 0) {
+			return msg, err
+		}
+		return nil, err
+	case "<", "lt", "$lt":
+		res, err := convertTostrCompare(val, s.Match)
+		if err == nil && res == -1 {
+			return msg, err
+		}
+		return nil, err
+	case "<=", "lte", "$lte":
+		res, err := convertTostrCompare(val, s.Match)
+		if err == nil && (res == 0 || res == -1) {
+			return msg, err
+		}
+		return nil, err
+	default:
+		return nil, UnknownOperatorError{s.Operator}
+	}
+	return nil, nil
+}
+
+func convertTostrCompare(in1, in2 interface{}) (int, error) {
+	var1 := fmt.Sprintf("%v", in1)
+	var2 := fmt.Sprintf("%v", in2)
+	res := strings.Compare(var1, var2)
+	return res, nil
 }
 
 func convertForComparison(in1, in2 interface{}) (float64, float64, error) {

@@ -2,7 +2,7 @@ package etl
 
 import (
 	"allsum_bi/models"
-	"allsum_bi/util"
+	"allsum_bi/services/util"
 	"time"
 
 	"github.com/astaxie/beego"

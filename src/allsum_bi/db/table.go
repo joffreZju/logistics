@@ -2,12 +2,50 @@ package db
 
 import (
 	"allsum_bi/db/conn"
-	"allsum_bi/util"
+	"allsum_bi/services/util"
 	"fmt"
 	"strings"
 
 	"github.com/astaxie/beego"
 )
+
+func GetTableDescFromSource(dbid string, schema string, table string, destschema string, desttable string) (createsql string, err error) {
+	db, err := conn.GetConn(dbid)
+	if err != nil {
+		return
+	}
+	rows, err := db.Raw("SELECT column_name, udt_name, character_maximum_length, is_nullable FROM information_schema.columns WHERE table_name=? and table_schema=?", table, schema).Rows()
+	if err != nil {
+		beego.Error("get create sql fail :", err)
+		return
+	}
+	defer rows.Close()
+	formatsql := "create table " + destschema + "." + desttable + " (%s)"
+	fieldstr := ""
+	for rows.Next() {
+		var column_name, data_type, is_nullable string
+		var character_maximum_length interface{}
+		err = rows.Scan(&column_name, &data_type, &character_maximum_length, &is_nullable)
+		if err != nil {
+			return createsql, err
+		}
+		if character_maximum_length != nil {
+			data_type = data_type + fmt.Sprintf("(%v)", character_maximum_length)
+		}
+		if is_nullable == "YES" {
+			is_nullable = "null"
+		} else {
+			is_nullable = "not null"
+		}
+		if fieldstr == "" {
+			fieldstr = fieldstr + "xminstr varchar(32) not null, " + column_name + " " + data_type + " " + is_nullable
+		} else {
+			fieldstr = fieldstr + "," + column_name + " " + data_type + " " + is_nullable
+		}
+	}
+	createsql = fmt.Sprintf(formatsql, fieldstr)
+	return
+}
 
 func GetTableDesc(dbid string, schema string, table string, destschema string, desttable string) (createsql string, err error) {
 	db, err := conn.GetConn(dbid)

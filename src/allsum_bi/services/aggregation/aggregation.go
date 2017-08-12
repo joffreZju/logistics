@@ -3,7 +3,7 @@ package aggregation
 import (
 	"allsum_bi/db"
 	"allsum_bi/models"
-	"allsum_bi/util"
+	"allsum_bi/services/util"
 	"common/lib/service_client/oaclient"
 	"fmt"
 	"strings"

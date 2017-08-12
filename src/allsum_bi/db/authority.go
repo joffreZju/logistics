@@ -1,7 +1,7 @@
 package db
 
 import (
-	"allsum_bi/util"
+	"allsum_bi/services/util"
 	"strings"
 
 	"github.com/astaxie/beego"

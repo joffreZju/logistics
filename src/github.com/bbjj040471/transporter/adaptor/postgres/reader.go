@@ -124,6 +124,9 @@ func (r *Reader) iterateTable(db string, session *sql.DB, in <-chan string, done
 					continue
 				}
 				var columns [][]string
+				var column_names []string
+				columns = append(columns, []string{"xminstr", "varchar"})
+				column_names = append(column_names, "xminstr")
 				for columnsResult.Next() {
 					var columnName string
 					var columnType string
@@ -139,13 +142,14 @@ func (r *Reader) iterateTable(db string, session *sql.DB, in <-chan string, done
 					if columnType == "ARRAY" {
 						columnType = fmt.Sprintf("%v[]", columnArrayType.String) // append [] to columnType if array
 					}
-
+					column_names = append(column_names, columnName)
 					column := []string{columnName, columnType}
 					columns = append(columns, column)
 				}
 
 				// build docs for table
-				docsResult, err := session.Query(fmt.Sprintf("SELECT * FROM %v", c))
+
+				docsResult, err := session.Query(fmt.Sprintf("SELECT xmin as xminstr, * FROM %v", c))
 
 				for docsResult.Next() {
 					dest := make([]interface{}, len(columns))

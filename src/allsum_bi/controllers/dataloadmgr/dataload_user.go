@@ -2,7 +2,7 @@ package dataloadmgr
 
 import (
 	"allsum_bi/services/dataload"
-	"allsum_bi/util"
+	"allsum_bi/services/util"
 	"common/lib/errcode"
 	"encoding/json"
 

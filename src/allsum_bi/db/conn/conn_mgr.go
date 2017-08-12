@@ -1,7 +1,7 @@
 package conn
 
 import (
-	"allsum_bi/util"
+	"allsum_bi/services/util"
 	"fmt"
 	"time"
 

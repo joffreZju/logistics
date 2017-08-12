@@ -2,8 +2,8 @@ package kettlesvs
 
 import (
 	"allsum_bi/models"
-	"allsum_bi/util"
-	"allsum_bi/util/ossfile"
+	"allsum_bi/services/util"
+	"allsum_bi/services/util/ossfile"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"

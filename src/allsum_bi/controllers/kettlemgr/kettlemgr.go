@@ -3,8 +3,8 @@ package kettlemgr
 import (
 	"allsum_bi/models"
 	"allsum_bi/services/kettlesvs"
-	"allsum_bi/util"
-	"allsum_bi/util/ossfile"
+	"allsum_bi/services/util"
+	"allsum_bi/services/util/ossfile"
 	base "common/lib/baseController"
 	"common/lib/errcode"
 	"encoding/json"

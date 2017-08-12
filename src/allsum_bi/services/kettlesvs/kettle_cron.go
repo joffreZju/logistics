@@ -2,7 +2,7 @@ package kettlesvs
 
 import (
 	"allsum_bi/models"
-	"allsum_bi/util"
+	"allsum_bi/services/util"
 	"encoding/json"
 	"io/ioutil"
 	"os"

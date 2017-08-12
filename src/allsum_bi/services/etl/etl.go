@@ -4,7 +4,7 @@ import (
 	"allsum_bi/db"
 	"allsum_bi/db/conn"
 	"allsum_bi/models"
-	"allsum_bi/util"
+	"allsum_bi/services/util"
 	"common/lib/service_client/oaclient"
 	"fmt"
 	_ "io/ioutil"
@@ -93,7 +93,7 @@ func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
 		createsql = strings.Replace(createsql, util.SCRIPT_SCHEMA, schema, -1)
 	} else {
 		isinsert = true
-		createsql, err = db.GetTableDesc(dbid, schema, table, schema, prefix_desttable)
+		createsql, err = db.GetTableDescFromSource(dbid, schema, table, schema, prefix_desttable)
 		if err != nil {
 			return err
 		}

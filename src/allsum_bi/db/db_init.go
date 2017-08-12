@@ -3,7 +3,7 @@ package db
 import (
 	"allsum_bi/db/conn"
 	"allsum_bi/models"
-	"allsum_bi/util"
+	"allsum_bi/services/util"
 
 	"github.com/astaxie/beego"
 )

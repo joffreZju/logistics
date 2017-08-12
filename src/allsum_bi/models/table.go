@@ -1,8 +1,6 @@
 package models
 
-import (
-	"allsum_bi/util"
-)
+import "allsum_bi/services/util"
 
 func GetDatabaseManagerTableName() string {
 	return util.BI_MANAGER + ".database_manager"

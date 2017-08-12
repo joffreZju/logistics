@@ -521,6 +521,9 @@ func (n *Node) write(msg message.Msg, off offset.Offset) (message.Msg, error) {
 	//		n.l.With("ns", msg.Namespace()).Debugln("message skipped by namespace filter")
 	//		return msg, nil
 	//	}
+	if n.nsFilter.String() != msg.Namespace() {
+		return msg, nil
+	}
 	msg = msg.RenameNamespace(n.nsFilter.String())
 	msg, err := n.applyTransforms(msg)
 	if err != nil || msg == nil {
