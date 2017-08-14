@@ -58,7 +58,7 @@ func DoETL(syncid int, scriptbuff []byte) (err error) {
 		}()
 		fmtstr, err := transporter.run(syncid)
 
-		beego.Debug("etl fmt: ", fmtstr)
+		//		beego.Debug("etl fmt: ", fmtstr)
 		if err != nil || strings.Contains(fmtstr, "ERROR") || strings.Contains(fmtstr, "Error") || strings.Contains(fmtstr, "error") {
 			SetEtlError(syncid, err.Error()+"|"+fmtstr)
 		} else {
@@ -282,7 +282,7 @@ func SetAndDoEtl(setdata map[string]interface{}) (err error) {
 	documents := setdata["documents"].(string)
 	error_limit := setdata["error_limit"]
 	param_script := setdata["param_script"].(string)
-	handlerid := int(setdata["param_script"].(float64))
+	handlerid := int(setdata["handlerid"].(int))
 
 	sync, err := models.GetSynchronousByUuid(syncid)
 	if err != nil {

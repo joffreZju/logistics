@@ -70,11 +70,13 @@ func AddAggregate(uuid string, table_name string, create_script string, alter_sc
 				return
 			}
 		}
-		alter_script_real := strings.Replace(aggregate.AlterScript, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
-		//TODO not sure is able exec multiple sql need check
-		err = db.Exec(util.BASEDB_CONNID, alter_script_real)
-		if err != nil {
-			return
+		if aggregate.AlterScript != "" {
+			alter_script_real := strings.Replace(aggregate.AlterScript, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
+			//TODO not sure is able exec multiple sql need check
+			err = db.Exec(util.BASEDB_CONNID, alter_script_real)
+			if err != nil {
+				return
+			}
 		}
 		new_create_sql, err := db.GetTableDesc(util.BASEDB_CONNID, schema, table_name, schema, table_name)
 		if err != nil {

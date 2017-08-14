@@ -6,6 +6,7 @@ import (
 	"allsum_bi/services/util"
 	"common/lib/service_client/oaclient"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -14,6 +15,8 @@ import (
 
 var CronAggregate map[int]*cron.Cron
 var AggregateLock map[int]bool
+
+var maplock sync.Mutex
 
 func init() {
 	CronAggregate = map[int]*cron.Cron{}
@@ -57,10 +60,13 @@ func StopAggregate(id int) (err error) {
 }
 
 func DoAggregate(id int, flushsqlscript string) (err error) {
+	maplock.Lock()
 	if lock, ok := AggregateLock[id]; ok && lock {
 		beego.Info("aggregate locked wait to Next round")
+		maplock.Unlock()
 		return
 	}
+	maplock.Unlock()
 	aggregate, err := models.GetAggregateOps(id)
 	if err != nil {
 		return
@@ -83,7 +89,9 @@ func DoAggregate(id int, flushsqlscript string) (err error) {
 			return
 		}
 	}
+	maplock.Lock()
 	AggregateLock[id] = true
+	maplock.Unlock()
 	for _, schema := range schemas {
 		desttable, _ := db.EncodeTableSchema(util.BASEDB_CONNID, schema, aggregate.DestTable)
 		flush_script_real := strings.Replace(aggregate.Script, util.SCRIPT_TABLE, desttable, util.SCRIPT_LIMIT)
@@ -104,6 +112,8 @@ func DoAggregate(id int, flushsqlscript string) (err error) {
 			return
 		}
 	}
+	maplock.Lock()
+	defer maplock.Unlock()
 	AggregateLock[id] = false
 	return
 }

@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 
 //var CronJobs map[int]*cron.Cron
 var CronJobs map[int]map[string]interface{}
+var maplock sync.Mutex
 
 func init() {
 	//	CronJobs = map[int]*cron.Cron{}
@@ -65,6 +67,7 @@ func AddCron(jobid int, cronstr string, jobfilepath string) (err error) {
 	}
 	CronJobs[jobid]["cron"].(*cron.Cron).Start()
 	err = CronJobs[jobid]["cron"].(*cron.Cron).AddFunc(cronstr, func() {
+		maplock.Lock()
 		if cmdi, ok := CronJobs[jobid]["cmd"]; ok { //结束上一轮没有跑完的任务
 			beego.Info("stop cmd for jobid:", jobid)
 			content := make([]byte, 5000)
@@ -95,6 +98,7 @@ func AddCron(jobid int, cronstr string, jobfilepath string) (err error) {
 		CronJobs[jobid]["cmd"] = cmd
 		stdout, err := cmd.StdoutPipe()
 		CronJobs[jobid]["stdout"] = stdout
+		maplock.Unlock()
 		err = cmd.Start()
 		if err != nil {
 			cmd.Wait()
@@ -102,8 +106,10 @@ func AddCron(jobid int, cronstr string, jobfilepath string) (err error) {
 		}
 		beego.Info("running--job: ", jobfilepath)
 		cmd.Wait()
+		maplock.Lock()
 		delete(CronJobs[jobid], "cmd")
 		delete(CronJobs[jobid], "stdout")
+		maplock.Unlock()
 		beego.Info("stoped--job: ", jobfilepath)
 		content, err := ioutil.ReadAll(stdout)
 		if err != nil {

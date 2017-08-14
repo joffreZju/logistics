@@ -515,8 +515,8 @@ type writeResult struct {
 }
 
 func (n *Node) write(msg message.Msg, off offset.Offset) (message.Msg, error) {
-	fmt.Println("msg:", msg)
-	fmt.Println("node:", n.nsFilter)
+	//	fmt.Println("msg:", msg)
+	//	fmt.Println("node:", n.nsFilter)
 	//	if !n.nsFilter.MatchString(msg.Namespace()) {
 	//		n.l.With("ns", msg.Namespace()).Debugln("message skipped by namespace filter")
 	//		return msg, nil

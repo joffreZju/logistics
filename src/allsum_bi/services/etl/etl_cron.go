@@ -3,6 +3,7 @@ package etl
 import (
 	"allsum_bi/models"
 	"allsum_bi/services/util"
+	"sync"
 
 	"github.com/astaxie/beego"
 	"github.com/robfig/cron"
@@ -11,6 +12,7 @@ import (
 //var CronEtls map[int]*cron.Cron
 var CronEtls map[int]*cron.Cron
 
+var mapLock sync.Mutex
 var EtlLock map[int]map[string]int
 
 func init() {
@@ -43,6 +45,7 @@ func AddCronWithFullScript(id int, cronstr string, fullscript string) (err error
 	CronEtls[id] = cron.New()
 	CronEtls[id].Start()
 	err = CronEtls[id].AddFunc(cronstr, func() {
+		mapLock.Lock()
 		if Lock, ok := EtlLock[id]; ok {
 			defer func() {
 				if r := recover(); r != nil {
@@ -59,6 +62,7 @@ func AddCronWithFullScript(id int, cronstr string, fullscript string) (err error
 			}
 			if Lock["lock"] == 1 {
 				EtlLock[id]["passnum"] += 1
+				mapLock.Unlock()
 				return
 			}
 		}
@@ -68,11 +72,15 @@ func AddCronWithFullScript(id int, cronstr string, fullscript string) (err error
 		}
 		script, err := MakeRunScript(fullscript)
 		if err != nil {
+			mapLock.Unlock()
 			return
 		}
+		mapLock.Unlock()
 		DoETL(id, []byte(script))
+		mapLock.Lock()
 		delete(etltaskmap, id)
 		delete(EtlLock, id)
+		mapLock.Unlock()
 	})
 	if err != nil {
 		return
@@ -87,6 +95,7 @@ func AddCronWithScript(id int, cronstr string, script string) (err error) {
 	CronEtls[id] = cron.New()
 	CronEtls[id].Start()
 	err = CronEtls[id].AddFunc(cronstr, func() {
+		mapLock.Lock()
 		if Lock, ok := EtlLock[id]; ok {
 			defer func() {
 				if r := recover(); r != nil {
@@ -103,6 +112,7 @@ func AddCronWithScript(id int, cronstr string, script string) (err error) {
 			}
 			if Lock["lock"] == 1 {
 				EtlLock[id]["passnum"] += 1
+				mapLock.Unlock()
 				return
 			}
 		}
@@ -112,11 +122,15 @@ func AddCronWithScript(id int, cronstr string, script string) (err error) {
 		}
 		//		script, err := MakeRunScript(fullscript)
 		if err != nil {
+			mapLock.Unlock()
 			return
 		}
+		mapLock.Unlock()
 		DoETL(id, []byte(script))
+		mapLock.Lock()
 		delete(etltaskmap, id)
 		delete(EtlLock, id)
+		mapLock.Unlock()
 		beego.Debug("one round bye bye... left:", etltaskmap)
 	})
 	if err != nil {
