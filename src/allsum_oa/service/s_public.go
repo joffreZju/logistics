@@ -363,20 +363,20 @@ func AddFunction(f *model.Function) (e error) {
 		return
 	}
 	f.Path = fmt.Sprintf("%s-%d", ffather.Path, f.Id)
-	count := tx.Table(model.Public + "." + model.Function{}.TableName()).Updates(f).RowsAffected
+	count := tx.Table(model.Public + "." + model.Function{}.TableName()).Model(f).Updates(f).RowsAffected
 	if count != 1 {
 		tx.Rollback()
-		return
+		return errors.New("add failed, zero rows affected")
 	}
 	return tx.Commit().Error
 }
 
 func UpdateFunction(f *model.Function) (e error) {
 	tx := model.NewOrm().Begin()
-	count := tx.Table(model.Public + "." + model.Function{}.TableName()).Updates(f).RowsAffected
+	count := tx.Table(model.Public + "." + model.Function{}.TableName()).Model(f).Updates(f).RowsAffected
 	if count != 1 {
 		tx.Rollback()
-		return
+		return errors.New("update failed, zero rows affected")
 	}
 	return tx.Commit().Error
 }
@@ -397,7 +397,7 @@ func DelFunction(fid int) (e error) {
 	count = tx.Table(model.Public + "." + model.Function{}.TableName()).Delete(f).RowsAffected
 	if count != 1 {
 		tx.Rollback()
-		return
+		return errors.New("del failed, zero rows affected")
 	}
 	return tx.Commit().Error
 }
