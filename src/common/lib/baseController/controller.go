@@ -25,7 +25,7 @@ type Controller struct {
 	UserComp   string // 用户公司
 	UserGroups string // 用户组织
 	UserRoles  string // 用户角色
-	UserFuncs  string // 用户功能集
+	UserFuncs  string // 用户功能集可访问的url拼接，"-url1-url2-url3-"
 	appName    string // app 名称
 	appOS      string // app 系统
 	appVer     string // app 版本号
@@ -70,14 +70,16 @@ type Controller struct {
 //}
 
 func (c *Controller) Prepare() {
-	strs := strings.Split(c.Ctx.Request.URL.Path, "/")
-	if len(strs) > 2 {
-		c.ControllerName = strs[len(strs)-2]
-		c.ActionName = strs[len(strs)-1]
-	}
+	//strs := strings.Split(c.Ctx.Request.URL.Path, "/")
+	//if len(strs) > 2 {
+	//	c.ControllerName = strs[len(strs)-2]
+	//	c.ActionName = strs[len(strs)-1]
+	//}
 	//perfcounter.Add(beego.BConfig.AppName+".request.total", 1)
 	//perfcounter.Add(fmt.Sprintf("%s.%s.%s.request.total", beego.BConfig.AppName,
 	//	c.ControllerName, c.ActionName), 1)
+	c.ControllerName, c.ActionName = c.GetControllerAndAction()
+
 	c.LocalCache = mycache.LocalCache
 	c.Cache = mycache.Cache
 	c.RedisClient = redis.Client

@@ -145,5 +145,6 @@ func LoadRouter() {
 	//beego.InsertFilter("/v2/*", beego.BeforeRouter, filter.CheckRequestFilter())
 	//filter.AddURLCheckSeed("wxapp", "bFvKYrlnHdtSaaGk7B1t") // 添加URLCheckSeed
 	beego.InsertFilter("/*", beego.BeforeRouter, filter.CheckAuthFilter("stowage_user", notNeedAuthPrefixList))
+	//beego.InsertFilter("/*", beego.BeforeRouter, filter.CheckApiPermission(notNeedAuthPrefixList))
 	beego.InsertFilter("/*", beego.BeforeRouter, filter.RequestFilter())
 }

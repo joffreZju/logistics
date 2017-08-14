@@ -21,6 +21,7 @@ var (
 	ErrRequestExpired     = &CodeError{10002, "URL请求过期"}
 	ErrServerError        = &CodeError{10003, "服务器繁忙，请稍后重试"}
 	ErrParamTime          = &CodeError{10004, "时间格式错误"}
+	ErrUrlPermission      = &CodeError{10005, "您没有操作权限"}
 	// user
 	ErrGetUserInfoFailed            = &CodeError{20000, "获取用户信息失败"}
 	ErrUserNotExisted               = &CodeError{20001, "用户不存在"}
