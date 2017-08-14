@@ -4,9 +4,10 @@ import (
 	"common/lib/errcode"
 	"common/lib/redis"
 	"fmt"
+	"strings"
+
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/context"
-	"strings"
 )
 
 func CheckApiPermission(exemptPrefix []string) beego.FilterFunc {
@@ -30,5 +31,17 @@ func CheckApiPermission(exemptPrefix []string) beego.FilterFunc {
 		} else {
 			beego.Info("userId:", uid, "path:", path, "后端权限验证通过")
 		}
+	}
+}
+
+func CheckKeyPermission(userid int, tokenstr string, key string) bool {
+	userKey := fmt.Sprintf("%v-%s", userid, tokenstr)
+	m, e := redis.Client.Hmget(userKey, []string{"functions"})
+	if e != nil {
+		return false
+	} else if !strings.Contains(m["functions"], fmt.Sprintf("-%s-", key)) {
+		return false
+	} else {
+		return true
 	}
 }

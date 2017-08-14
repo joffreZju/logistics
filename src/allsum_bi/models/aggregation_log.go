@@ -51,3 +51,12 @@ func ListAggregateLog(fields []string, values []interface{}, limit int, index in
 	}
 	return
 }
+
+func UpdateAggregateLog(aggregate_log AggregateLog, fields ...interface{}) (err error) {
+	db, err := conn.GetBIConn()
+	if err != nil {
+		return
+	}
+	err = db.Table(GetAggregateLogTableName()).Updates(aggregate_log).Update(fields...).Error
+	return
+}

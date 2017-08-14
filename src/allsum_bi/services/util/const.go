@@ -46,9 +46,9 @@ const ROLETYPE_PROJECTOR = 2
 const ROLETYPE_TESTER = 3
 
 //action
-const ACTION_LISTDEMAND_ASSIGNER = "list_demand_assigner"
-const ACTION_LISTDEMAND_PROJECTOR = "list_demand_projector"
-const ACTION_LISTDEMAND_TESTER = "list_demand_tester"
+const ACTION_LISTDEMAND_ASSIGNER = "/bi/list_demand_all"
+const ACTION_LISTDEMAND_PROJECTOR = "/bi/list_demand_develop"
+const ACTION_LISTDEMAND_TESTER = "/bi/list_demand_test"
 
 //demand
 const DEMAND_STATUS_NO_ASSIGN = 0 //未指派

@@ -112,6 +112,7 @@ func MakeTransportJs(dbid string, sourceschema string, sourcetable string, dests
 	if script != "" {
 		transportstr = fmt.Sprintf(script, params...)
 	}
+	beego.Debug("transportstr: ", transportstr)
 	sourceNameSpace, err := db.EncodeTableSchema(dbid, sourceschema, sourcetable)
 	if err != nil {
 		return

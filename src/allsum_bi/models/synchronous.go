@@ -13,6 +13,7 @@ type Synchronous struct {
 	Id           int
 	Uuid         string
 	Owner        string
+	Handlerid    int
 	CreateScript string
 	AlterScript  string
 	ParamScript  string

@@ -3,9 +3,9 @@ package demand
 import (
 	"allsum_bi/models"
 	"allsum_bi/services/demandsvs"
-	"allsum_bi/services/oa"
 	"allsum_bi/services/util"
 	"allsum_bi/services/util/ossfile"
+	"common/filter"
 	base "common/lib/baseController"
 	"common/lib/errcode"
 	"encoding/json"
@@ -60,7 +60,8 @@ func (c *Controller) ListDemand() {
 		c.ReplyErr(errcode.ErrParams)
 		return
 	}
-	if !oa.CheckActionEnable(c.UserID, action) {
+	token := c.Ctx.Request.Header.Get("access_token")
+	if !filter.CheckKeyPermission(c.UserID, token, action) {
 		beego.Error("no have authority", c.UserID)
 		c.ReplyErr(errcode.ErrActionNoAuthority)
 		return

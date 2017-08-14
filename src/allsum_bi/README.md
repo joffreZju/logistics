@@ -34,3 +34,5 @@ services:      数据服务层
 
 测试阶段：
  8/12: mv util folder to  sevices & etl skip compare with string & add xmin in dest table for transporter
+ 8/14: 给etl抽取的地方加上了 最后一个修改的开发人员的字段 方便定位责任人。  抽取任务错误达到上限时 自动终止任务 增加了给开发人员的邮件提醒，测试部分 测试人员反馈和开发人员确认反馈的地方加上了邮件提醒
+

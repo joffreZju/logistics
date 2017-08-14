@@ -2,6 +2,7 @@ package testmgr
 
 import (
 	"allsum_bi/models"
+	"allsum_bi/services/testsvs"
 	"allsum_bi/services/util"
 	"allsum_bi/services/util/ossfile"
 	base "common/lib/baseController"
@@ -168,6 +169,7 @@ func (c *Controller) AddTest() {
 		c.ReplyErr(errcode.ErrActionPutTestData)
 		return
 	}
+	go testsvs.SendMailTestInfo(testinfo)
 	res := map[string]string{
 		"res": "ok",
 	}
@@ -198,6 +200,8 @@ func (c *Controller) RepairBug() {
 		c.ReplyErr(errcode.ErrActionPutTestData)
 		return
 	}
+	testinfo, _ = models.GetTestInfoByUuid(testuuid)
+	go testsvs.SendMailTestInfo(testinfo)
 	res := map[string]string{
 		"res": "success",
 	}

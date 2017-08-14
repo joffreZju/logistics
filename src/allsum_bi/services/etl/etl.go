@@ -70,7 +70,7 @@ func DoETL(syncid int, scriptbuff []byte) (err error) {
 	return
 }
 
-func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
+func DoEtlWithoutTable(handlerid int, dbid string, schema string, table string) (err error) {
 	conninfo, err := conn.GetConninfo(dbid)
 	if err != nil {
 		return
@@ -106,6 +106,7 @@ func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
 
 	sync_res := models.Synchronous{
 		Owner:        schema,
+		Handlerid:    handlerid,
 		CreateScript: createsql,
 		AlterScript:  "",
 		ParamScript:  "",
@@ -127,7 +128,7 @@ func DoEtlWithoutTable(dbid string, schema string, table string) (err error) {
 		sync_res.Id = syncid
 	} else {
 		sync_res.Id = sync.Id
-		err = models.UpdateSynchronous(sync_res, "owner", "create_script", "alter_script", "script", "source_db_id", "source_table", "dest_db_id", "dest_table", "script", "status", "lasttime")
+		err = models.UpdateSynchronous(sync_res, "handlerid", "owner", "create_script", "alter_script", "script", "source_db_id", "source_table", "dest_db_id", "dest_table", "script", "status", "lasttime")
 		if err != nil {
 			return
 		}
@@ -204,6 +205,7 @@ func StartEtl(sync models.Synchronous) (err error) {
 
 func callEtl(syncid int, dbid string, SourceTable string, DestTable string, script string, params ...interface{}) (err error) {
 	//	pipeline = NewPipeline()
+	beego.Debug("call etl params:", params)
 	sourcejs, err := MakeSourceJs(dbid)
 	if err != nil {
 		beego.Error("make source js err : ", err)
@@ -234,6 +236,7 @@ func callEtl(syncid int, dbid string, SourceTable string, DestTable string, scri
 	runjs := MakeRunJs(sourcejs, sinkjs, transportjs)
 	beego.Debug("runjs:", runjs)
 	err = DoETL(syncid, []byte(runjs))
+	delete(etltaskmap, syncid)
 	if err != nil {
 		return
 	}
@@ -279,6 +282,7 @@ func SetAndDoEtl(setdata map[string]interface{}) (err error) {
 	documents := setdata["documents"].(string)
 	error_limit := setdata["error_limit"]
 	param_script := setdata["param_script"].(string)
+	handlerid := int(setdata["param_script"].(float64))
 
 	sync, err := models.GetSynchronousByUuid(syncid)
 	if err != nil {
@@ -324,14 +328,14 @@ func SetAndDoEtl(setdata map[string]interface{}) (err error) {
 			return err
 		}
 	}
-	err = callEtl(sync.Id, sync.SourceDbId, sync.SourceTable, sync.DestTable, script, params[0])
+	err = callEtl(sync.Id, sync.SourceDbId, sync.SourceTable, sync.DestTable, script, params[0]...)
 	if err != nil {
 		return
 	}
 
 	//	pipeline.SetCron(cron.(string))
 	//TODO runjs
-	runjs, err := buildEtl(sync.SourceDbId, sync.SourceTable, sync.DestTable, script, params[0])
+	runjs, err := buildEtl(sync.SourceDbId, sync.SourceTable, sync.DestTable, script, params[0]...)
 	if err != nil {
 		return
 	}
@@ -340,6 +344,7 @@ func SetAndDoEtl(setdata map[string]interface{}) (err error) {
 	if err != nil {
 		return
 	}
+	sync.Handlerid = handlerid
 	sync.Script = script
 	sync.Cron = cron
 	sync.Documents = documents + "\n Update @ time: " + time.Now().Format("2006-01-02 15:04:05")
@@ -347,7 +352,7 @@ func SetAndDoEtl(setdata map[string]interface{}) (err error) {
 	sync.Lasttime = time.Now()
 	sync.Status = util.SYNC_STARTED
 
-	err = models.UpdateSynchronous(sync, "create_script", "alter_script", "script", "cron", "documents", "error_limit", "status")
+	err = models.UpdateSynchronous(sync, "handlerid", "create_script", "alter_script", "script", "cron", "documents", "error_limit", "status")
 	if err != nil && is_all_schema {
 		go SetALLSchema(setdata, destSchema)
 	}
@@ -362,6 +367,7 @@ func SetALLSchema(setdata map[string]interface{}, trigger_schema string) (err er
 	documents := setdata["documents"].(string)
 	error_limit := setdata["error_limit"].(int)
 	param_script := setdata["param_script"].(string)
+	handlerid := int(setdata["handlerid"].(float64))
 
 	sync, err := models.GetSynchronousByUuid(syncuuid)
 	if err != nil {
@@ -431,7 +437,7 @@ func SetALLSchema(setdata map[string]interface{}, trigger_schema string) (err er
 				//	return err
 			}
 		}
-		runjs, err := buildEtl(sync.SourceDbId, TableName, TableName, script, params[0])
+		runjs, err := buildEtl(sync.SourceDbId, TableName, TableName, script, params[0]...)
 		if err != nil {
 			//TODO in log
 			continue
@@ -439,6 +445,7 @@ func SetALLSchema(setdata map[string]interface{}, trigger_schema string) (err er
 		}
 		syncres, err := models.GetSynchronousByTableName(sync.SourceDbId, TableName)
 		if err == nil {
+			syncres.Handlerid = handlerid
 			syncres.CreateScript = sync.CreateScript
 			syncres.AlterScript = sync.AlterScript
 			syncres.ParamScript = sync.ParamScript
@@ -446,7 +453,7 @@ func SetALLSchema(setdata map[string]interface{}, trigger_schema string) (err er
 			syncres.Cron = cron
 			syncres.ErrorLimit = error_limit
 			syncres.Documents = documents
-			err = models.UpdateSynchronous(syncres, "create_script", "alter_script", "param_script", "script", "cron", "error_limit", "documents")
+			err = models.UpdateSynchronous(syncres, "handlerid", "create_script", "alter_script", "param_script", "script", "cron", "error_limit", "documents")
 			if err != nil {
 				beego.Error("update err sync :", err)
 				//TODO in log
@@ -455,6 +462,7 @@ func SetALLSchema(setdata map[string]interface{}, trigger_schema string) (err er
 
 		} else {
 			syncres = models.Synchronous{
+				Handlerid:    handlerid,
 				CreateScript: sync.CreateScript,
 				AlterScript:  sync.AlterScript,
 				ParamScript:  param_script,

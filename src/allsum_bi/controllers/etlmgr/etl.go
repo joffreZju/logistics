@@ -55,6 +55,7 @@ func (c *Controller) ShowSycnList() {
 				"desttable":     "",
 				"sourcetable":   "",
 				"owner":         "",
+				"handlerid":     0,
 				"sync_uuid":     "",
 				"status":        util.SYNC_NONE,
 			}
@@ -71,6 +72,7 @@ func (c *Controller) ShowSycnList() {
 				"status":        sync[schema_table].Status,
 				"sync_uuid":     syncuuid,
 				"owner":         sync[schema_table].Owner,
+				"handlerid":     sync[schema_table].Handlerid,
 				"create_script": sync[schema_table].CreateScript,
 				"alter_script":  sync[schema_table].AlterScript,
 				"param_script":  sync[schema_table].ParamScript,
@@ -106,7 +108,7 @@ func (c *Controller) DataCalibration() {
 	if checkres {
 		err = etl.DoEtlCalibration(dbid, schema, table)
 	} else {
-		err = etl.DoEtlWithoutTable(dbid, schema, table)
+		err = etl.DoEtlWithoutTable(c.UserID, dbid, schema, table)
 	}
 	if err != nil {
 		c.ReplyErr(errcode.ErrServerError)
@@ -142,6 +144,7 @@ func (c *Controller) SetEtl() {
 	}
 	setdata := map[string]interface{}{
 		"sync_uuid":     syncUuid,
+		"handlerid":     c.UserID,
 		"create_script": createScript,
 		"alter_script":  alterScript,
 		"param_script":  paramScript,

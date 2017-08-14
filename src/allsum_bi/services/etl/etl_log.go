@@ -3,6 +3,9 @@ package etl
 import (
 	"allsum_bi/models"
 	"allsum_bi/services/util"
+	"common/lib/email"
+	"common/lib/service_client/oaclient"
+	"fmt"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -31,6 +34,7 @@ func SetEtlError(syncid int, msg string) (err error) {
 			beego.Error("update sync err :", err)
 		}
 		StopCronById(syncid)
+		go SendMailForSyncStop(sync)
 	}
 	return
 }
@@ -43,4 +47,15 @@ func CleanEtlError(syncid int) (err error) {
 	err = models.UpdateSynchronousLogBySyncId(synclog, "status")
 	return
 
+}
+
+func SendMailForSyncStop(sync models.Synchronous) (err error) {
+	handlerinfo, err := oaclient.GetUserInfo(sync.Handlerid)
+	if err != nil {
+		return
+	}
+	subject := "ETL同步错误"
+	body := "ETL同步错误数已达上限 : " + fmt.Sprintf("%v", sync.ErrorLimit) + "次\n syncid" + fmt.Sprintf("%v\n", sync.Id) + "FROM DBID" + sync.SourceDbId + ": <" + sync.SourceTable + "> TO <" + sync.DestTable + ">"
+	email.SendEmail([]string{handlerinfo["Mail"].(string)}, subject, body)
+	return
 }

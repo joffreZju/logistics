@@ -107,27 +107,27 @@ func (s *Skip) Apply(msg message.Msg) (message.Msg, error) {
 	case ">", "gt", "$gt":
 		res, err := convertTostrCompare(val, s.Match)
 		if err == nil && res == 1 {
-			return msg, err
+			return nil, err
 		}
-		return nil, err
+		return msg, err
 	case ">=", "gte", "$gte":
 		res, err := convertTostrCompare(val, s.Match)
 		if err == nil && (res == 1 || res == 0) {
-			return msg, err
+			return nil, err
 		}
-		return nil, err
+		return msg, err
 	case "<", "lt", "$lt":
 		res, err := convertTostrCompare(val, s.Match)
 		if err == nil && res == -1 {
-			return msg, err
+			return nil, err
 		}
-		return nil, err
+		return msg, err
 	case "<=", "lte", "$lte":
 		res, err := convertTostrCompare(val, s.Match)
 		if err == nil && (res == 0 || res == -1) {
-			return msg, err
+			return nil, err
 		}
-		return nil, err
+		return msg, err
 	default:
 		return nil, UnknownOperatorError{s.Operator}
 	}
