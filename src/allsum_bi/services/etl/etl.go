@@ -10,6 +10,7 @@ import (
 	_ "io/ioutil"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Jeffail/tunny"
@@ -20,6 +21,7 @@ import (
 )
 
 var etltaskmap map[int]*pipeline.Pipeline
+var etltaksmaplock sync.Mutex
 
 var EtlPool *tunny.WorkPool
 
@@ -42,9 +44,11 @@ func Start() {
 
 func DoETL(syncid int, scriptbuff []byte) (err error) {
 	beego.Debug("script : ", string(scriptbuff))
+	etltaksmaplock.Lock()
 	if p, ok := etltaskmap[syncid]; ok {
 		p.Stop()
 	}
+	etltaksmaplock.Unlock()
 	transporter, err := newBuilder(scriptbuff)
 	if err != nil {
 		return
@@ -236,7 +240,10 @@ func callEtl(syncid int, dbid string, SourceTable string, DestTable string, scri
 	runjs := MakeRunJs(sourcejs, sinkjs, transportjs)
 	beego.Debug("runjs:", runjs)
 	err = DoETL(syncid, []byte(runjs))
+	etltaksmaplock.Lock()
+
 	delete(etltaskmap, syncid)
+	etltaksmaplock.Unlock()
 	if err != nil {
 		return
 	}

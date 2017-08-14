@@ -96,6 +96,7 @@ func AddCronWithScript(id int, cronstr string, script string) (err error) {
 	CronEtls[id].Start()
 	err = CronEtls[id].AddFunc(cronstr, func() {
 		mapLock.Lock()
+		etltaksmaplock.Lock()
 		if Lock, ok := EtlLock[id]; ok {
 			defer func() {
 				if r := recover(); r != nil {
@@ -113,6 +114,7 @@ func AddCronWithScript(id int, cronstr string, script string) (err error) {
 			if Lock["lock"] == 1 {
 				EtlLock[id]["passnum"] += 1
 				mapLock.Unlock()
+				etltaksmaplock.Unlock()
 				return
 			}
 		}
@@ -123,14 +125,18 @@ func AddCronWithScript(id int, cronstr string, script string) (err error) {
 		//		script, err := MakeRunScript(fullscript)
 		if err != nil {
 			mapLock.Unlock()
+			etltaksmaplock.Unlock()
 			return
 		}
 		mapLock.Unlock()
+		etltaksmaplock.Unlock()
 		DoETL(id, []byte(script))
 		mapLock.Lock()
-		delete(etltaskmap, id)
+		defer mapLock.Unlock()
 		delete(EtlLock, id)
-		mapLock.Unlock()
+		etltaksmaplock.Lock()
+		defer etltaksmaplock.Unlock()
+		delete(etltaskmap, id)
 		beego.Debug("one round bye bye... left:", etltaskmap)
 	})
 	if err != nil {
@@ -173,6 +179,10 @@ func StopCronBySyncUuid(uuid string) (err error) {
 }
 
 func StopCronById(id int) {
+	etltaksmaplock.Lock()
+	defer etltaksmaplock.Unlock()
+	mapLock.Lock()
+	defer mapLock.Unlock()
 	CronEtls[id].Stop()
 	p := etltaskmap[id]
 	delete(etltaskmap, id)
@@ -186,6 +196,10 @@ func StopCronById(id int) {
 }
 
 func StopAll() {
+	etltaksmaplock.Lock()
+	defer etltaksmaplock.Unlock()
+	mapLock.Lock()
+	defer mapLock.Unlock()
 	defer func() {
 		if r := recover(); r != nil {
 			beego.Error("do etl crash ", r)

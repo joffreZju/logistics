@@ -118,7 +118,9 @@ func (t *Transporter) run(id int) (outfmt string, err error) {
 	if err != nil {
 		return
 	}
+	etltaksmaplock.Lock()
 	etltaskmap[id] = p
+	etltaksmaplock.Unlock()
 	beego.Debug("run etl begin!~", id)
 	err = p.Run()
 	//	{
