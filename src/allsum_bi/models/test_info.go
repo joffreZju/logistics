@@ -20,8 +20,8 @@ type TestInfo struct {
 	Documents   string
 	Filepaths   interface{}
 	Status      int
-	ctt         time.Time
-	utt         time.Time
+	Ctt         time.Time
+	Utt         time.Time
 }
 
 func InsertTestInfo(testinfo TestInfo) (uuidstr string, err error) {
@@ -37,8 +37,8 @@ func InsertTestInfo(testinfo TestInfo) (uuidstr string, err error) {
 	filepatharray := "{" + strings.Join(filepaths, ",") + "}"
 	testinfo.Filepaths = filepatharray
 	testinfo.Uuid = uuid.NewV4().String()
-	testinfo.ctt = time.Now()
-	testinfo.utt = time.Now()
+	testinfo.Ctt = time.Now()
+	testinfo.Utt = time.Now()
 	err = db.Table(GetTestInfoTableName()).Create(&testinfo).Error
 	uuidstr = testinfo.Uuid
 	return
@@ -149,7 +149,7 @@ func UpdateTestInfo(testinfo TestInfo, fields ...string) (err error) {
 	if err != nil {
 		return
 	}
-	testinfo.utt = time.Now()
+	testinfo.Utt = time.Now()
 	err = db.Table(GetTestInfoTableName()).Where("id=?", testinfo.Id).Updates(testinfo).Update(fields).Error
 	return
 }
@@ -158,7 +158,7 @@ func UpdateTestInfoByUuid(testinfo TestInfo, fields ...string) (err error) {
 	if err != nil {
 		return
 	}
-	testinfo.utt = time.Now()
+	testinfo.Utt = time.Now()
 	err = db.Table(GetTestInfoTableName()).Where("uuid=?", testinfo.Uuid).Updates(testinfo).Update(fields).Error
 	return
 }

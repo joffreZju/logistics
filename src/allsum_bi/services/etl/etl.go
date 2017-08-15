@@ -61,7 +61,7 @@ func DoETL(syncid int, scriptbuff []byte) (err error) {
 			}
 		}()
 		fmtstr, err := transporter.run(syncid)
-
+			
 		//		beego.Debug("etl fmt: ", fmtstr)
 		if err != nil || strings.Contains(fmtstr, "ERROR") || strings.Contains(fmtstr, "Error") || strings.Contains(fmtstr, "error") {
 			SetEtlError(syncid, err.Error()+"|"+fmtstr)

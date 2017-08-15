@@ -32,7 +32,21 @@ func (c *Controller) GetTestInfo() {
 		c.ReplyErr(errcode.ErrActionGetTestInfo)
 		return
 	}
-	c.ReplySucc(testinfos)
+	var reses []map[string]interface{}
+	for _, testinfo := range testinfos {
+		res := map[string]interface{}{
+			"uuid":         testinfo.Uuid,
+			"title":        testinfo.Title,
+			"documents":    testinfo.Documents,
+			"filepaths":    testinfo.Filepaths,
+			"status":       testinfo.Status,
+			"handler_name": testinfo.HandlerName,
+			"ctt":          testinfo.Ctt,
+			"utt":          testinfo.Utt,
+		}
+		reses = append(reses, res)
+	}
+	c.ReplySucc(reses)
 	//	var documents []string
 	//	var filepaths []string
 	//	for _, testinfo := range testinfos {

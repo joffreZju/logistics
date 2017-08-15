@@ -123,6 +123,10 @@ func (t *Transporter) run(id int) (outfmt string, err error) {
 	etltaksmaplock.Unlock()
 	beego.Debug("run etl begin!~", id)
 	err = p.Run()
+	etltaksmaplock.Lock()
+	delete(etltaskmap, id)
+	etltaksmaplock.Unlock()
+	p.Stop()
 	//	{
 	//		g.Add(func() error {
 	//			return p.Run()

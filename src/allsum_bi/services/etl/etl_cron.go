@@ -38,56 +38,6 @@ func StartEtlCron() (err error) {
 	return
 }
 
-func AddCronWithFullScript(id int, cronstr string, fullscript string) (err error) {
-	if etlc, ok := CronEtls[id]; ok {
-		etlc.Stop()
-	}
-	CronEtls[id] = cron.New()
-	CronEtls[id].Start()
-	err = CronEtls[id].AddFunc(cronstr, func() {
-		mapLock.Lock()
-		if Lock, ok := EtlLock[id]; ok {
-			defer func() {
-				if r := recover(); r != nil {
-					beego.Error("do etl crash ", r)
-				}
-			}()
-			if Lock["passnum"] >= 5 {
-				if p, ok := etltaskmap[id]; ok {
-					delete(etltaskmap, id)
-					delete(EtlLock, id)
-					SetEtlError(id, "etl timeout pass num 5")
-					p.Stop()
-				}
-			}
-			if Lock["lock"] == 1 {
-				EtlLock[id]["passnum"] += 1
-				mapLock.Unlock()
-				return
-			}
-		}
-		EtlLock[id] = map[string]int{
-			"lock":    1,
-			"passnum": 0,
-		}
-		script, err := MakeRunScript(fullscript)
-		if err != nil {
-			mapLock.Unlock()
-			return
-		}
-		mapLock.Unlock()
-		DoETL(id, []byte(script))
-		mapLock.Lock()
-		delete(etltaskmap, id)
-		delete(EtlLock, id)
-		mapLock.Unlock()
-	})
-	if err != nil {
-		return
-	}
-	return
-}
-
 func AddCronWithScript(id int, cronstr string, script string) (err error) {
 	if etlc, ok := CronEtls[id]; ok {
 		etlc.Stop()
