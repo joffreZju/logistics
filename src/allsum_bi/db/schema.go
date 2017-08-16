@@ -52,6 +52,24 @@ func CreateSchema(schemaName string) (err error) {
 	return
 }
 
+//正常业务不让用这个函数。因为默认情况bi对别的数据库没有写权限
+func CreateSchemaWithDbid(dbid, schemaName string) (err error) {
+	db, err := conn.GetConn(dbid)
+	if err != nil {
+		return
+	}
+	var exist bool
+	db.Raw("SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = ?)", schemaName).Row().Scan(&exist)
+	beego.Debug("exist:", exist)
+	if exist {
+		return
+	} else {
+		sql := fmt.Sprintf("create schema %v", schemaName)
+		db.Exec(sql)
+	}
+	return
+}
+
 func SchemaExist(schemaName string, connid string) (exist bool) {
 	db, err := conn.GetConn(connid)
 	if err != nil {

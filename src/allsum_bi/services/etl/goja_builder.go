@@ -144,8 +144,8 @@ func (t *Transporter) run(id int) (outfmt string, err error) {
 	//	}
 	//  err = g.Run()
 	beego.Debug("run etl stop!~ ", id)
-
 	outfmt = buf.String()
+	//	beego.Debug(outfmt)
 	return
 }
 

@@ -36,3 +36,4 @@ services:      数据服务层
  8/12: mv util folder to  sevices & etl skip compare with string & add xmin in dest table for transporter
  8/14: 给etl抽取的地方加上了 最后一个修改的开发人员的字段 方便定位责任人。  抽取任务错误达到上限时 自动终止任务 增加了给开发人员的邮件提醒，测试部分 测试人员反馈和开发人员确认反馈的地方加上了邮件提醒
 修复了并发读写map时未上锁所引起的奔溃bug
+8/15: 压测etl时，我创建了很多名字相近的表，发现我用的transporter工具在从源表获取表名时用的模糊匹配的方法， 我将其修改了让其指定源表表名，然后目标表名可以任意定义，这样就更符合咱们的业务场景

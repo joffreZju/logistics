@@ -67,7 +67,7 @@ func (c *Controller) ListDemand() {
 		return
 	}
 
-	demands, err := models.ListDemandByField(fields, values, limit, index)
+	demands, err := models.ListDemandByField(fields, values, 0, 0)
 	if err != nil {
 		beego.Error("list demands error :", err)
 		c.ReplyErr(errcode.ErrActionGetDemand)
@@ -169,6 +169,21 @@ func (c *Controller) AddDemand() {
 	}
 	c.ReplySucc(res)
 	return
+}
+
+//需求提测 for project
+func (c *Controller) BringUpDemand() {
+	demanduuid := c.GetString("demanduuid")
+	err := demandsvs.ChangeStatus(demanduuid, util.DEMAND_STATUS_TESTING, util.REPORT_STATUS_TEST, c.UserComp)
+	if err != nil {
+		beego.Error("update demand err : ", err)
+		c.ReplyErr(errcode.ErrActionPutReport)
+		return
+	}
+	res := map[string]string{
+		"res": "success",
+	}
+	c.ReplySucc(res)
 }
 
 //发布需求

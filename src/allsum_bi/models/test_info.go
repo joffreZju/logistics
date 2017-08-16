@@ -153,12 +153,12 @@ func UpdateTestInfo(testinfo TestInfo, fields ...string) (err error) {
 	err = db.Table(GetTestInfoTableName()).Where("id=?", testinfo.Id).Updates(testinfo).Update(fields).Error
 	return
 }
-func UpdateTestInfoByUuid(testinfo TestInfo, fields ...string) (err error) {
+func UpdateTestInfoByUuid(testinfo map[string]interface{}, fields ...string) (err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
 	}
-	testinfo.Utt = time.Now()
-	err = db.Table(GetTestInfoTableName()).Where("uuid=?", testinfo.Uuid).Updates(testinfo).Update(fields).Error
+	testinfo["utt"] = time.Now()
+	err = db.Table(GetTestInfoTableName()).Where("uuid=?", testinfo["uuid"]).Updates(testinfo).Update(fields).Error
 	return
 }

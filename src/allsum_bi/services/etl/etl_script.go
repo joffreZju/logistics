@@ -82,12 +82,6 @@ func MakeRunJs(sourcejs string, sinkjs string, transportjs string) (runjs string
 	return
 }
 
-//
-//func (p *Pipeline) SetCron(cron string) {
-//	p.Cron = cron
-//	return
-//}
-//
 func MakeSinkJs() (sinkjs string, err error) {
 	conninfo, err := conn.GetConninfo(util.BASEDB_CONNID)
 	if err != nil {
@@ -97,16 +91,15 @@ func MakeSinkJs() (sinkjs string, err error) {
 	return
 }
 
-//func (p *Pipeline) MakeTransPortForm(transportform string, transform string, params ...interface{}) {
-//	if transform == "" {
-//		p.TransformJs = ""
-//		p.TransPortForm = transportform
-//	} else {
-//		p.MakeTransformJs([]byte(transform), params...)
-//		p.TransPortForm = fmt.Sprintf(transportform, p.TransformPath)
-//	}
-//}
-//
+func MakeSinkJsWithID(dbid string) (sinkjs string, err error) {
+	conninfo, err := conn.GetConninfo(dbid)
+	if err != nil {
+		return
+	}
+	sinkjs = fmt.Sprintf(util.JS_TEMPLATE, "sink", conninfo.Host, conninfo.Port, conninfo.Dbname, conninfo.DbUser, conninfo.Passwd)
+	return
+}
+
 func MakeTransportJs(dbid string, sourceschema string, sourcetable string, destschema string, desttable string, script string, params ...interface{}) (transportjs string, err error) {
 	transportstr := ""
 	if script != "" {
@@ -117,7 +110,7 @@ func MakeTransportJs(dbid string, sourceschema string, sourcetable string, dests
 	if err != nil {
 		return
 	}
-	sinkNameSpace, err := db.EncodeTableSchema(dbid, sourceschema, sourcetable)
+	sinkNameSpace, err := db.EncodeTableSchema(dbid, destschema, sourcetable)
 	if err != nil {
 		return
 	}

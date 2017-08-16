@@ -15,7 +15,7 @@ import (
 
 	"github.com/Jeffail/tunny"
 	"github.com/astaxie/beego"
-	_ "github.com/bbjj040471/transporter/adaptor/all"
+	_ "github.com/bbjj040471/transporter/adaptor/postgres"
 	_ "github.com/bbjj040471/transporter/function/all"
 	"github.com/bbjj040471/transporter/pipeline"
 )
@@ -61,7 +61,7 @@ func DoETL(syncid int, scriptbuff []byte) (err error) {
 			}
 		}()
 		fmtstr, err := transporter.run(syncid)
-			
+
 		//		beego.Debug("etl fmt: ", fmtstr)
 		if err != nil || strings.Contains(fmtstr, "ERROR") || strings.Contains(fmtstr, "Error") || strings.Contains(fmtstr, "error") {
 			SetEtlError(syncid, err.Error()+"|"+fmtstr)

@@ -204,17 +204,17 @@ func (c *Controller) GetTestFile() {
 
 func (c *Controller) RepairBug() {
 	testuuid := c.GetString("uuid")
-	testinfo := models.TestInfo{
-		Uuid:   testuuid,
-		Status: util.IS_CLOSE,
+	testinfomap := map[string]interface{}{
+		"uuid":   testuuid,
+		"status": util.IS_CLOSE,
 	}
-	err := models.UpdateTestInfoByUuid(testinfo, "uuid")
+	err := models.UpdateTestInfoByUuid(testinfomap, "uuid", "status")
 	if err != nil {
 		beego.Error("update testinfo by uuid :", testuuid, err)
 		c.ReplyErr(errcode.ErrActionPutTestData)
 		return
 	}
-	testinfo, _ = models.GetTestInfoByUuid(testuuid)
+	testinfo, _ := models.GetTestInfoByUuid(testuuid)
 	go testsvs.SendMailTestInfo(testinfo)
 	res := map[string]string{
 		"res": "success",

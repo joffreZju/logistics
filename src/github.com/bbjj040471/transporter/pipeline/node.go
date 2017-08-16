@@ -94,6 +94,7 @@ type Transform struct {
 // NewNodeWithOptions initializes a Node with the required parameters and then applies
 // each OptionFunc provided.
 func NewNodeWithOptions(name, kind, ns string, options ...OptionFunc) (*Node, error) {
+	fmt.Println("new node ~~~~~~~", ns, options)
 	compiledNs, err := regexp.Compile(strings.Trim(ns, "/"))
 	if err != nil {
 		return nil, err
@@ -258,6 +259,8 @@ func (n *Node) String() string {
 // All descendant nodes run Listen() on the adaptor
 func (n *Node) Start() error {
 	n.l = log.With("name", n.Name).With("type", n.Type).With("path", n.path)
+
+	fmt.Println("node start", n.nsFilter.String())
 
 	errors := make(chan error, 1)
 	for _, child := range n.children {
@@ -451,7 +454,9 @@ func (n *Node) start(nsMap map[string]client.MessageSet) error {
 			n.l.Debugln("session closed...")
 		}()
 	}
-	readFunc := n.reader.Read(nsMap, func(check string) bool { return n.nsFilter.MatchString(check) })
+	// 源表获取数据由模糊匹配换为精确定义（业务需要）
+	//	readFunc := n.reader.Read(nsMap, func(check string) bool { return n.nsFilter.MatchString(check) })
+	readFunc := n.reader.Read(nsMap, func(check string) bool { return n.nsFilter.String() == check })
 	msgChan, err := readFunc(s, n.done)
 	if err != nil {
 		return err
@@ -521,9 +526,7 @@ func (n *Node) write(msg message.Msg, off offset.Offset) (message.Msg, error) {
 	//		n.l.With("ns", msg.Namespace()).Debugln("message skipped by namespace filter")
 	//		return msg, nil
 	//	}
-	if n.nsFilter.String() != msg.Namespace() {
-		return msg, nil
-	}
+
 	msg = msg.RenameNamespace(n.nsFilter.String())
 	msg, err := n.applyTransforms(msg)
 	if err != nil || msg == nil {
