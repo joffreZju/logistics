@@ -114,7 +114,7 @@ func init() {
 
 	//api auth white list
 
-	notNeedAuthList := []string{}
+	notNeedAuthList := []string{TestPrefix + "/get_image"}
 
 	//filter
 	beego.InsertFilter("/v1/*", beego.BeforeRouter, filter.CheckAuthFilter("stowage_user", notNeedAuthList))
