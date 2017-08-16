@@ -219,11 +219,11 @@ func CancelApproval(prefix, no string) (e error) {
 
 func AddApproval(prefix string, a *model.Approval, atplNo string) (e error) {
 	db := model.NewOrm()
-	atpl := &model.Approvaltpl{}
+	atpl := &model.Approvaltpl{No: atplNo}
 	user := &model.User{}
 	group := &model.Group{}
 	role := &model.Role{}
-	e = db.Table(prefix+"."+atpl.TableName()).First(atpl, atplNo).Error
+	e = db.Table(prefix+"."+atpl.TableName()).First(atpl, atpl).Error
 	if e != nil {
 		return
 	}

@@ -106,3 +106,5 @@ ErrUserCodeHasAlreadyExited = &CodeError{20106, "验证码已经发送，请60�
 
 ### 2017-08-11
 - 所有schema下oa_approval, oa_approvaltpl增加email_msg字段
+
+- 前端发送password字段加上了md5加密，密文传输。
