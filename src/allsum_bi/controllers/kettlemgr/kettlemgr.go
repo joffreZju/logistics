@@ -363,7 +363,11 @@ func (c *Controller) SetJobEnable() {
 				return
 			}
 			kettlesvs.AddCron(job.Id, job.Cron, path.Base(kjbmap["urlpath"]))
-			err = models.UpdateKettleJob(job, "status")
+			jobMap := map[string]interface{}{
+				"id":     job.Id,
+				"status": job.Status,
+			}
+			err = models.UpdateKettleJob(jobMap, "status")
 			if err != nil {
 				beego.Error(" err: ", err)
 				c.ReplyErr(errcode.ErrActionSetJobNum)
@@ -372,7 +376,11 @@ func (c *Controller) SetJobEnable() {
 
 		} else if status == util.KETTLEJOB_FAIL {
 			kettlesvs.StopCron(job.Id)
-			err = models.UpdateKettleJob(job, "status")
+			jobMap := map[string]interface{}{
+				"id":     job.Id,
+				"status": job.Status,
+			}
+			err = models.UpdateKettleJob(jobMap, "status")
 			if err != nil {
 				beego.Error(" err: ", err)
 				c.ReplyErr(errcode.ErrActionSetJobNum)

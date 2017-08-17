@@ -39,7 +39,11 @@ func StartJobCron() (err error) {
 		jobnum += 1
 		if jobnum > joblimit {
 			job.Status = util.KETTLEJOB_FAIL
-			models.UpdateKettleJob(job, "status")
+			jobmap := map[string]interface{}{
+				"id":     job.Id,
+				"status": job.Status,
+			}
+			models.UpdateKettleJob(jobmap, "status")
 			continue
 		}
 		var kjbmap map[string]string

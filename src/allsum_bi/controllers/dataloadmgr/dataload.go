@@ -247,7 +247,13 @@ func (c *Controller) UploadDataLoadWeb() {
 	}
 	dataload.WebPath = uri
 	dataload.WebfileName = h.Filename
-	err = models.UpdateDataLoad(dataload, "web_path", "webfile_name")
+	dataloadMap := map[string]interface{}{
+		"id":           dataload.Id,
+		"uuid":         dataload.Uuid,
+		"web_path":     dataload.WebPath,
+		"webfile_name": dataload.WebfileName,
+	}
+	err = models.UpdateDataLoad(dataloadMap, "web_path", "webfile_name")
 	if err != nil {
 		beego.Error("update dataload err :", err)
 		c.ReplyErr(errcode.ErrActionPutDataload)

@@ -78,11 +78,11 @@ func GetReportDemand(id int) (demand Demand, err error) {
 	return
 }
 
-func UpdateReport(report Report, fields ...string) (err error) {
+func UpdateReport(report map[string]interface{}, fields ...string) (err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
 	}
-	err = db.Table(GetReportTableName()).Where("id=?", report.Id).Updates(report).Update(fields).Error
+	err = db.Table(GetReportTableName()).Where("id=?", report["id"]).Updates(report).Update(fields).Error
 	return
 }

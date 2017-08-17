@@ -89,11 +89,11 @@ func ListDataLoadByField(fields []string, values []interface{}, limit int, index
 	return
 }
 
-func UpdateDataLoad(dataload DataLoad, fields ...string) (err error) {
+func UpdateDataLoad(dataload map[string]interface{}, fields ...string) (err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
 	}
-	err = db.Table(GetDataLoadTableName()).Where("id=?", dataload.Id).Updates(dataload).Update(fields).Error
+	err = db.Table(GetDataLoadTableName()).Where("id=?", dataload["id"]).Updates(dataload).Update(fields).Error
 	return
 }

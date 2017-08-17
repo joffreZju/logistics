@@ -19,13 +19,20 @@ func ChangeStatus(demanduuid string, demandstatus int, reportstatus int, HandleC
 	if err != nil {
 		return
 	}
-	demand.Status = demandstatus
+	demandMap := map[string]interface{}{
+		"id":     demand.Id,
+		"status": demandstatus,
+	}
 	report.Status = reportstatus
-	err = models.UpdateDemand(demand, "status")
+	err = models.UpdateDemand(demandMap, "status")
 	if err != nil {
 		return
 	}
-	err = models.UpdateReport(report, "status")
+	reportMap := map[string]interface{}{
+		"id":     report.Id,
+		"status": reportstatus,
+	}
+	err = models.UpdateReport(reportMap, "status")
 	if err != nil {
 		return
 	}
@@ -35,7 +42,9 @@ func ChangeStatus(demanduuid string, demandstatus int, reportstatus int, HandleC
 	if err != nil {
 		return
 	}
-	err = RevokeAuthority(authoritymaps, HandleCompany, demand.Handlerid)
+	if demandstatus == util.DEMAND_STATUS_REVIEW && demandstatus == util.DEMAND_STATUS_RELEASE {
+		err = RevokeAuthority(authoritymaps, HandleCompany, demand.Handlerid)
+	}
 	return
 }
 

@@ -112,7 +112,7 @@ type Adaptor struct {
 func (t *Transporter) run(id int) (outfmt string, err error) {
 	var buf bytes.Buffer
 	log.Orig().Out = &buf
-	log.Orig().Level = logrus.DebugLevel
+	log.Orig().Level = logrus.WarnLevel
 	//	var g group.Group
 	p, err := pipeline.NewPipeline("0.1", t.sourceNode, events.LogEmitter(), 5*time.Second)
 	if err != nil {
@@ -145,7 +145,7 @@ func (t *Transporter) run(id int) (outfmt string, err error) {
 	//  err = g.Run()
 	beego.Debug("run etl stop!~ ", id)
 	outfmt = buf.String()
-	//	beego.Debug(outfmt)
+	beego.Debug(outfmt)
 	return
 }
 

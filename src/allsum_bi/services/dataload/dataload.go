@@ -87,7 +87,20 @@ func AddDataLoad(dataload map[string]string) (err error) {
 	dataload_db.Columns = string(columns)
 	dataload_db.Name = dataload["name"]
 
-	err = models.UpdateDataLoad(dataload_db, "create_script", "alter_script", "documents", "aggregateid", "status", "columns", "insert_script", "name", "web_path")
+	dataloadMap := map[string]interface{}{
+		"id":            dataload_db.Id,
+		"uuid":          dataload_db.Uuid,
+		"create_script": dataload_db.CreateScript,
+		"alter_script":  dataload_db.AlterScript,
+		"documents":     dataload_db.Documents,
+		"aggregateid":   dataload_db.Aggregateid,
+		"status":        dataload_db.Status,
+		"columns":       dataload_db.Columns,
+		"name":          dataload_db.Name,
+		"web_path":      dataload_db.WebPath,
+	}
+
+	err = models.UpdateDataLoad(dataloadMap, "create_script", "alter_script", "documents", "aggregateid", "status", "columns", "name", "web_path")
 	if err != nil {
 		return
 	}
@@ -121,7 +134,12 @@ func TestCreateScript(dataload_uuid string, table_name string, create_script str
 		db.DeleteSchemaTable(util.BASEDB_CONNID, table_name_test)
 	}()
 	dataload.CreateScript = create_script
-	err = models.UpdateDataLoad(dataload, "create_script")
+	dataloadMap := map[string]interface{}{
+		"id":            dataload.Id,
+		"uuid":          dataload.Uuid,
+		"create_script": create_script,
+	}
+	err = models.UpdateDataLoad(dataloadMap, "create_script")
 	return
 }
 
@@ -164,7 +182,13 @@ func TestAlterScript(dataload_uuid string, table_name string, alter_script strin
 	//	new_create_sql_format := strings.Replace(new_create_sql, table_name_test, util.SCRIPT_TABLE, 1)
 	//	dataload.CreateScript = new_create_sql_format
 	dataload.AlterScript = alter_script
-	err = models.UpdateDataLoad(dataload, "create_script", "alter_script")
+	dataloadMap := map[string]interface{}{
+		"id":            dataload.Id,
+		"uuid":          dataload.Uuid,
+		"create_script": dataload.CreateScript,
+		"alter_script":  dataload.AlterScript,
+	}
+	err = models.UpdateDataLoad(dataloadMap, "create_script", "alter_script")
 	return
 }
 

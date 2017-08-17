@@ -87,12 +87,12 @@ func GetKettleJobByUuid(uuid string) (kettle KettleJob, err error) {
 	return
 }
 
-func UpdateKettleJob(kettle KettleJob, fields ...string) (err error) {
+func UpdateKettleJob(kettle map[string]interface{}, fields ...string) (err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
 	}
-	err = db.Table(GetKettleJobTableName()).Where("id=?", kettle.Id).Updates(kettle).Update(fields).Error
+	err = db.Table(GetKettleJobTableName()).Where("id=?", kettle["id"]).Updates(kettle).Update(fields).Error
 	return
 }
 

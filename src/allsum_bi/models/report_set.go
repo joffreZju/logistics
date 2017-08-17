@@ -126,11 +126,11 @@ func ListReportSetByField(fields []string, values []interface{}, limit int, inde
 	return
 }
 
-func UpdateReportSet(reportset ReportSet, fields ...string) (err error) {
+func UpdateReportSet(reportset map[string]interface{}, fields ...string) (err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
 	}
-	err = db.Table(GetReportSetTableName()).Where("id=?", reportset.Id).Updates(reportset).Update(fields).Error
+	err = db.Table(GetReportSetTableName()).Where("id=?", reportset["id"]).Updates(reportset).Update(fields).Error
 	return
 }

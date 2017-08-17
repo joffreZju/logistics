@@ -118,11 +118,11 @@ func ListAllAggregateOps() (aggregate_opses []AggregateOps, err error) {
 	return
 }
 
-func UpdateAggregate(aggregate_ops AggregateOps, fields ...string) (err error) {
+func UpdateAggregate(aggregate_ops map[string]interface{}, fields ...string) (err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
 	}
-	err = db.Table(GetAggregateOpsTableName()).Where("id=?", aggregate_ops.Id).Updates(aggregate_ops).Update(fields).Error
+	err = db.Table(GetAggregateOpsTableName()).Where("id=?", aggregate_ops["id"]).Updates(aggregate_ops).Update(fields).Error
 	return
 }
