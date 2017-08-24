@@ -12,6 +12,7 @@ import (
 type DataLoad struct {
 	Id           int
 	Uuid         string
+	Reportid     int
 	Name         string
 	Owner        string
 	Columns      string

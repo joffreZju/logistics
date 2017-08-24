@@ -127,9 +127,10 @@ func (c *Controller) SaveDataload() {
 		dataloadOwner := report.Owner
 
 		dataloadstruct := models.DataLoad{
-			Name:   dataloadName,
-			Status: util.DATALOAD_BUILDING,
-			Owner:  dataloadOwner,
+			Name:     dataloadName,
+			Reportid: report.Id,
+			Status:   util.DATALOAD_BUILDING,
+			Owner:    dataloadOwner,
 		}
 		uuid, err := models.InsertDataLoad(dataloadstruct)
 		if err != nil {
