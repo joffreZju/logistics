@@ -155,7 +155,7 @@ func (c *Controller) SaveDataload() {
 		"documents":     documents,
 	}
 	//have check
-	err = dataload.AddDataLoad(dataloadmap)
+	err := dataload.AddDataLoad(dataloadmap)
 	if err != nil {
 		beego.Error("save dataload err :", err)
 		c.ReplyErr(errcode.ErrServerError)
