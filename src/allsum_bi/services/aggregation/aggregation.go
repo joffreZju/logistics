@@ -34,8 +34,8 @@ func AddAggregateByDataload(name string, reportid int, aggregateid int, owner st
 
 	schema := db.GetCompanySchema(owner)
 	schema_table, _ := db.EncodeTableSchema(util.BASEDB_CONNID, schema, tablename)
-	flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
-	flush_script_real = strings.Replace(flush_script_real, schema, util.SCRIPT_SCHEMA, util.SCRIPT_LIMIT)
+	flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, schema_table, -1)
+	flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, -1)
 
 	err = AddCronWithFlushScript(aggregate.Id, cron, flush_script_real)
 
@@ -74,14 +74,16 @@ func AddAggregate(uuid string, table_name string, create_script string, alter_sc
 		schema_table := schema + "." + table_name
 		isexsit := db.CheckTableExist(util.BASEDB_CONNID, schema_table)
 		if !isexsit {
-			create_script_real := strings.Replace(create_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
+			create_script_real := strings.Replace(create_script, util.SCRIPT_TABLE, schema_table, -1)
+			create_script_real = strings.Replace(create_script_real, util.SCRIPT_SCHEMA, schema, -1)
 			err = db.Exec(util.BASEDB_CONNID, create_script_real)
 			if err != nil {
 				return
 			}
 		}
 		if aggregate.AlterScript != "" {
-			alter_script_real := strings.Replace(aggregate.AlterScript, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
+			alter_script_real := strings.Replace(aggregate.AlterScript, util.SCRIPT_TABLE, schema_table, -1)
+			alter_script_real = strings.Replace(alter_script_real, util.SCRIPT_SCHEMA, schema, -1)
 			//TODO not sure is able exec multiple sql need check
 			err = db.Exec(util.BASEDB_CONNID, alter_script_real)
 			if err != nil {
@@ -92,10 +94,10 @@ func AddAggregate(uuid string, table_name string, create_script string, alter_sc
 		if err != nil {
 			return err
 		}
-		new_create_sql_format := strings.Replace(new_create_sql, schema_table, util.SCRIPT_TABLE, util.SCRIPT_LIMIT)
+		new_create_sql_format := strings.Replace(new_create_sql, schema_table, util.SCRIPT_TABLE, -1)
 
-		flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
-		flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, util.SCRIPT_LIMIT)
+		flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, schema_table, -1)
+		flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, -1)
 
 		err = AddCronWithFlushScript(aggregate.Id, cron, flush_script_real)
 
@@ -135,7 +137,7 @@ func TestCreateScript(uuid string, table_name string, create_script string) (err
 		return fmt.Errorf("table is exsit ", schema_table)
 	}
 	table_name_test := schema_table + "_test"
-	create_script_real := strings.Replace(create_script, util.SCRIPT_TABLE, table_name_test, util.SCRIPT_LIMIT)
+	create_script_real := strings.Replace(create_script, util.SCRIPT_TABLE, table_name_test, -1)
 	err = db.Exec(util.BASEDB_CONNID, create_script_real)
 	if err != nil {
 		return
@@ -171,7 +173,7 @@ func TestAlterScript(uuid string, table_name string, alter_script string) (err e
 		}
 	}
 
-	create_script_real := strings.Replace(aggregate.CreateScript, util.SCRIPT_TABLE, table_name_test, util.SCRIPT_LIMIT)
+	create_script_real := strings.Replace(aggregate.CreateScript, util.SCRIPT_TABLE, table_name_test, -1)
 	err = db.Exec(util.BASEDB_CONNID, create_script_real)
 	if err != nil {
 		return
@@ -179,7 +181,7 @@ func TestAlterScript(uuid string, table_name string, alter_script string) (err e
 	defer func() {
 		db.DeleteSchemaTable(util.BASEDB_CONNID, table_name_test)
 	}()
-	alter_script_real := strings.Replace(alter_script, util.SCRIPT_TABLE, table_name_test, util.SCRIPT_LIMIT)
+	alter_script_real := strings.Replace(alter_script, util.SCRIPT_TABLE, table_name_test, -1)
 	//TODO not sure is able exec multiple sql need check
 	err = db.Exec(util.BASEDB_CONNID, alter_script_real)
 	if err != nil {
@@ -215,7 +217,7 @@ func TestFlushScript(uuid string, table_name string, flush_script string, cron s
 
 	schema_table := schema + "." + table_name
 	table_name_test := schema_table + "_test"
-	create_script_real := strings.Replace(aggregate.CreateScript, util.SCRIPT_TABLE, table_name_test, util.SCRIPT_LIMIT)
+	create_script_real := strings.Replace(aggregate.CreateScript, util.SCRIPT_TABLE, table_name_test, -1)
 	err = db.Exec(util.BASEDB_CONNID, create_script_real)
 	if err != nil {
 		return
@@ -223,8 +225,8 @@ func TestFlushScript(uuid string, table_name string, flush_script string, cron s
 	defer func() {
 		db.DeleteSchemaTable(util.BASEDB_CONNID, table_name_test)
 	}()
-	flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, table_name_test, util.SCRIPT_LIMIT)
-	flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, util.SCRIPT_LIMIT)
+	flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, table_name_test, -1)
+	flush_script_real = strings.Replace(flush_script_real, util.SCRIPT_SCHEMA, schema, -1)
 	err = db.Exec(util.BASEDB_CONNID, flush_script_real)
 	if err != nil {
 		return
