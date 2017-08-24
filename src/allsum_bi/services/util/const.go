@@ -66,8 +66,8 @@ const REPORT_STATUS_REVIEW = 3  //审核中
 const REPORT_STATUS_RELEASE = 4 //已发布
 const REPORT_STATUS_DISABLE = 5 //失效
 
-const REPORT_TYPE_COMMON = 0  //通用报表类型
-const REPORT_TYPE_PRIVATE = 1 //个性化报表类型
+const REPORT_TYPE_COMMON = 1  //通用报表类型
+const REPORT_TYPE_PRIVATE = 2 //个性化报表类型
 
 //script
 const SCRIPT_TABLE = "{TABLE_NAME}"

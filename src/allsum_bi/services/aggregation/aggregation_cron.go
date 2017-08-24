@@ -75,13 +75,14 @@ func DoAggregate(id int, flushsqlscript string) (err error) {
 		return
 	}
 	var schemas []string
-	if report.Reporttype == util.REPORT_TYPE_PRIVATE {
-		schemas = []string{db.GetCompanySchema(demand.Owner)}
-	} else {
+	beego.Debug("reporttype: ", report.Reporttype)
+	if report.Reporttype == util.REPORT_TYPE_COMMON {
 		schemas, err = oaclient.GetAllCompanySchema()
 		if err != nil {
 			return
 		}
+	} else {
+		schemas = []string{db.GetCompanySchema(demand.Owner)}
 	}
 	maplock.Lock()
 	if lock, ok := AggregateLock[id]; ok && lock {

@@ -57,13 +57,14 @@ func AddAggregate(uuid string, table_name string, create_script string, alter_sc
 		return
 	}
 	var schemas []string
-	if report.Reporttype == util.REPORT_TYPE_PRIVATE {
-		schemas = []string{db.GetCompanySchema(demand.Owner)}
-	} else {
+	if report.Reporttype == util.REPORT_TYPE_COMMON {
 		schemas, err = oaclient.GetAllCompanySchema()
 		if err != nil {
 			return
 		}
+	} else {
+		schemas = []string{db.GetCompanySchema(demand.Owner)}
+
 	}
 
 	for _, schema := range schemas {
