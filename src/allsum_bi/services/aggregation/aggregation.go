@@ -16,6 +16,7 @@ func AddAggregateByDataload(name string, owner string, tablename string, flush_s
 		Script:    flush_script,
 		Cron:      cron,
 		Documents: documents,
+		Status:    util.AGGREGATE_STARTED,
 	}
 
 	err = models.InsertAggregateReturnAggregate(&aggregate)

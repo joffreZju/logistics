@@ -81,7 +81,9 @@ func (c *Controller) ListDemand() {
 	}
 	var res map[string]interface{}
 	var data []map[string]interface{}
-	for _, demand := range demands {
+	demandnum := len(demands)
+	for ; demandnum >= 0; demandnum-- {
+		demand := demands[demandnum]
 		report, err := models.GetReport(demand.Reportid)
 		if err != nil {
 			continue

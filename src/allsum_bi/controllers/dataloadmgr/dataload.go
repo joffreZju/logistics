@@ -70,10 +70,11 @@ func (c *Controller) GetDataload() {
 	}
 	//TODO get Aggregateid
 	aggregateid := dataload.Aggregateid
-	var flush_script, cron string
+	var flush_script, cron, aggregate_status string
 	if aggregateid == 0 {
 		flush_script = ""
 		cron = ""
+		aggregate_status = util.AGGREGATE_NONE
 	} else {
 		Aggregate, err := models.GetAggregateOps(aggregateid)
 		if err != nil {
@@ -82,19 +83,21 @@ func (c *Controller) GetDataload() {
 		}
 		flush_script = Aggregate.Script
 		cron = Aggregate.Cron
+		aggregate_status = Aggregate.Status
 	}
 	res := map[string]interface{}{
-		"uuid":          dataload.Uuid,
-		"name":          dataload.Name,
-		"owner":         dataload.Owner,
-		"table_name":    dataload.Basetable,
-		"create_script": dataload.CreateScript,
-		"alter_script":  dataload.AlterScript,
-		"flush_script":  flush_script,
-		"cron":          cron,
-		"web_path":      dataload.WebPath,
-		"webfile_name":  dataload.WebfileName,
-		"documents":     dataload.Documents,
+		"uuid":             dataload.Uuid,
+		"name":             dataload.Name,
+		"owner":            dataload.Owner,
+		"table_name":       dataload.Basetable,
+		"create_script":    dataload.CreateScript,
+		"alter_script":     dataload.AlterScript,
+		"flush_script":     flush_script,
+		"cron":             cron,
+		"web_path":         dataload.WebPath,
+		"webfile_name":     dataload.WebfileName,
+		"documents":        dataload.Documents,
+		"aggregate_status": aggregate_status,
 	}
 	c.ReplySucc(res)
 
