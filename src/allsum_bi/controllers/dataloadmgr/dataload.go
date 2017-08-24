@@ -98,14 +98,6 @@ func (c *Controller) GetDataload() {
 func (c *Controller) SaveDataload() {
 	dataloadName := c.GetString("name")
 
-	reportuuid := c.GetString("reportuuid")
-	report, err := models.GetReportByUuid(reportuuid)
-	if err != nil {
-		beego.Error("get report by reportuuid err :", err)
-		c.ReplyErr(errcode.ErrParams)
-		return
-	}
-	dataloadOwner := report.Owner
 	//	if err != nil {
 	//		beego.Error("save dataloadOwner err", err)
 	//		c.ReplyErr(errcode.ErrParams)
@@ -119,6 +111,14 @@ func (c *Controller) SaveDataload() {
 			c.ReplyErr(errcode.ErrParams)
 			return
 		}
+		reportuuid := c.GetString("reportuuid")
+		report, err := models.GetReportByUuid(reportuuid)
+		if err != nil {
+			beego.Error("get report by reportuuid err :", err)
+			c.ReplyErr(errcode.ErrParams)
+			return
+		}
+		dataloadOwner := report.Owner
 		dataloadstruct := models.DataLoad{
 			Name:   dataloadName,
 			Status: util.DATALOAD_BUILDING,
