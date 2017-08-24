@@ -100,6 +100,8 @@ func DoAggregate(id int, flushsqlscript string) (err error) {
 		err = db.Exec(util.BASEDB_CONNID, flushsqlscript)
 
 		if err != nil {
+			beego.Error("aggregates err:", err)
+			beego.Error("aggregates errsql:", flushsqlscript)
 			aggregates := models.AggregateLog{
 				Aggregateid: id,
 				Reportid:    aggregate.Reportid,
@@ -109,6 +111,9 @@ func DoAggregate(id int, flushsqlscript string) (err error) {
 				Status:      util.IS_OPEN,
 			}
 			models.InsertAggregateLog(aggregates)
+			maplock.Lock()
+			defer maplock.Unlock()
+			AggregateLock[id] = true
 			return
 		}
 	}
