@@ -113,11 +113,11 @@ func CountDemandByField(fields []string, values []interface{}) (count int, err e
 	return
 }
 
-func UpdateDemand(demand map[string]interface{}, fields ...string) (err error) {
+func UpdateDemand(demand Demand, fields ...string) (err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
 	}
-	err = db.Table(GetDemandTableName()).Where("id=?", demand["id"]).Updates(demand).Update(fields).Error
+	err = db.Table(GetDemandTableName()).Where("id=?", demand.Id).Updates(demand).Update(fields).Error
 	return
 }

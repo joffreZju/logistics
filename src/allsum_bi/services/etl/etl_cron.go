@@ -31,11 +31,7 @@ func StartEtlCron() (err error) {
 		err = StartEtl(etlrecord)
 		if err != nil {
 			etlrecord.Status = util.SYNC_ERROR
-			etlrecordMap := map[string]interface{}{
-				"id":     etlrecord.Id,
-				"status": util.SYNC_ERROR,
-			}
-			models.UpdateSynchronous(etlrecordMap, "status")
+			models.UpdateSynchronous(etlrecord, "status")
 		}
 		//	AddCronWithFullScript(etlrecord.Id, etlrecord.Cron, etlrecord.Script)
 	}
@@ -128,11 +124,7 @@ func StopCronBySyncUuid(uuid string) (err error) {
 	}
 	StopCronById(sync.Id)
 	sync.Status = util.SYNC_STOP
-	syncMap := map[string]interface{}{
-		"id":     sync.Id,
-		"status": util.SYNC_STOP,
-	}
-	err = models.UpdateSynchronous(syncMap, "status")
+	err = models.UpdateSynchronous(sync, "status")
 	return
 }
 

@@ -79,11 +79,11 @@ func CountSynchronousLogsBySyncid(syncid int, status int) (count int, err error)
 	return
 }
 
-func UpdateSynchronousLogBySyncId(synclog map[string]interface{}, params ...string) (err error) {
+func UpdateSynchronousLogBySyncId(synclog SynchronousLog, params ...string) (err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
 	}
-	err = db.Table(GetSynchronousLogTableName()).Where("syncid=?", synclog["syncid"]).Updates(synclog).Update(params).Error
+	err = db.Table(GetSynchronousLogTableName()).Where("syncid=?", synclog.Syncid).Updates(synclog).Update(params).Error
 	return
 }

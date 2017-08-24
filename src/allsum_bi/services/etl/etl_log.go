@@ -29,11 +29,7 @@ func SetEtlError(syncid int, msg string) (err error) {
 	}
 	if count >= sync.ErrorLimit {
 		sync.Status = util.SYNC_ERROR
-		syncMap := map[string]interface{}{
-			"id":     sync.Id,
-			"status": sync.Status,
-		}
-		err = models.UpdateSynchronous(syncMap, "status")
+		err = models.UpdateSynchronous(sync, "status")
 		if err != nil {
 			beego.Error("update sync err :", err)
 		}
@@ -44,9 +40,9 @@ func SetEtlError(syncid int, msg string) (err error) {
 }
 
 func CleanEtlError(syncid int) (err error) {
-	synclog := map[string]interface{}{
-		"syncid": syncid,
-		"status": util.SYNC_DISABLE,
+	synclog := models.SynchronousLog{
+		Syncid: syncid,
+		Status: util.SYNC_DISABLE,
 	}
 	err = models.UpdateSynchronousLogBySyncId(synclog, "status")
 	return

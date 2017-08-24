@@ -52,7 +52,7 @@ func ListAggregateLog(fields []string, values []interface{}, limit int, index in
 	return
 }
 
-func UpdateAggregateLog(aggregate_log map[string]interface{}, fields ...interface{}) (err error) {
+func UpdateAggregateLog(aggregate_log AggregateLog, fields ...interface{}) (err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return

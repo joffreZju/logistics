@@ -97,7 +97,6 @@ func (c *Controller) GetDataload() {
 
 func (c *Controller) SaveDataload() {
 	dataloadName := c.GetString("name")
-
 	//	if err != nil {
 	//		beego.Error("save dataloadOwner err", err)
 	//		c.ReplyErr(errcode.ErrParams)
@@ -111,6 +110,7 @@ func (c *Controller) SaveDataload() {
 			c.ReplyErr(errcode.ErrParams)
 			return
 		}
+
 		reportuuid := c.GetString("reportuuid")
 		report, err := models.GetReportByUuid(reportuuid)
 		if err != nil {
@@ -119,6 +119,7 @@ func (c *Controller) SaveDataload() {
 			return
 		}
 		dataloadOwner := report.Owner
+
 		dataloadstruct := models.DataLoad{
 			Name:   dataloadName,
 			Status: util.DATALOAD_BUILDING,
@@ -247,13 +248,7 @@ func (c *Controller) UploadDataLoadWeb() {
 	}
 	dataload.WebPath = uri
 	dataload.WebfileName = h.Filename
-	dataloadMap := map[string]interface{}{
-		"id":           dataload.Id,
-		"uuid":         dataload.Uuid,
-		"web_path":     dataload.WebPath,
-		"webfile_name": dataload.WebfileName,
-	}
-	err = models.UpdateDataLoad(dataloadMap, "web_path", "webfile_name")
+	err = models.UpdateDataLoad(dataload, "web_path", "webfile_name")
 	if err != nil {
 		beego.Error("update dataload err :", err)
 		c.ReplyErr(errcode.ErrActionPutDataload)

@@ -132,20 +132,7 @@ func DoEtlWithoutTable(handlerid int, dbid string, schema string, table string) 
 		sync_res.Id = syncid
 	} else {
 		sync_res.Id = sync.Id
-		syncMap := map[string]interface{}{
-			"id":            sync_res.Id,
-			"handlerid":     sync_res.Handlerid,
-			"owner":         sync_res.Owner,
-			"create_script": sync_res.CreateScript,
-			"alter_script":  sync_res.AlterScript,
-			"script":        sync_res.Script,
-			"source_db_id":  sync_res.SourceDbId,
-			"dest_db_id":    sync_res.DestDbId,
-			"dest_table":    sync_res.DestTable,
-			"status":        sync_res.Status,
-			"lasttime":      sync_res.Lasttime,
-		}
-		err = models.UpdateSynchronous(syncMap, "handlerid", "owner", "create_script", "alter_script", "script", "source_db_id", "source_table", "dest_db_id", "dest_table", "script", "status", "lasttime")
+		err = models.UpdateSynchronous(sync_res, "handlerid", "owner", "create_script", "alter_script", "script", "source_db_id", "source_table", "dest_db_id", "dest_table", "script", "status", "lasttime")
 		if err != nil {
 			return
 		}
@@ -187,11 +174,7 @@ func DoEtlCalibration(dbid string, schema string, table string) (err error) {
 		}
 	}()
 	sync.Lasttime = time.Now()
-	syncMap := map[string]interface{}{
-		"id":       sync.Id,
-		"lasttime": sync.Lasttime,
-	}
-	err = models.UpdateSynchronous(syncMap, "lasttime")
+	err = models.UpdateSynchronous(sync, "lasttime")
 	if err != nil {
 		beego.Error("update Lasttime error", err)
 	}
@@ -375,18 +358,8 @@ func SetAndDoEtl(setdata map[string]interface{}) (err error) {
 	sync.ErrorLimit = error_limit.(int)
 	sync.Lasttime = time.Now()
 	sync.Status = util.SYNC_STARTED
-	syncMap := map[string]interface{}{
-		"Id":            sync.Id,
-		"handlerid":     sync.Handlerid,
-		"create_script": sync.CreateScript,
-		"alter_script":  sync.AlterScript,
-		"script":        sync.Script,
-		"cron":          sync.Cron,
-		"documents":     sync.Documents,
-		"error_limit":   sync.ErrorLimit,
-		"status":        sync.Status,
-	}
-	err = models.UpdateSynchronous(syncMap, "handlerid", "create_script", "alter_script", "script", "cron", "documents", "error_limit", "status")
+
+	err = models.UpdateSynchronous(sync, "handlerid", "create_script", "alter_script", "script", "cron", "documents", "error_limit", "status")
 	if err != nil && is_all_schema {
 		go SetALLSchema(setdata, destSchema)
 	}
@@ -487,18 +460,7 @@ func SetALLSchema(setdata map[string]interface{}, trigger_schema string) (err er
 			syncres.Cron = cron
 			syncres.ErrorLimit = error_limit
 			syncres.Documents = documents
-			syncresMap := map[string]interface{}{
-				"id":            syncres.Id,
-				"handlerid":     syncres.Handlerid,
-				"create_script": syncres.CreateScript,
-				"alter_script":  syncres.AlterScript,
-				"param_script":  syncres.ParamScript,
-				"script":        syncres.Script,
-				"cron":          syncres.Cron,
-				"error_limit":   syncres.ErrorLimit,
-				"documents":     syncres.Documents,
-			}
-			err = models.UpdateSynchronous(syncresMap, "handlerid", "create_script", "alter_script", "param_script", "script", "cron", "error_limit", "documents")
+			err = models.UpdateSynchronous(syncres, "handlerid", "create_script", "alter_script", "param_script", "script", "cron", "error_limit", "documents")
 			if err != nil {
 				beego.Error("update err sync :", err)
 				//TODO in log

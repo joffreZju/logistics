@@ -203,16 +203,7 @@ func (c *Controller) SaveReportSet() {
 	reportsetdb.Documents = documents.(string)
 	reportsetdb.Dbid = dbid.(string)
 	reportsetdb.Status = util.REPORTSET_BUILDING
-	reportsetMap := map[string]interface{}{
-		"id":         reportsetdb.Id,
-		"dbid":       reportsetdb.Dbid,
-		"script":     reportsetdb.Script,
-		"conditions": reportsetdb.Conditions,
-		"status":     reportsetdb.Status,
-		"web_path":   reportsetdb.WebPath,
-		"documents":  reportsetdb.Documents,
-	}
-	err = models.UpdateReportSet(reportsetMap, "dbid", "script", "conditions", "status", "web_path", "documents")
+	err = models.UpdateReportSet(reportsetdb, "dbid", "script", "conditions", "status", "web_path", "documents")
 	if err != nil {
 		beego.Error("update report set ")
 		c.ReplyErr(errcode.ErrActionPutReportSet)
@@ -234,11 +225,7 @@ func (c *Controller) PublishReportSet() {
 		return
 	}
 	reportset.Status = util.REPORTSET_STARTED
-	reportsetMap := map[string]interface{}{
-		"id":     reportset.Id,
-		"status": reportset.Status,
-	}
-	err = models.UpdateReportSet(reportsetMap, "status")
+	err = models.UpdateReportSet(reportset, "status")
 	if err != nil {
 		beego.Error("update reportset err", err)
 		c.ReplyErr(errcode.ErrActionPutReportSet)

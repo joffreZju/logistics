@@ -19,20 +19,13 @@ func ChangeStatus(demanduuid string, demandstatus int, reportstatus int, HandleC
 	if err != nil {
 		return
 	}
-	demandMap := map[string]interface{}{
-		"id":     demand.Id,
-		"status": demandstatus,
-	}
+	demand.Status = demandstatus
 	report.Status = reportstatus
-	err = models.UpdateDemand(demandMap, "status")
+	err = models.UpdateDemand(demand, "status")
 	if err != nil {
 		return
 	}
-	reportMap := map[string]interface{}{
-		"id":     report.Id,
-		"status": reportstatus,
-	}
-	err = models.UpdateReport(reportMap, "status")
+	err = models.UpdateReport(report, "status")
 	if err != nil {
 		return
 	}

@@ -70,8 +70,8 @@ func AddAggregate(uuid string, table_name string, create_script string, alter_sc
 				return
 			}
 		}
-		if alter_script != "" {
-			alter_script_real := strings.Replace(alter_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
+		if aggregate.AlterScript != "" {
+			alter_script_real := strings.Replace(aggregate.AlterScript, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
 			//TODO not sure is able exec multiple sql need check
 			err = db.Exec(util.BASEDB_CONNID, alter_script_real)
 			if err != nil {
@@ -96,17 +96,7 @@ func AddAggregate(uuid string, table_name string, create_script string, alter_sc
 		aggregate.Documents = documents
 		aggregate.DestTable = table_name
 		aggregate.Status = util.AGGREGATE_STARTED
-		aggregateMap := map[string]interface{}{
-			"id":            aggregate.Id,
-			"dest_table":    table_name,
-			"create_script": new_create_sql_format,
-			"alter_script":  "",
-			"flush_script":  flush_script,
-			"cron":          cron,
-			"documents":     documents,
-			"status":        util.AGGREGATE_STARTED,
-		}
-		err = models.UpdateAggregate(aggregateMap, "dest_table", "create_script", "alter_script", "flush_script", "cron", "documents", "status")
+		err = models.UpdateAggregate(aggregate, "dest_table", "create_script", "alter_script", "flush_script", "cron", "documents", "status")
 	}
 	return
 }
@@ -144,12 +134,7 @@ func TestCreateScript(uuid string, table_name string, create_script string) (err
 		db.DeleteSchemaTable(util.BASEDB_CONNID, table_name_test)
 	}()
 	aggregate.CreateScript = create_script
-	aggregateMap := map[string]interface{}{
-		"id":            aggregate.Id,
-		"uuid":          aggregate.Uuid,
-		"create_script": create_script,
-	}
-	err = models.UpdateAggregate(aggregateMap, "create_script")
+	err = models.UpdateAggregate(aggregate, "create_script")
 	return
 }
 
@@ -197,12 +182,7 @@ func TestAlterScript(uuid string, table_name string, alter_script string) (err e
 	//new_create_sql_format := strings.Replace(new_create_sql, table_name_test, util.SCRIPT_TABLE, 1)
 	//aggregate.CreateScript = new_create_sql_format
 	aggregate.AlterScript = alter_script
-	aggregateMap := map[string]interface{}{
-		"id":           aggregate.Id,
-		"uuid":         aggregate.Uuid,
-		"alter_script": alter_script,
-	}
-	err = models.UpdateAggregate(aggregateMap, "alter_script")
+	err = models.UpdateAggregate(aggregate, "create_script", "alter_script")
 	return
 }
 
@@ -246,12 +226,6 @@ func TestFlushScript(uuid string, table_name string, flush_script string, cron s
 	}
 	aggregate.Script = flush_script
 	aggregate.Cron = cron
-	aggregateMap := map[string]interface{}{
-		"id":           aggregate.Id,
-		"uuid":         aggregate.Uuid,
-		"cron":         aggregate.Cron,
-		"flush_script": aggregate.Script,
-	}
-	err = models.UpdateAggregate(aggregateMap, "flush_script", "cron")
+	err = models.UpdateAggregate(aggregate, "flush_script", "cron")
 	return
 }

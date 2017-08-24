@@ -97,12 +97,12 @@ func ListSynchronous() (syncs []Synchronous, err error) {
 	return
 }
 
-func UpdateSynchronous(sync map[string]interface{}, params ...string) (err error) {
+func UpdateSynchronous(sync Synchronous, params ...string) (err error) {
 	db, err := conn.GetBIConn()
 	if err != nil {
 		return
 	}
-	err = db.Table(GetSynchronousTableName()).Where("id=?", sync["id"]).Updates(sync).Update(params).Error
+	err = db.Table(GetSynchronousTableName()).Where("id=?", sync.Id).Updates(sync).Update(params).Error
 	return
 }
 

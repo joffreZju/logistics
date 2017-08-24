@@ -157,11 +157,7 @@ func (c *Controller) AddDemand() {
 		return
 	}
 	demandres.Reportid = report.Id
-	demandresmap := map[string]interface{}{
-		"id":       demandres.Id,
-		"reportid": demandres.Reportid,
-	}
-	err = models.UpdateDemand(demandresmap, "reportid")
+	err = models.UpdateDemand(demandres, "reportid")
 	if err != nil {
 		beego.Error("update demand err", err)
 		c.ReplyErr(errcode.ErrActionPutDemand)
@@ -243,11 +239,7 @@ func (c *Controller) AnalyzeDemand() {
 			return
 		}
 		demand.Reportid = report.Id
-		demandMap := map[string]interface{}{
-			"id":       demand.Id,
-			"reportid": demand.Reportid,
-		}
-		err = models.UpdateDemand(demandMap, "reportid")
+		err = models.UpdateDemand(demand, "reportid")
 		if err != nil {
 			beego.Error("update demand err", err)
 			c.ReplyErr(errcode.ErrActionPutDemand)
@@ -409,16 +401,7 @@ func (c *Controller) SetDemand() {
 	demand.Status = util.DEMAND_STATUS_BUILDING
 	demand.Price = price
 
-	demandMap := map[string]interface{}{
-		"id":                 demand.Id,
-		"description":        demand.Description,
-		"price":              demand.Price,
-		"handlerid":          demand.Handlerid,
-		"deadline":           demand.Deadline,
-		"assigner_authority": demand.AssignerAuthority,
-		"status":             demand.Status,
-	}
-	err = models.UpdateDemand(demandMap, "description", "price", "handleid", "deadline", "assigner_authority", "status")
+	err = models.UpdateDemand(demand, "description", "price", "handleid", "deadline", "assigner_authority", "status")
 	if err != nil {
 		beego.Error("update demand err :", err)
 		c.ReplyErr(errcode.ErrActionPutDemand)
@@ -428,12 +411,7 @@ func (c *Controller) SetDemand() {
 	report.Reporttype = report_type
 	report.Status = util.REPORT_STATUS_DEVELOP
 
-	reportMap := map[string]interface{}{
-		"id":         report.Id,
-		"reporttype": report.Reporttype,
-		"status":     report.Status,
-	}
-	err = models.UpdateReport(reportMap, "reporttype", "status")
+	err = models.UpdateReport(report, "reporttype", "status")
 	if err != nil {
 		beego.Error("update report err :", err)
 		c.ReplyErr(errcode.ErrActionPutReport)
@@ -492,12 +470,7 @@ func (c *Controller) UploadDemandDoc() {
 	demand, err := models.GetDemandByUuid(demanduuid)
 	demand.DocUrl = uri
 	demand.DocName = h.Filename
-	demandMap := map[string]interface{}{
-		"id":       demand.Id,
-		"doc_url":  demand.DocUrl,
-		"doc_name": demand.DocName,
-	}
-	err = models.UpdateDemand(demandMap, "doc_url", "doc_name")
+	err = models.UpdateDemand(demand, "doc_url", "doc_name")
 	if err != nil {
 		beego.Error("update demand err :", err)
 		c.ReplyErr(errcode.ErrUploadFileFailed)
