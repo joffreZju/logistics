@@ -33,6 +33,38 @@
 
 - 公司管理员可以管理公司员工的信息。
 
+## redis相关
+- 每个用户登录之后会在redis中存在两条记录
+```
+1. key是token的加密字符串，value是token的值，其中SingleID是UserId
+
+key:vEiFDZIkmq7Mr64c31fU8mQkuEn/l+N87wEbSGliQV8=
+value:{
+  "ClientID": "stowage_user",
+  "SingleID": "145",
+  "GroupID": "",
+  "Value": "vEiFDZIkmq7Mr64c31fU8mQkuEn/l+N87wEbSGliQV8=",
+  "BizInfo": "",
+  "DeadLine": 1503759573
+}
+
+
+2. key是UserId拼接其token加密串，value是用户的公司，组织，角色，功能权限集，注意字符串的拼接方式（首尾都有 - ），可以快速查找
+
+key:145-vEiFDZIkmq7Mr64c31fU8mQkuEn/l+N87wEbSGliQV8=
+value:{
+    company:C0726105137846,
+    roles:-1-2-3-,
+    groups:-1-2-3-,
+    functions:-serviceUrl1-serviceUrl2-
+}
+```
+- redis中的信息会在用户新的登录操作时被覆盖，用户注销操作时会清空。
+
+
+## 定时任务
+- 每小时会扫描一次，扫描每一个schema中的group_operation,formtpl,approvaltpl三张表，如果其设置生效时间距现在不足1.5小时，那么就改为将其生效。
+
 
 ## 审批流逻辑
 - 审批流程设定增加组织选定和是否必审功能。

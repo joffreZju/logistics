@@ -14,7 +14,7 @@ const (
 	MaxDistance = 90
 )
 
-//十分钟Interval扫描一次，如果设置的开始时间小于MaxDistance就执行操作
+//每Interval扫描一次，如果设置的开始时间小于MaxDistance就执行操作
 func Ticker() {
 	tick := time.Tick(time.Minute * Interval)
 	for {
