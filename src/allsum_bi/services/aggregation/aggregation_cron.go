@@ -60,13 +60,7 @@ func StopAggregate(id int) (err error) {
 }
 
 func DoAggregate(id int, flushsqlscript string) (err error) {
-	maplock.Lock()
-	if lock, ok := AggregateLock[id]; ok && lock {
-		beego.Info("aggregate locked wait to Next round")
-		maplock.Unlock()
-		return
-	}
-	maplock.Unlock()
+
 	aggregate, err := models.GetAggregateOps(id)
 	if err != nil {
 		return
@@ -90,6 +84,11 @@ func DoAggregate(id int, flushsqlscript string) (err error) {
 		}
 	}
 	maplock.Lock()
+	if lock, ok := AggregateLock[id]; ok && lock {
+		beego.Info("aggregate locked wait to Next round")
+		maplock.Unlock()
+		return
+	}
 	AggregateLock[id] = true
 	maplock.Unlock()
 	for _, schema := range schemas {
@@ -113,7 +112,7 @@ func DoAggregate(id int, flushsqlscript string) (err error) {
 			models.InsertAggregateLog(aggregates)
 			maplock.Lock()
 			defer maplock.Unlock()
-			AggregateLock[id] = true
+			AggregateLock[id] = false
 			return
 		}
 	}
