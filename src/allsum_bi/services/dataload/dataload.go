@@ -59,7 +59,7 @@ func AddDataLoad(dataload map[string]string) (err error) {
 	documents := dataload["documents"]
 	if flush_script != "" {
 
-		aggregate_ops, err := aggregation.AddAggregateByDataload(dataload_db.Name, dataload_db.Owner, schema_table, flush_script, cron, documents)
+		aggregate_ops, err := aggregation.AddAggregateByDataload(dataload_db.Uuid, dataload_db.Owner, schema_table, flush_script, cron, documents)
 		if err != nil {
 			return err
 		}
