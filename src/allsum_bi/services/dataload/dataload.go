@@ -58,13 +58,14 @@ func AddDataLoad(dataload map[string]string) (err error) {
 	cron := dataload["cron"]
 	documents := dataload["documents"]
 	if flush_script != "" {
-
-		aggregate_ops, err := aggregation.AddAggregateByDataload(dataload_db.Uuid, dataload_db.Owner, schema_table, flush_script, cron, documents)
+		//dataload 的uuid做为 aggregate的name了 因为清洗表那边对清洗表的name和reportid做了唯一约束
+		aggregate_ops, err := aggregation.AddAggregateByDataload(dataload_db.Uuid, dataload_db.Reportid, dataload_db.Aggregateid, dataload_db.Owner, schema_table, flush_script, cron, documents)
 		if err != nil {
 			return err
 		}
 		aggregationId = aggregate_ops.Id
 	}
+
 	dataload_db.CreateScript = create_script
 	dataload_db.AlterScript = "null"
 	//	dataload_db.FlushScript = flush_script

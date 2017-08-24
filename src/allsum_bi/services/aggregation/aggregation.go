@@ -9,20 +9,29 @@ import (
 	"strings"
 )
 
-func AddAggregateByDataload(name string, owner string, tablename string, flush_script string, cron string, documents string) (aggregate models.AggregateOps, err error) {
+func AddAggregateByDataload(name string, reportid int, aggregateid int, owner string, tablename string, flush_script string, cron string, documents string) (aggregate models.AggregateOps, err error) {
 	aggregate = models.AggregateOps{
-		Name:      name,
+		Name:      "data_load_" + name,
 		DestTable: tablename,
+		Reportid:  reportid,
 		Script:    flush_script,
 		Cron:      cron,
 		Documents: documents,
 		Status:    util.AGGREGATE_STARTED,
 	}
-
-	err = models.InsertAggregateReturnAggregate(&aggregate)
-	if err != nil {
-		return
+	if aggregateid == 0 {
+		err = models.InsertAggregateReturnAggregate(&aggregate)
+		if err != nil {
+			return
+		}
+	} else {
+		aggregate.Id = aggregateid
+		err = models.UpdateAggregate(aggregate)
+		if err != nil {
+			return
+		}
 	}
+
 	schema := db.GetCompanySchema(owner)
 	schema_table, _ := db.EncodeTableSchema(util.BASEDB_CONNID, schema, tablename)
 	flush_script_real := strings.Replace(flush_script, util.SCRIPT_TABLE, schema_table, util.SCRIPT_LIMIT)
