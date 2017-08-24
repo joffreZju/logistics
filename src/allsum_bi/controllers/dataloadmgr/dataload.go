@@ -29,9 +29,15 @@ func (c *Controller) ListDataload() {
 	//	}
 
 	//Need to User
-	_ = c.GetString("reportuuid")
+	reportuuid := c.GetString("reportuuid")
+	report, err := models.GetReportByUuid(reportuuid)
+	if err != nil {
+		beego.Error("get report err :", err)
+		c.ReplyErr(errcode.ErrActionGetReport)
+		return
+	}
 
-	dataloads, err := models.ListDataLoadByField([]string{}, []interface{}{}, 0, 0)
+	dataloads, err := models.ListDataLoadByField([]string{"reportid"}, []interface{}{report.Id}, 0, 0)
 	if err != nil {
 		beego.Error("list dataload err: ", err)
 		c.ReplyErr(errcode.ErrActionGetDataload)

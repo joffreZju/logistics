@@ -69,7 +69,7 @@ func AddDataLoad(dataload map[string]string) (err error) {
 	dataload_db.AlterScript = "null"
 	//	dataload_db.FlushScript = flush_script
 	//	dataload_db.Cron = cron
-	dataload_db.Basetable = schema_table
+	dataload_db.Basetable = table_name
 	dataload_db.Documents = documents
 	dataload_db.Aggregateid = aggregationId
 	dataload_db.Status = util.DATALOAD_STARTED
