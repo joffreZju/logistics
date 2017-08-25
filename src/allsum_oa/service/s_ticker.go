@@ -40,6 +40,7 @@ func ScanAllSchema(MaxDistance float64) {
 	}
 }
 
+//处理定时生效的表单模板
 func handleFormtpl(prefix string, MaxDistance float64) {
 	ftpls := []*model.Formtpl{}
 	db := model.NewOrm().Table(prefix + "." + model.Formtpl{}.TableName())
@@ -57,6 +58,8 @@ func handleFormtpl(prefix string, MaxDistance float64) {
 		}
 	}
 }
+
+//处理定时生效的审批单模板
 func handleApprovaltpl(prefix string, MaxDistance float64) {
 	atpls := []*model.Approvaltpl{}
 	db := model.NewOrm().Table(prefix + "." + model.Approvaltpl{}.TableName())
@@ -75,6 +78,7 @@ func handleApprovaltpl(prefix string, MaxDistance float64) {
 	}
 }
 
+//处理定时生效的组织树修改操作
 func handleGroupOperation(prefix string, MaxDistance float64) {
 	op := &model.GroupOperation{}
 	db := model.NewOrm().Table(prefix + "." + op.TableName())

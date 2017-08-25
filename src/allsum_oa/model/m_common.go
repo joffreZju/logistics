@@ -14,6 +14,9 @@ const (
 	DBErrStrAlreadyExists = "already exists"
 )
 
+//封装好的类型:Str数组,Int数组,Json
+//用户更方便的操作postgres中的对应类型
+
 type JsonMap map[string]interface{}
 
 func (m JsonMap) Value() (driver.Value, error) {

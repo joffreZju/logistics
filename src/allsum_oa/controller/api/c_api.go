@@ -15,6 +15,7 @@ type Controller struct {
 
 const commonErr = 99999
 
+//获取所有公司的schema
 func (c *Controller) GetSchemaList() {
 	schemas, e := c.ApiService.GetSchemaList()
 	if e != nil {
@@ -25,6 +26,7 @@ func (c *Controller) GetSchemaList() {
 	}
 }
 
+//获取某公司的角色列表
 func (c *Controller) GetRoleList() {
 	company := c.GetString("companyNo")
 	roles, e := service.GetRoleList(company)
@@ -53,6 +55,7 @@ func (c *Controller) GetUsersOfRole() {
 	}
 }
 
+//获取用户的基本信息
 func (c *Controller) GetUserInfo() {
 	uid, e := c.GetInt("userId")
 	if e != nil || uid == 0 {

@@ -15,6 +15,7 @@ const (
 	commonErr = 99999
 )
 
+//获取用户的历史消息,比minId小的消息
 func (c *Controller) GetHistoryMsg() {
 	uid := c.UserID
 	company := c.UserComp
@@ -32,6 +33,7 @@ func (c *Controller) GetHistoryMsg() {
 	c.ReplySucc(msgs)
 }
 
+//获取最近消息,比maxId大的
 func (c *Controller) GetLatestMsg() {
 	uid := c.UserID
 	company := c.UserComp
@@ -49,6 +51,7 @@ func (c *Controller) GetLatestMsg() {
 	c.ReplySucc(msgs)
 }
 
+//删除一条消息
 func (c *Controller) DelMsgById() {
 	msgId, err := c.GetInt("id")
 	if err != nil {
@@ -64,6 +67,7 @@ func (c *Controller) DelMsgById() {
 	c.ReplySucc(nil)
 }
 
+//web分页获取消息
 func (c *Controller) GetMsgsByPage() {
 	page, e := c.GetInt("page")
 	limit, e1 := c.GetInt("limit")

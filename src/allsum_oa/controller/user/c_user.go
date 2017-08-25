@@ -6,13 +6,10 @@ import (
 	"common/lib/baseController"
 	"common/lib/errcode"
 	"common/lib/keycrypt"
-	"common/lib/push"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"time"
 
-	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/ysqi/tokenauth"
 	"github.com/ysqi/tokenauth2beego/o2o"
@@ -25,44 +22,11 @@ type Controller struct {
 	base.Controller
 }
 
-func (c *Controller) GetCode() {
-	tel := c.GetString("tel")
-
-	// 测试环境用123456，不发短信
-	if beego.BConfig.RunMode != "prod" {
-		err := c.Cache.Put(tel, 123456, time.Duration(600*time.Second))
-		if err != nil {
-			beego.Error("GetCode set redis error", err)
-			c.ReplyErr(err)
-			return
-		}
-		c.ReplySucc(nil)
-		return
-	}
-
-	// 先查看用户短信是否已经, 如果短信已经发送，60秒后重试
-	if c.Cache.IsExist(tel) {
-		c.ReplyErr(errcode.ErrUserCodeHasAlreadyExited)
-		return
-	}
-
-	// 正试环境发短信, 60秒后过期
-	code := fmt.Sprintf("%d", rand.Intn(9000)+1000)
-	err := c.Cache.Put(tel, code, time.Duration(600*time.Second))
-	if err != nil {
-		beego.Error("GetCode set redis error", err)
-		c.ReplyErr(err)
-		return
-	}
-
-	if err = push.SendSmsCodeToMobile(tel, code); err != nil {
-		beego.Error(err)
-		c.ReplyErr(errcode.ErrSendSMSMsgError)
-	} else {
-		c.ReplySucc(nil)
-	}
-}
-
+//用户注册
+//1 创建用户
+//2 创建公司
+//3 将用户和公司关联
+//4 生成token,登陆成功
 func (c *Controller) UserRegister() {
 	tel := c.GetString("tel")
 	username := c.GetString("username")
@@ -196,6 +160,11 @@ func (c *Controller) UpdateUserInfo() {
 	c.ReplySucc(nil)
 }
 
+//用户登录
+//1 获取public下的用户
+//2 检测用户是否存在有效的公司(schema),
+// 如果没有,那么登录成功(没有功能集)
+// 如果有,那么选择一家有效公司登录成功
 func (c *Controller) UserLogin() {
 	tel := c.GetString("tel")
 	passwd := c.GetString("password")
@@ -265,6 +234,7 @@ func (c *Controller) loginAction(user *model.User) {
 	beego.Info("login ok:%+v", token)
 }
 
+//登录时将用户信息拼接存储在redis中,拼接使用 "-"
 func (c *Controller) saveUserInfoToRedis(key, cno string, u *model.User) (e error) {
 	roles, groups, funcs := "-", "-", "-"
 	for _, v := range u.Roles {
@@ -291,7 +261,7 @@ func (c *Controller) saveUserInfoToRedis(key, cno string, u *model.User) (e erro
 	return
 }
 
-//登录之后切换当前公司
+//登录之后切换当前公司,用新公司的用户信息update redis中的信息
 func (c *Controller) SwitchCurrentFirm() {
 	cno := c.GetString("cno")
 	tokenStr := c.Ctx.Request.Header.Get("access_token")
@@ -341,6 +311,7 @@ func (c *Controller) SwitchCurrentFirm() {
 	}
 }
 
+//退出登录,删除token已经redis缓存
 func (c *Controller) LoginOut() {
 	token, err := o2o.Auth.CheckToken(c.Ctx.Request)
 	if err != nil {
@@ -362,6 +333,7 @@ func (c *Controller) LoginOut() {
 	c.ReplySucc(nil)
 }
 
+//忘记密码,用验证码修改
 func (c *Controller) Forgetpwd() {
 	tel := c.GetString("tel")
 	code := c.GetString("code")
@@ -390,6 +362,7 @@ func (c *Controller) Forgetpwd() {
 	}
 }
 
+//重置密码
 func (c *Controller) Resetpwd() {
 	uid := c.UserID
 	pwd := keycrypt.Sha256Cal(c.GetString("password"))
@@ -423,22 +396,4 @@ func (c *Controller) Resetpwd() {
 			}
 		}
 	}
-}
-
-func (c *Controller) GetFunctionsTree() {
-	idstr := c.GetString("sysIds")
-	sysIds := []string{}
-	e := json.Unmarshal([]byte(idstr), &sysIds)
-	if e != nil {
-		c.ReplyErr(errcode.ErrParams)
-		beego.Error(e)
-		return
-	}
-	funcs, e := model.GetFunctions(sysIds)
-	if e != nil {
-		c.ReplyErr(errcode.New(commonErr, e.Error()))
-		beego.Error(e)
-		return
-	}
-	c.ReplySucc(funcs)
 }

@@ -43,6 +43,7 @@ func (c *Controller) AddFormtpl() {
 		return
 	}
 	ftpl.No = model.UniqueNo("Ftpl")
+	//判断生效时间，并赋予对应的状态值
 	ftpl.Ctime = time.Now()
 	if ftpl.BeginTime.Sub(time.Now()).Hours() < 0 {
 		t := time.Now()
@@ -86,6 +87,7 @@ func (c *Controller) UpdateFormtpl() {
 	}
 }
 
+//禁用或启用表单模板
 func (c *Controller) ControlFormtpl() {
 	prefix := c.UserComp
 	no := c.GetString("no")
@@ -151,6 +153,7 @@ func (c *Controller) GetApprovaltplDetail() {
 	}
 }
 
+//获取某角色可以匹配到的组织
 func (c *Controller) GetMatchGroupsOfRole() {
 	rid, e := c.GetInt("rid")
 	if e != nil {
@@ -188,6 +191,7 @@ func (c *Controller) AddApprovaltpl() {
 		return
 	}
 	atpl.No = model.UniqueNo("Atpl")
+	//判断生效时间并置状态值
 	atpl.Ctime = time.Now()
 	if atpl.BeginTime.Sub(time.Now()).Hours() < 0 {
 		t := time.Now()
@@ -261,6 +265,7 @@ func (c *Controller) UpdateApprovaltpl() {
 	}
 }
 
+//禁用或启用审批单模板
 func (c *Controller) ControlApprovaltpl() {
 	prefix := c.UserComp
 	no := c.GetString("no")
@@ -329,6 +334,7 @@ func (c *Controller) AddApproval() {
 	}
 }
 
+//发起人撤销未完成的审批流
 func (c *Controller) CancelApproval() {
 	prefix := c.UserComp
 	no := c.GetString("no")
@@ -341,6 +347,7 @@ func (c *Controller) CancelApproval() {
 	}
 }
 
+//审批人进行审批
 func (c *Controller) Approve() {
 	prefix := c.UserComp
 	uid := c.UserID
@@ -364,11 +371,12 @@ func (c *Controller) Approve() {
 		beego.Error(e)
 		return
 	}
+	//检测整个审批单的状态和当前一步的状态，如果不是等待审批，那么退出
 	if a.Status != model.ApprovalStatWaiting || af.Status != model.ApprovalStatWaiting {
 		c.ReplyErr(errcode.ErrStatOfApproval)
 		return
 	}
-	beego.Info(af.MatchUsers)
+	//检测当前一步的审批人列表，是否包含当前用户
 	if !strings.Contains(af.MatchUsers, fmt.Sprintf("-%d-", uid)) {
 		c.ReplyErr(errcode.ErrInfoOfUser)
 		return
@@ -391,7 +399,7 @@ func (c *Controller) Approve() {
 	}
 }
 
-//获取我发起的所有审批单
+//获取我发起的所有审批单，可以根据beginTime和审批单状态进行过滤
 func (c *Controller) GetApprovalsFromMe() {
 	prefix := c.UserComp
 	uid := c.UserID
@@ -406,7 +414,7 @@ func (c *Controller) GetApprovalsFromMe() {
 	c.ReplySucc(alist)
 }
 
-//获取我收到的审批单
+//获取我收到的审批单，可以根据beginTime和审批单状态进行过滤
 func (c *Controller) GetApprovalsToMe() {
 	prefix := c.UserComp
 	uid := c.UserID

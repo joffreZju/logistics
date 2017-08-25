@@ -27,18 +27,6 @@ const (
 	FlowNecessaryYes
 )
 
-//审批单是否沿组织树流动
-const (
-	TreeFlowUpNo = iota + 1
-	TreeFlowUpYes
-)
-
-//审批单是否跳过没有用户的角色
-const (
-	SkipBlankRoleNo = iota + 1
-	SkipBlankRoleYes
-)
-
 //获取 正在审批的 或 已完成的 审批单
 const (
 	GetApprovalApproving = "approving"
@@ -82,14 +70,11 @@ func (Form) TableName() string {
 }
 
 type Approvaltpl struct {
-	No        string `gorm:"primary_key"`
-	Name      string `gorm:"not null"`
-	Descrp    string
-	Ctime     time.Time `gorm:"default:current_timestamp"`
-	FormtplNo string    `gorm:"not null"`
-	//TreeFlowUp    int       //是否按组织树向上流动 1:否，2:是
-	//SkipBlankRole int       //是否跳过空角色 1:否，2:是
-	//RoleFlow      IntSlice  `gorm:"type:int[]"` //role_id 的组成的数组
+	No         string `gorm:"primary_key"`
+	Name       string `gorm:"not null"`
+	Descrp     string
+	Ctime      time.Time `gorm:"default:current_timestamp"`
+	FormtplNo  string    `gorm:"not null"`
 	AllowRoles IntSlice  `gorm:"type:int[]"`
 	EmailMsg   int       `gorm:""`
 	BeginTime  time.Time `gorm:"not null"`
@@ -116,24 +101,20 @@ func (ApprovaltplFlow) TableName() string {
 }
 
 type Approval struct {
-	No     string `gorm:"primary_key"`
-	Name   string `gorm:"not null"`
-	Descrp string
-	Ctime  time.Time `gorm:"default:current_timestamp"`
-	FormNo string    `gorm:"not null"`
-	//TreeFlowUp    int       //1:否，2:是
-	//SkipBlankRole int       //1:否，2:是
-	//RoleFlow      IntSlice  `gorm:"type:int[]"`
-	//CurrentRole   int       //当前正在审批的角色id(current_user是pg的关键字)
-	EmailMsg    int    `gorm:""`
-	CurrentFlow int    //当前正在审批的一步流程
-	UserId      int    `gorm:"not null"`
-	RoleId      int    `gorm:""`
-	GroupId     int    `gorm:""`
-	UserName    string `gorm:""`
-	RoleName    string `gorm:""`
-	GroupName   string `gorm:""`
-	Status      int    `gorm:"not null"`
+	No          string `gorm:"primary_key"`
+	Name        string `gorm:"not null"`
+	Descrp      string
+	Ctime       time.Time `gorm:"default:current_timestamp"`
+	FormNo      string    `gorm:"not null"`
+	EmailMsg    int       `gorm:""`
+	CurrentFlow int       //当前正在审批的一步流程
+	UserId      int       `gorm:"not null"`
+	RoleId      int       `gorm:""`
+	GroupId     int       `gorm:""`
+	UserName    string    `gorm:""`
+	RoleName    string    `gorm:""`
+	GroupName   string    `gorm:""`
+	Status      int       `gorm:"not null"`
 
 	FormContent  *Form          `gorm:"-"`
 	ApproveFLows []*ApproveFlow `gorm:"-"`

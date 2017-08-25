@@ -88,6 +88,7 @@ func (c *Controller) GetCode() {
 	}
 }
 
+//根据sysId获取整个功能树结构
 func (c *Controller) GetFunctionsTree() {
 	idstr := c.GetString("sysIds")
 	sysIds := []string{}

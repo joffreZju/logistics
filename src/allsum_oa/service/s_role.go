@@ -21,6 +21,7 @@ func GetRolesDetail(prefix string) (roles []*model.Role, e error) {
 	if e != nil {
 		return
 	}
+	//获取角色对应的功能树详情
 	sql := fmt.Sprintf(`SELECT * from "public"."%s" as t1 inner join "%s"."%s" as t2
 		on t1."id" = t2.func_id
 		where t2.role_id = ?`, model.Function{}.TableName(), prefix, model.RoleFunc{}.TableName())
@@ -33,6 +34,7 @@ func GetRolesDetail(prefix string) (roles []*model.Role, e error) {
 	return
 }
 
+//将功能集添加到角色上面
 func addFuncsToRole(prefix string, tx *gorm.DB, r *model.Role, fids []int) (e error) {
 	for _, id := range fids {
 		f := model.Function{}
@@ -53,12 +55,14 @@ func addFuncsToRole(prefix string, tx *gorm.DB, r *model.Role, fids []int) (e er
 	return nil
 }
 
+//删除一个角色的功能集
 func delAllFuncsOfRole(prefix string, tx *gorm.DB, r *model.Role) (e error) {
 	e = tx.Table(prefix+"."+model.RoleFunc{}.TableName()).
 		Delete(model.RoleFunc{}, "role_id=?", r.Id).Error
 	return
 }
 
+//新增一个角色
 func AddRole(prefix string, r *model.Role, fids []int) (e error) {
 	tx := model.NewOrm().Begin()
 	e = tx.Table(prefix + "." + r.TableName()).Create(r).Error
@@ -74,6 +78,7 @@ func AddRole(prefix string, r *model.Role, fids []int) (e error) {
 	return tx.Commit().Error
 }
 
+//更新角色
 func UpdateRole(prefix string, r *model.Role, fids []int) (e error) {
 	tx := model.NewOrm().Begin()
 	e = tx.Table(prefix + "." + r.TableName()).Model(r).
@@ -95,6 +100,7 @@ func UpdateRole(prefix string, r *model.Role, fids []int) (e error) {
 	return tx.Commit().Error
 }
 
+//删除角色，检测是否有用户在角色下
 func DelRole(prefix string, rid int) (e error) {
 	tx := model.NewOrm().Begin()
 	count := 0

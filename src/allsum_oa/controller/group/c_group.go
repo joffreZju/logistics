@@ -16,7 +16,7 @@ type Controller struct {
 
 const CommonErr = 99999
 
-//更新和增加组织属性
+//更新组织属性
 func (c *Controller) GetAttrList() {
 	prefix := c.UserComp
 	al, e := service.GetAttrList(prefix)
@@ -28,6 +28,7 @@ func (c *Controller) GetAttrList() {
 	c.ReplySucc(al)
 }
 
+//新增组织属性
 func (c *Controller) AddAttr() {
 	prefix := c.UserComp
 	name := c.GetString("name")
@@ -51,6 +52,7 @@ func (c *Controller) AddAttr() {
 	}
 }
 
+//更新组织属性
 func (c *Controller) UpdateAttr() {
 	prefix := c.UserComp
 	aid, e := c.GetInt("id")
@@ -75,6 +77,7 @@ func (c *Controller) UpdateAttr() {
 	}
 }
 
+//删除组织属性
 func (c *Controller) DelAttr() {
 	prefix := c.UserComp
 	aid, e := c.GetInt("id")
@@ -94,6 +97,7 @@ func (c *Controller) DelAttr() {
 	}
 }
 
+//统一获取组织树修改操作的生效时间
 func (c *Controller) getBeginTimeOfOperation() (t time.Time, e error) {
 	timeStr := c.GetString("beginTime")
 	t = time.Now()
@@ -147,6 +151,7 @@ func (c *Controller) AddGroup() {
 	ng.CreatorId = uid
 	ng.No = model.UniqueNo("G")
 	ng.Ctime = time.Now()
+	//根据pid判断新增的节点是不是根节点
 	if ng.Pid == 0 && len(sons) == 0 {
 		e = service.AddRootGroup(prefix, desc, beginTime, ng)
 	} else {
@@ -160,7 +165,7 @@ func (c *Controller) AddGroup() {
 	}
 }
 
-//合并
+//合并组织树节点
 func (c *Controller) MergeGroups() {
 	//检测是否有未提交的修改
 	e := service.CheckFutureGroupOperation(c.UserComp)
@@ -211,7 +216,7 @@ func (c *Controller) MergeGroups() {
 	}
 }
 
-//转让升级
+//节点转让升级
 func (c *Controller) MoveGroup() {
 	//检测是否有未提交的修改
 	e := service.CheckFutureGroupOperation(c.UserComp)
@@ -376,13 +381,6 @@ func (c *Controller) GetGroupOpDetail() {
 //取消未生效的组织树操作记录
 func (c *Controller) CancelGroupOp() {
 	prefix := c.UserComp
-	//t, e := time.ParseInLocation(model.TimeFormatWithLocal, c.GetString("beginTime"), time.Local)
-	//if e != nil {
-	//	c.ReplyErr(errcode.ErrParams)
-	//	beego.Error(e)
-	//	return
-	//}
-	//t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 	opId, e := c.GetInt("opId")
 	if e != nil {
 		c.ReplyErr(errcode.ErrParams)

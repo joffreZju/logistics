@@ -17,6 +17,7 @@ type Controller struct {
 
 const commonErr = 99999
 
+//获取角色列表
 func (c *Controller) GetRoleList() {
 	prefix := c.UserComp
 	roles, e := service.GetRolesDetail(prefix)
@@ -28,6 +29,7 @@ func (c *Controller) GetRoleList() {
 	}
 }
 
+//新增角色
 func (c *Controller) AddRole() {
 	prefix := c.UserComp
 	name := c.GetString("name")
@@ -54,6 +56,7 @@ func (c *Controller) AddRole() {
 	}
 }
 
+//更新角色
 func (c *Controller) UpdateRole() {
 	prefix := c.UserComp
 	id, e := c.GetInt("id")
@@ -86,6 +89,7 @@ func (c *Controller) UpdateRole() {
 	}
 }
 
+//删除角色
 func (c *Controller) DelRole() {
 	prefix := c.UserComp
 	rid, e := c.GetInt("id")

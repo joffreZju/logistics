@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-//表单模板相关
+//表单模板相关，CURD
 func GetFormtplList(prefix string) (ftpls []*model.Formtpl, e error) {
 	ftpls = []*model.Formtpl{}
 	e = model.NewOrm().Table(prefix + "." + model.Formtpl{}.TableName()).Order("no desc").Find(&ftpls).Error
@@ -38,6 +38,7 @@ func UpdateFormtpl(prefix string, ftpl *model.Formtpl) (e error) {
 func ControlFormtpl(prefix, no string, status int) (e error) {
 	count := 0
 	if status == model.TplDisabled {
+		//如果有审批单模板用到了这个表单模板，那么不能禁用
 		e = model.NewOrm().Table(prefix+"."+model.Approvaltpl{}.TableName()).
 			Where("formtpl_no=?", no).Count(&count).Error
 		if e != nil {
@@ -58,6 +59,7 @@ func ControlFormtpl(prefix, no string, status int) (e error) {
 }
 
 func DelFormtpl(prefix, no string) (e error) {
+	//如果有审批单模板用到了这个表单模板，那么不能删除
 	count := 0
 	e = model.NewOrm().Table(prefix+"."+model.Approvaltpl{}.TableName()).
 		Where("formtpl_no=?", no).Count(&count).Error
@@ -77,7 +79,7 @@ func DelFormtpl(prefix, no string) (e error) {
 	return tx.Commit().Error
 }
 
-//审批单模板相关
+//审批单模板相关，可变参数params用户根据名字搜索审批单模板
 func GetApprovaltplList(prefix string, params ...string) (atpls []*model.Approvaltpl, e error) {
 	db := model.NewOrm().Table(prefix + "." + model.Approvaltpl{}.TableName()).Order("no desc")
 	atpls = []*model.Approvaltpl{}
@@ -89,6 +91,7 @@ func GetApprovaltplList(prefix string, params ...string) (atpls []*model.Approva
 	return
 }
 
+//获取审批单模板的详细信息，包括表单内容，以及设定的每一步流程
 func GetApprovaltplDetail(prefix, atplno string) (atpl *model.Approvaltpl, e error) {
 	db := model.NewOrm()
 	atpl = &model.Approvaltpl{}
@@ -108,6 +111,7 @@ func GetApprovaltplDetail(prefix, atplno string) (atpl *model.Approvaltpl, e err
 	return
 }
 
+//获取角色可以匹配到的组织（存在用户既是这个角色也在这个组织）
 func GetMatchGroupsOfRole(prefix string, rid int) (groups []*model.Group, e error) {
 	sql := fmt.Sprintf(
 		`SELECT *
@@ -196,6 +200,7 @@ func DelApprovaltpl(prefix, no string) (e error) {
 }
 
 //审批流相关
+//发起人撤销审批流
 func CancelApproval(prefix, no string) (e error) {
 	db := model.NewOrm().Table(prefix + "." + model.Approval{}.TableName())
 	a := &model.Approval{}
@@ -217,6 +222,7 @@ func CancelApproval(prefix, no string) (e error) {
 	return tx.Commit().Error
 }
 
+//发起一个审批流
 func AddApproval(prefix string, a *model.Approval, atplNo string) (e error) {
 	db := model.NewOrm()
 	atpl := &model.Approvaltpl{No: atplNo}
@@ -242,7 +248,7 @@ func AddApproval(prefix string, a *model.Approval, atplNo string) (e error) {
 	a.UserName = user.UserName
 	a.GroupName = group.Name
 	a.RoleName = role.Name
-	//获取并写入每一步流程
+	//根据发起用户的信息以及这个审批单模板设定的规则，获取并写入每一步应该走的流程
 	var aflows []*model.ApproveFlow
 	aflows, e = getApprovalFlows(prefix, a, atplNo)
 	if e != nil {
@@ -256,7 +262,7 @@ func AddApproval(prefix string, a *model.Approval, atplNo string) (e error) {
 			return
 		}
 	}
-	//写入审批单
+	//写入审批单的基本信息
 	a.CurrentFlow = aflows[0].Id
 	a.EmailMsg = atpl.EmailMsg
 	e = tx.Table(prefix + "." + a.TableName()).Create(a).Error
@@ -264,7 +270,7 @@ func AddApproval(prefix string, a *model.Approval, atplNo string) (e error) {
 		tx.Rollback()
 		return
 	}
-	//写入表单内容
+	//写入审批单对应的表单内容
 	e = tx.Table(prefix + "." + a.FormContent.TableName()).Create(a.FormContent).Error
 	if e != nil {
 		tx.Rollback()
@@ -284,7 +290,7 @@ func getApprovalFlows(prefix string, a *model.Approval, atplNo string) (aflows [
 	if e != nil {
 		return
 	}
-	//根据模板和发起人信息找出需要进行的审批流程
+	//根据模板和发起人信息找出需要进行的审批流程realFlows
 	realFlows := []*model.ApprovaltplFlow{}
 	myLocation := -1
 	//倒序遍历
@@ -306,9 +312,10 @@ func getApprovalFlows(prefix string, a *model.Approval, atplNo string) (aflows [
 		e = errors.New("发起失败：没有符合条件的审批人!")
 		return
 	}
-	//倒序遍历
+	//倒序遍历realFlows
 	for i := len(realFlows) - 1; i >= 0; i-- {
 		v := realFlows[i]
+		//获取当前一步的符合条件的审批人
 		var users []*model.User
 		users, e = getMatchUsersOfFlow(prefix, a, v)
 		if e != nil || len(users) == 0 {
@@ -325,6 +332,7 @@ func getApprovalFlows(prefix string, a *model.Approval, atplNo string) (aflows [
 		if e != nil {
 			return
 		}
+		//构造一步流程准备返回
 		af := &model.ApproveFlow{
 			ApprovalNo: a.No,
 			MatchUsers: matchUsers,
@@ -339,7 +347,7 @@ func getApprovalFlows(prefix string, a *model.Approval, atplNo string) (aflows [
 
 //获取一步流程对应的用户
 func getMatchUsersOfFlow(prefix string, a *model.Approval, atplFlow *model.ApprovaltplFlow) (users []*model.User, e error) {
-	//在指定组织寻找角色
+	//通过确定组织和确定角色寻找符合条件的审批人
 	db := model.NewOrm()
 	users = []*model.User{}
 	if atplFlow.GroupId != 0 {
@@ -396,10 +404,11 @@ func getMatchUsersOfFlow(prefix string, a *model.Approval, atplFlow *model.Appro
 	return
 }
 
+//审批操作
 func Approve(prefix string, a *model.Approval, af *model.ApproveFlow) (e error) {
 	db := model.NewOrm()
 	tx := db.Begin()
-	//审批，修改一步审批流程状态
+	//审批，修改当前一步审批流程状态
 	count := tx.Table(prefix+"."+af.TableName()).
 		Where("id=? and status=?", af.Id, model.ApprovalStatWaiting).Updates(af).RowsAffected
 	if count != 1 {
@@ -417,11 +426,12 @@ func Approve(prefix string, a *model.Approval, af *model.ApproveFlow) (e error) 
 		go newMsgToCreator(prefix, a)
 		go sendEmailToCreator(prefix, a, af, nil)
 	} else {
+		//当前流程通过,查找下一步流程
 		nextFlow := &model.ApproveFlow{}
 		e = db.Table(prefix+"."+nextFlow.TableName()).Order("id").Limit(1).
 			Where("approval_no=? and id>?", a.No, a.CurrentFlow).Find(nextFlow).Error
 		if e == gorm.ErrRecordNotFound {
-			//流程走完,整个审批单通过
+			//没有下一步,整个审批单通过
 			a.Status = model.ApprovalStatAccessed
 			e = tx.Table(prefix + "." + a.TableName()).Model(a).Updates(a).Error
 			if e != nil {
@@ -448,6 +458,7 @@ func Approve(prefix string, a *model.Approval, af *model.ApproveFlow) (e error) 
 	return tx.Commit().Error
 }
 
+//给发起人发送邮件通知
 func sendEmailToCreator(prefix string, approval *model.Approval, currentFlow, nextFlow *model.ApproveFlow) {
 	db := model.NewOrm()
 	u := &model.User{Id: approval.UserId}
@@ -480,6 +491,7 @@ func sendEmailToCreator(prefix string, approval *model.Approval, currentFlow, ne
 	sendEmail([]string{u.Mail}, subject, body)
 }
 
+//读取配置发送邮件
 func sendEmail(targets []string, subject, body string) {
 	if len(targets) == 0 {
 		return
@@ -508,6 +520,7 @@ func sendEmail(targets []string, subject, body string) {
 	}
 }
 
+//给发起人App推送
 func newMsgToCreator(company string, a *model.Approval) {
 	msg := &model.Message{
 		CompanyNo: company,
@@ -530,6 +543,7 @@ func newMsgToCreator(company string, a *model.Approval) {
 	}
 }
 
+//给审批人App推送
 func newMsgToApprovers(company, matchUsers string, a *model.Approval) {
 	title := "来自$" + a.UserName + "$的审批消息"
 	users := strings.Split(strings.Trim(matchUsers, "-"), "-")
@@ -564,6 +578,7 @@ func GetApproveFlowById(prefix string, id int) (af *model.ApproveFlow, e error) 
 	return
 }
 
+//根据开始时间和审批单状态，获取我发起的审批单
 func GetApprovalsFromMe(prefix string, uid int, beginTime, condition string) (alist []*model.Approval, e error) {
 	alist = []*model.Approval{}
 	db := model.NewOrm().Table(prefix+"."+model.Approval{}.TableName()).
@@ -580,6 +595,7 @@ func GetApprovalsFromMe(prefix string, uid int, beginTime, condition string) (al
 	return
 }
 
+//获取需要我审批的审批单，可变参数过滤时间
 func GetTodoApprovalsToMe(prefix string, uid int, params ...string) (alist []*model.Approval, e error) {
 	db := model.NewOrm()
 	alist = []*model.Approval{}
@@ -596,6 +612,7 @@ func GetTodoApprovalsToMe(prefix string, uid int, params ...string) (alist []*mo
 	return
 }
 
+//获取穷我审批过的审批单，可变参数过滤时间
 func GetFinishedApprovalsToMe(prefix string, uid int, params ...string) (alist []*model.Approval, e error) {
 	db := model.NewOrm()
 	alist = []*model.Approval{}

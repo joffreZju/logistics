@@ -56,6 +56,7 @@ func CheckFutureGroupOperation(prefix string) (e error) {
 	return nil
 }
 
+//统一处理所有对组织树的修改事务，立即生效或者定时生效来决定提交事务还是回滚事务
 func handleTX(prefix, desc string, beginTime time.Time, tx *gorm.DB) (e error) {
 	//确定是立即生效还是未来定时生效
 	isFuture := true
@@ -95,6 +96,7 @@ func handleTX(prefix, desc string, beginTime time.Time, tx *gorm.DB) (e error) {
 	}
 }
 
+//新增根节点
 func AddRootGroup(prefix, desc string, beginTime time.Time, ng *model.Group) (e error) {
 	tx := model.NewOrm().Table(prefix + "." + ng.TableName()).Begin()
 	e = tx.Create(ng).Error
@@ -112,6 +114,9 @@ func AddRootGroup(prefix, desc string, beginTime time.Time, ng *model.Group) (e 
 	return handleTX(prefix, desc, beginTime, tx)
 }
 
+//新增上下级
+//新增上级：修改其子节点的pid，以及所有子孙节点的path
+//新增下级：将pid和path赋值，直接增加
 func AddGroup(prefix, desc string, beginTime time.Time, ng *model.Group, sonIds []int) (e error) {
 	tx := model.NewOrm().Table(prefix + "." + ng.TableName()).Begin()
 	father := &model.Group{}
@@ -175,6 +180,7 @@ func AddGroup(prefix, desc string, beginTime time.Time, ng *model.Group, sonIds 
 	return handleTX(prefix, desc, beginTime, tx)
 }
 
+//合并节点，被合并节点必须在同一父节点下，合并后要修改所有旧节点的子节点的pid和path，以及所有子孙节点的path
 func MergeGroups(prefix, desc string, beginTime time.Time, ng *model.Group, oldIds []int) (e error) {
 	groupTb := prefix + "." + ng.TableName()
 	userGroupTb := prefix + "." + model.UserGroup{}.TableName()
@@ -245,6 +251,7 @@ func MergeGroups(prefix, desc string, beginTime time.Time, ng *model.Group, oldI
 	return handleTX(prefix, desc, beginTime, tx)
 }
 
+//移动节点，修改被移动节点的pid和path，被移动节点的所有子孙节点都一起移动，pid和path都要修改
 func MoveGroup(prefix, desc string, beginTime time.Time, gid, newPid int) (e error) {
 	g, gNewFather := new(model.Group), new(model.Group)
 	tx := model.NewOrm().Table(prefix + "." + g.TableName()).Begin()
@@ -285,6 +292,7 @@ func MoveGroup(prefix, desc string, beginTime time.Time, gid, newPid int) (e err
 	return handleTX(prefix, desc, beginTime, tx)
 }
 
+//删除节点，其所有子孙节点自动升级，所以要修改子节点的pid和path，修改子孙节点的path
 func DelGroup(prefix, desc string, beginTime time.Time, gid int) (e error) {
 	db := model.NewOrm()
 	count := 0
@@ -426,7 +434,7 @@ func DelUsersFromGroup(prefix string, gid int, uids []int) (e error) {
 	return tx.Commit().Error
 }
 
-func UpdateGroupssOfUser(prefix string, newGids []int, uid int) (e error) {
+func UpdateGroupsOfUser(prefix string, newGids []int, uid int) (e error) {
 	tx := model.NewOrm().Table(prefix + "." + model.UserGroup{}.TableName()).Begin()
 	e = tx.Where("user_id=?", uid).Delete(&model.UserGroup{}).Error
 	if e != nil {

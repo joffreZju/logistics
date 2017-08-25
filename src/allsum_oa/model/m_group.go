@@ -20,6 +20,10 @@ func (UserGroup) TableName() string {
 	return "oa_user_group"
 }
 
+//对树形结构的操作依赖于Pid和Path两个字段
+//Pid:父节点
+//Path:从跟节点到当前节点的路径，id和“-”拼接而成
+
 type Group struct {
 	Id        int    `gorm:"primary_key;AUTO_INCREMENT"`
 	No        string `gorm:"unique;not null"`

@@ -172,6 +172,7 @@ func SearchUsersByName(prefix, uname string) (users []*model.User, e error) {
 	return
 }
 
+//锁定用户，删除其角色和组织信息
 func LockUser(prefix string, user *model.User) (e error) {
 	tx := model.NewOrm().Begin()
 	count := tx.Table(prefix+"."+user.TableName()).Model(user).
@@ -202,6 +203,7 @@ func GetUserListByUids(prefix string, uids []int) (users []*model.User, e error)
 	return
 }
 
+//获取公司列表，同时将注册者的信息放进去
 func GetCompanyList() (interface{}, error) {
 	type CompanyDetail struct {
 		model.Company
@@ -225,6 +227,7 @@ func GetCompanyList() (interface{}, error) {
 	return list, nil
 }
 
+//创建schema
 func createSchema(schema string) (e error) {
 	sql := fmt.Sprintf(`create schema "%s"`, schema)
 	e = model.NewOrm().Exec(sql).Error
@@ -235,6 +238,7 @@ func createSchema(schema string) (e error) {
 	return
 }
 
+//创建初始管理员角色
 func createCreatorRole(prefix string) (e error) {
 	tx := model.NewOrm().Begin()
 	r := &model.Role{
@@ -254,8 +258,8 @@ func createCreatorRole(prefix string) (e error) {
 		tx.Rollback()
 		return
 	}
+	//将功能菜单分配给管理员角色
 	for _, v := range funcs {
-		//if len(strings.Split(v.Path, "-")) > 2 {
 		rf := &model.RoleFunc{
 			RoleId: r.Id,
 			FuncId: v.Id,
@@ -265,7 +269,6 @@ func createCreatorRole(prefix string) (e error) {
 			tx.Rollback()
 			return
 		}
-		//}
 	}
 	comp := &model.Company{}
 	e = tx.Table(model.Public+"."+comp.TableName()).Find(comp, "no=?", prefix).Error
@@ -285,6 +288,7 @@ func createCreatorRole(prefix string) (e error) {
 	return tx.Commit().Error
 }
 
+//审批注册公司
 func AuditCompany(cno string, approver *model.User, status int, msg string) (err error) {
 	tx := model.NewOrm().Begin()
 	c := tx.Table(model.Public+"."+model.Company{}.TableName()).Model(&model.Company{}).Where("no=?", cno).
@@ -299,7 +303,7 @@ func AuditCompany(cno string, approver *model.User, status int, msg string) (err
 		tx.Rollback()
 		return
 	}
-	//tx.Model(&model.Company{}).Where("no=?", cno).Updates(&model.Company{ApproveTime: time.Now()})
+	//审批通过
 	if status == model.CompanyStatApproveAccessed {
 		//创建schema，直接提交
 		err = createSchema(cno)
@@ -313,7 +317,7 @@ func AuditCompany(cno string, approver *model.User, status int, msg string) (err
 			tx.Rollback()
 			return
 		}
-		//迁移用户
+		//迁移用户从public到schema
 		uids := []int{}
 		sql := fmt.Sprintf(`select user_id from "public"."%s" where cno=?`, model.UserCompany{}.TableName())
 		err = tx.Raw(sql, cno).Pluck("user_id", &uids).Error
@@ -348,6 +352,7 @@ func AuditCompany(cno string, approver *model.User, status int, msg string) (err
 	return tx.Commit().Error
 }
 
+//新增一个功能树节点
 func AddFunction(f *model.Function) (e error) {
 	db := model.NewOrm()
 	ffather := &model.Function{}
@@ -357,11 +362,13 @@ func AddFunction(f *model.Function) (e error) {
 		return errors.New("父节点选取有误，菜单最多五级")
 	}
 	tx := db.Begin()
+	//先创建节点
 	e = tx.Table(model.Public + "." + model.Function{}.TableName()).Create(f).Error
 	if e != nil {
 		tx.Rollback()
 		return
 	}
+	//拿到Id后更新其path
 	f.Path = fmt.Sprintf("%s-%d", ffather.Path, f.Id)
 	count := tx.Table(model.Public + "." + model.Function{}.TableName()).Model(f).Updates(f).RowsAffected
 	if count != 1 {

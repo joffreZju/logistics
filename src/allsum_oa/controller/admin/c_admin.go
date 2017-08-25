@@ -15,6 +15,7 @@ type Controller struct {
 	base.Controller
 }
 
+//获取公司信息
 func (c *Controller) AdminGetFirmInfo() {
 	no := c.GetString("cno")
 	f, err := model.GetCompany(no)
@@ -26,6 +27,7 @@ func (c *Controller) AdminGetFirmInfo() {
 	c.ReplySucc(*f)
 }
 
+//获取公司列表
 func (c *Controller) AdminGetFirmList() {
 	companylist, err := service.GetCompanyList()
 	if err != nil {
@@ -36,6 +38,7 @@ func (c *Controller) AdminGetFirmList() {
 	c.ReplySucc(companylist)
 }
 
+//allsum管理员审核公司
 func (c *Controller) AdminFirmAudit() {
 	cno := c.GetString("cno")
 	msg := c.GetString("msg")
@@ -60,6 +63,7 @@ func (c *Controller) AdminFirmAudit() {
 	c.ReplySucc(nil)
 }
 
+//添加一个功能菜单
 func (c *Controller) AdminAddFunction() {
 	fstr := c.GetString("function")
 	f := &model.Function{}
@@ -78,6 +82,7 @@ func (c *Controller) AdminAddFunction() {
 	}
 }
 
+//更新一个功能菜单
 func (c *Controller) AdminUpdateFunction() {
 	fstr := c.GetString("function")
 	f := &model.Function{}
@@ -97,6 +102,7 @@ func (c *Controller) AdminUpdateFunction() {
 	}
 }
 
+//删除一个功能菜单
 func (c *Controller) AdminDelFunction() { //todo 如果这个功能还有公司在用的话，那么不能删除
 	fid, e := c.GetInt("id")
 	if e != nil {
@@ -113,6 +119,7 @@ func (c *Controller) AdminDelFunction() { //todo 如果这个功能还有公司�
 	}
 }
 
+//获取所有App的版本信息
 func (c *Controller) GetAppVersionList() {
 	vlist, e := service.GetAppVersionList()
 	if e != nil {
@@ -123,6 +130,7 @@ func (c *Controller) GetAppVersionList() {
 	}
 }
 
+//新增一个app的version
 func (c *Controller) AddAppVersion() {
 	appstr := c.GetString("appversion")
 	app := &model.AppVersion{}

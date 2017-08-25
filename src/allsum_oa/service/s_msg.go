@@ -61,6 +61,7 @@ func DelMsgByType(company string, uid, tp int) (err error) {
 	return
 }
 
+//将消息存到和数据库同时使用极光推送推到App
 func SaveAndSendMsg(m *model.Message) (err error) {
 	err = CreateMsg(m)
 	if err != nil {

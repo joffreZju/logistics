@@ -59,6 +59,7 @@ func (c *Controller) UpdateFirmInfo() {
 	c.ReplySucc(nil)
 }
 
+//公司管理员获取用户列表
 func (c *Controller) FirmGetUserList() {
 	prefix := c.UserComp
 	users, e := service.GetUserListOfCompany(prefix)
@@ -70,6 +71,7 @@ func (c *Controller) FirmGetUserList() {
 	}
 }
 
+//用名字搜索用户
 func (c *Controller) FirmSearchUsersByName() {
 	prefix := c.UserComp
 	uname := c.GetString("username")
@@ -82,6 +84,10 @@ func (c *Controller) FirmSearchUsersByName() {
 	}
 }
 
+//公司管理员添加用户
+// 1 先在public下创建用户,并将用户和公司关联
+// 2 然后在schema下创建用户
+// 3 如果用组织和角色信息,那么同时将组织和角色进行关联
 func (c *Controller) FirmAddUser() {
 	//cno := c.GetString("cno")
 	prefix := c.UserComp
@@ -152,7 +158,7 @@ func (c *Controller) FirmAddUser() {
 	c.ReplySucc(nil)
 }
 
-//锁定用户，不能解锁，删除其角色和组织信息,同时删除该用户在redis存在的token
+//锁定用户，并删除其角色和组织信息,同时删除该用户在redis存在的token。锁定之后不能解锁
 func (c *Controller) FirmControlUserStatus() {
 	prefix := c.UserComp
 	currentUid := c.UserID
@@ -195,6 +201,7 @@ func (c *Controller) FirmControlUserStatus() {
 	}
 }
 
+//公司管理员更新用户基本信息
 func (c *Controller) FirmUpdateUserProfile() {
 	prefix := c.UserComp
 	tel := c.GetString("tel")
@@ -228,6 +235,7 @@ func (c *Controller) FirmUpdateUserProfile() {
 	c.ReplySucc(nil)
 }
 
+//公司管理员更新用户组织和角色信息
 func (c *Controller) FirmUpdateUserRoleAndGroup() {
 	prefix := c.UserComp
 	tel := c.GetString("tel")
@@ -262,7 +270,7 @@ func (c *Controller) FirmUpdateUserRoleAndGroup() {
 			beego.Error(e)
 			return
 		}
-		e = service.UpdateGroupssOfUser(prefix, gids, user.Id)
+		e = service.UpdateGroupsOfUser(prefix, gids, user.Id)
 		if e != nil {
 			c.ReplyErr(errcode.ErrServerError)
 			beego.Error(e)
